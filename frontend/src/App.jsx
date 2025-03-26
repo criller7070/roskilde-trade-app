@@ -1,12 +1,22 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
+import AddItem from "./components/AddItem";
+import ItemList from "./components/ItemList";
+import ChatList from "./components/ChatList";
+import ChatPage from "./components/ChatPage"; // ✅ Import ChatPage
 
 function App() {
   return (
-    <div>
+    <Router>
       <Navbar />
-      <Home />
-    </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/items" element={<ItemList />} />
+        <Route path="/chats" element={<ChatList />} />
+        <Route path="/chat/:chatId" element={<ChatPage />} /> {/* ✅ Add this */}
+      </Routes>
+    </Router>
   );
 }
 
