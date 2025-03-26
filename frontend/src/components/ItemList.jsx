@@ -16,43 +16,41 @@ const ItemList = () => {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold mb-4">Available Items</h2>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+    <div className="max-w-4xl mx-auto mt-8">
+      <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Available Items</h2>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.length > 0 ? (
           items.map((item) => (
-            <div key={item.id} className="bg-white p-4 shadow-md rounded-lg">
-              <h3 className="text-lg font-bold">{item.name}</h3>
-              <p className="text-gray-700">{item.description}</p>
-              <span className="text-sm text-gray-500">Category: {item.category}</span>
-              <p className="text-sm text-gray-600 mt-2">Posted by: {item.userName}</p>
-              {item.userId !== auth.currentUser?.uid && (
-                <button
-                  onClick={() =>
-                    setSelectedChat({
-                      recipientId: item.userId,
-                      recipientName: item.userName,
-                      itemId: item.id, // ✅ Include itemId
-                    })
-                  }
-                  className="mt-2 p-2 bg-blue-500 text-white rounded"
-                >
-                  Message {item.userName}
-                </button>
-              )}
+            <div
+              key={item.id}
+              className="bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl duration-300"
+            >
+              <img
+                src={item.imageUrl || "https://via.placeholder.com/400"}
+                alt={item.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-xl font-semibold text-gray-800">{item.name}</h3>
+                <p className="text-gray-600 text-sm mt-2">{item.description}</p>
+                <span className="text-sm text-gray-500 mt-2 block">Category: {item.category}</span>
+                <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
+                {item.userId !== auth.currentUser?.uid && (
+                  <button
+                    onClick={() => setSelectedChat({ recipientId: item.userId, recipientName: item.userName })}
+                    className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+                  >
+                    Message {item.userName}
+                  </button>
+                )}
+              </div>
             </div>
           ))
         ) : (
-          <p>No items available yet.</p>
+          <p className="text-center text-gray-600">No items available yet.</p>
         )}
       </div>
-      {selectedChat && (
-        <Chat
-          recipientId={selectedChat.recipientId}
-          recipientName={selectedChat.recipientName}
-          itemId={selectedChat.itemId} // ✅ Pass itemId to Chat
-        />
-      )}
+      {selectedChat && <Chat recipientId={selectedChat.recipientId} recipientName={selectedChat.recipientName} />}
     </div>
   );
 };
