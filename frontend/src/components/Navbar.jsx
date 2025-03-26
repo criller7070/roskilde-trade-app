@@ -31,6 +31,7 @@ const Navbar = () => {
 
         <div className="hidden md:flex space-x-6">
           <Link to="/" className="hover:underline">Home</Link>
+          <Link to="/add-item" className="hover:underline">Add item</Link>
           <Link to="/items" className="hover:underline">Trade</Link>
           <Link to="/chats" className="hover:underline">Messages</Link>
         </div>

@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
-import { collection, addDoc, query
-, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
-import { formatDistanceToNow } from 'date-fns'; // Optional: for human-readable timestamps
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { formatDistanceToNow } from 'date-fns';
 
-const Chat = ({ recipientId, recipientName, itemId }) => { // <-- Add itemId as a prop
+const Chat = ({ recipientId, recipientName }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
@@ -15,7 +13,6 @@ const Chat = ({ recipientId, recipientName, itemId }) => { // <-- Add itemId as 
     const chatId = [auth.currentUser.uid, recipientId].sort().join("_");
     const q = query(collection(db, `chats/${chatId}/messages`), orderBy("timestamp", "asc"));
 
-    // **🔥 This makes messages update in real-time**
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMessages(snapshot.docs.map((doc) => doc.data()));
     });
@@ -23,57 +20,57 @@ const Chat = ({ recipientId, recipientName, itemId }) => { // <-- Add itemId as 
     return () => unsubscribe();
   }, [recipientId]);
 
+  useEffect(() => {
+    const chatContainer = document.getElementById("chatContainer");
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [messages]);
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-  
-    if (!itemId) {
-      console.error("Error: itemId is undefined! Make sure it's passed to <Chat />");
-      return;
-    }
-  
+
     const chatId = [auth.currentUser.uid, recipientId].sort().join("_");
-  
+
     await addDoc(collection(db, `chats/${chatId}/messages`), {
       senderId: auth.currentUser.uid,
       text: newMessage,
-      timestamp: new Date(),
+      timestamp: serverTimestamp(),
     });
-  
-    const senderRef = doc(db, `userChats/${auth.currentUser.uid}`);
-    const recipientRef = doc(db, `userChats/${recipientId}`);
-  
-    await setDoc(senderRef, {
-      [recipientId]: { chatId, recipientName, itemId }, // ✅ Ensure itemId is included
-    }, { merge: true });
-  
-    await setDoc(recipientRef, {
-      [auth.currentUser.uid]: { chatId, recipientName: auth.currentUser.displayName, itemId },
-    }, { merge: true });
-  
+
     setNewMessage("");
   };
-  
 
   return (
-    <div className="max-w-md mx-auto mt-6 p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl font-bold mb-2">Chat with {recipientName}</h2>
-      <div className="h-60 overflow-y-auto border p-2">
+    <div className="max-w-lg mx-auto mt-8 p-4 bg-white shadow-xl rounded-lg">
+      <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Chat with {recipientName}</h2>
+      <div id="chatContainer" className="h-72 overflow-y-auto border p-4 rounded-lg bg-gray-50">
         {messages.map((msg, index) => (
-          <div key={index} className={`mb-2 p-2 rounded ${msg.senderId === auth.currentUser.uid ? "bg-blue-500 text-white text-right" : "bg-gray-300"}`}>
-            {msg.text}
+          <div
+            key={index}
+            className={`mb-3 p-3 rounded-lg ${
+              msg.senderId === auth.currentUser.uid ? "bg-blue-500 text-white text-right" : "bg-gray-300"
+            }`}
+          >
+            <div>{msg.text}</div>
+            <span className="text-xs text-gray-500">
+              {formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), { addSuffix: true })}
+            </span>
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage} className="mt-2 flex">
+      <form onSubmit={sendMessage} className="mt-4 flex">
         <input
           type="text"
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type a message..."
         />
-        <button type="submit" className="ml-2 p-2 bg-orange-500 text-white rounded">Send</button>
+        <button type="submit" className="ml-3 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+          Send
+        </button>
       </form>
     </div>
   );

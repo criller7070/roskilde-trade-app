@@ -12,6 +12,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/add-item" element={<AddItem />} />
         <Route path="/items" element={<ItemList />} />
         <Route path="/chats" element={<ChatList />} />
         <Route path="/chat/:chatId" element={<ChatPage />} /> {/* ✅ Add this */}
