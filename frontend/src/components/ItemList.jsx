@@ -35,13 +35,16 @@ const ItemList = () => {
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                 <span className="text-sm text-gray-500 mt-2 block">Category: {item.category}</span>
                 <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
-                {item.userId !== auth.currentUser?.uid && (
+                {auth.currentUser && item.userId !== auth.currentUser?.uid && (
                   <button
                     onClick={() => setSelectedChat({ recipientId: item.userId, recipientName: item.userName })}
                     className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   >
                     Message {item.userName}
                   </button>
+                )}
+                {!auth.currentUser && (
+                  <p className="text-sm text-red-500 mt-4">Please log in to message the seller.</p>
                 )}
               </div>
             </div>
