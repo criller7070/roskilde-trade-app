@@ -27,7 +27,7 @@ const Navbar = () => {
   return (
     <nav className="bg-orange-500 text-white py-4 px-6 shadow-md">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Roskilde Trade</h1>
+        <h1 className="text-2xl font-bold">RosSwap</h1>
 
         <div className="hidden md:flex space-x-6">
           <Link to="/" className="hover:underline">Home</Link>

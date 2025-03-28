@@ -5,7 +5,7 @@ const Home = () => {
 
     return (
       <div className="min-h-screen bg-orange-100 flex flex-col items-center justify-center text-center p-6">
-        <h1 className="text-4xl font-bold text-orange-600">Welcome to Roskilde Trade</h1>
+        <h1 className="text-4xl font-bold text-orange-600">Welcome to RosSwap</h1>
         <p className="text-lg text-gray-700 mt-4">
           Trade items, food, and more with other festival guests to reduce waste and make new friends!
         </p>
