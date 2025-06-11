@@ -12,6 +12,11 @@ const Navbar = () => {
         <button onClick={() => setOpen(!open)} className="p-2 bg-orange-500 rounded-full">
           <Menu size={24} className="text-white" />
         </button>
+
+        {/* Logo */}
+        <Link to="/">
+          <img src="/logo.png" alt="RosSwap" className="h-12" />
+        </Link>
       </div>
 
       {/* Slide-out Menu - only shows when open */}
