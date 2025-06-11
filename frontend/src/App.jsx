@@ -11,14 +11,16 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/add-item" element={<AddItem />} />
-        <Route path="/items" element={<ItemList />} />
-        <Route path="/chats" element={<ChatList />} />
-        <Route path="/chat/:chatId" element={<ChatPage />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
+      <div className="pt-16">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/add-item" element={<AddItem />} />
+          <Route path="/items" element={<ItemList />} />
+          <Route path="/chats" element={<ChatList />} />
+          <Route path="/chat/:chatId" element={<ChatPage />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </div>
     </Router>
   );
 }

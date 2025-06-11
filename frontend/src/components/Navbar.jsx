@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Bell, Share2, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
@@ -7,16 +7,23 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Hamburger Button - always visible */}
-      <div className="fixed top-4 left-4 z-50">
-        <button onClick={() => setOpen(!open)} className="p-2 bg-orange-500 rounded-full">
-          <Menu size={24} className="text-white" />
-        </button>
+      <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-3 fixed top-0 left-0 z-50">
+        {/* Left: Hamburger + Logo */}
+        <div className="flex items-center space-x-4">
+          <button onClick={() => setOpen(!open)} className="p-1">
+            <Menu size={24} className="text-white" />
+          </button>
+          <Link to="/">
+            <img src="/logo.png" alt="RosSwap" className="h-8" />
+          </Link>
+        </div>
 
-        {/* Logo */}
-        <Link to="/">
-          <img src="/logo.png" alt="RosSwap" className="h-12" />
-        </Link>
+        {/* Right: Placeholder icons */}
+        <div className="flex space-x-4">
+          <Bell size={20} />
+          <Share2 size={20} />
+          <Search size={20} />
+        </div>
       </div>
 
       {/* Slide-out Menu - only shows when open */}
