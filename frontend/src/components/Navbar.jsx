@@ -29,8 +29,9 @@ const Navbar = () => {
           <Link to="/" onClick={() => setOpen(false)}>Home</Link>
           <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
           <Link to="/items" onClick={() => setOpen(false)}>Liked</Link>
-          <Link to="/add-item" onClick={() => setOpen(false)}>Profil</Link>
-          <Link to="/about" onClick={() => setOpen(false)}>Om os</Link> {/* Optional route */}
+          <Link to="/add-item" onClick={() => setOpen(false)}>Sælg eller byt</Link>
+          <Link to="/profile" onClick={() => setOpen(false)}>Profil</Link>
+          <Link to="/about" onClick={() => setOpen(false)}>Om os</Link>
         </div>
       )}
     </>
