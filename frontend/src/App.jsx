@@ -4,7 +4,8 @@ import Home from "./components/Home";
 import AddItem from "./components/AddItem";
 import ItemList from "./components/ItemList";
 import ChatList from "./components/ChatList";
-import ChatPage from "./components/ChatPage"; // ✅ Import ChatPage
+import ChatPage from "./components/ChatPage";
+import About from "./components/About";
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
         <Route path="/add-item" element={<AddItem />} />
         <Route path="/items" element={<ItemList />} />
         <Route path="/chats" element={<ChatList />} />
-        <Route path="/chat/:chatId" element={<ChatPage />} /> {/* ✅ Add this */}
+        <Route path="/chat/:chatId" element={<ChatPage />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </Router>
   );
