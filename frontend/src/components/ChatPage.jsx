@@ -39,7 +39,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div>
+    <div className="pt-20 px-4 min-h-screen">
       <h2 className="text-xl font-bold mb-4">Chat with {chatId}</h2>
       <div>
         {messages.map((message, index) => (
