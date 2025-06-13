@@ -1,62 +1,49 @@
-import { useState, useEffect } from "react";
-import { auth, db, signInWithGoogle, logout } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { Menu, Bell, Share2, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          setUser(userSnap.data());
-        }
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const [open, setOpen] = useState(false);
 
   return (
-    <nav className="bg-orange-500 text-white py-4 px-6 shadow-md">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">RosSwap</h1>
-
-        <div className="hidden md:flex space-x-6">
-          <Link to="/" className="hover:underline">Home</Link>
-          <Link to="/add-item" className="hover:underline">Add item</Link>
-          <Link to="/items" className="hover:underline">Trade</Link>
-          <Link to="/chats" className="hover:underline">Messages</Link>
+    <>
+      <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-3 fixed top-0 left-0 z-50">
+        {/* Left: Hamburger + Logo */}
+        <div className="flex items-center space-x-4">
+          <button onClick={() => setOpen(!open)} className="p-1">
+            <Menu size={24} className="text-white" />
+          </button>
+          <Link to="/">
+            <img src="/logo.png" alt="RosSwap" className="h-8" />
+          </Link>
         </div>
 
-        {user ? (
-          <div className="flex items-center space-x-4">
-            <img src={user.profilePic} alt="User" className="w-8 h-8 rounded-full" />
-            <span>{user.name}</span>
-            <button
-              onClick={logout}
-              className="bg-white text-orange-500 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={signInWithGoogle}
-            className="bg-white text-orange-500 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100"
-          >
-            Login with Google
-          </button>
-        )}
+        {/* Right: Placeholder icons */}
+        <div className="flex space-x-4">
+          <Bell size={20} />
+          <Share2 size={20} />
+          <Search size={20} />
+        </div>
       </div>
-    </nav>
+
+      {/* Slide-out Menu - only shows when open */}
+      {open && (
+        <div className="fixed inset-0 bg-orange-500 z-40 flex flex-col justify-center items-center space-y-6 text-white text-lg font-semibold uppercase">
+          <button onClick={() => setOpen(false)} className="absolute top-4 right-4 text-white text-2xl">
+            &times;
+          </button>
+
+          <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link to="/Login" onClick={() => setOpen(false)}>Log ind</Link>
+          <Link to="/Signup" onClick={() => setOpen(false)}>Opret konto</Link>
+          <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
+          <Link to="/items" onClick={() => setOpen(false)}>Liked</Link>
+          <Link to="/add-item" onClick={() => setOpen(false)}>Sælg eller byt</Link>
+          <Link to="/profile" onClick={() => setOpen(false)}>Profil</Link>
+          <Link to="/about" onClick={() => setOpen(false)}>Om os</Link>
+        </div>
+      )}
+    </>
   );
 };
 
