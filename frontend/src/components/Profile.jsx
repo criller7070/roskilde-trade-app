@@ -56,7 +56,7 @@ const Profile = () => {
 
       {/* Posts */}
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl text-orange-500 font-bold">Dine Post</h2>
+        <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
         <PlusCircle className="text-orange-500" size={28} />
       </div>
 

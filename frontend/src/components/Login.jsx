@@ -1,17 +1,28 @@
 import { useState } from "react";
 import { auth, signInWithGoogle } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Logget ind!");
+      navigate("/profile");
+    } catch (error) {
+      alert("Fejl: " + error.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
+      navigate("/profile");
     } catch (error) {
       alert("Fejl: " + error.message);
     }
@@ -46,7 +57,7 @@ const Login = () => {
           <p className="text-sm text-gray-500 mb-2">eller</p>
           <button
             type="button"
-            onClick={signInWithGoogle}
+            onClick={handleGoogleLogin}
             className="w-full bg-white border text-orange-500 font-semibold py-2 rounded-lg shadow hover:bg-orange-50"
           >
             Log ind med Google
