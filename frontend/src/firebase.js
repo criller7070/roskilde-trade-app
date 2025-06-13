@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAq_FHFKZ0NMTB3Z51RkSeWn9aif7RPdLk",
@@ -15,6 +16,7 @@ const firebaseConfig = {
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
+  const storage = getStorage(app);
   
   const signInWithGoogle = async () => {
     try {
@@ -47,4 +49,4 @@ const firebaseConfig = {
     }
   };
   
-  export { auth, db, signInWithGoogle, logout };
+export { auth, db, storage, signInWithGoogle, logout };
