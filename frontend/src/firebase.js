@@ -20,7 +20,9 @@ const firebaseConfig = {
   
   const signInWithGoogle = async () => {
     try {
+      console.log("Starting Google sign-in process...");
       const result = await signInWithPopup(auth, provider);
+      console.log("Sign-in successful:", result);
       const user = result.user;
   
       // Check if the user already exists in Firestore
@@ -28,6 +30,7 @@ const firebaseConfig = {
       const userSnap = await getDoc(userRef);
   
       if (!userSnap.exists()) {
+        console.log("Creating new user document...");
         await setDoc(userRef, {
           uid: user.uid,
           name: user.displayName,
@@ -35,9 +38,17 @@ const firebaseConfig = {
           profilePic: user.photoURL,
           createdAt: new Date(),
         });
+        console.log("New user document created");
       }
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      console.error("Detailed Google sign-in error:", {
+        code: error.code,
+        message: error.message,
+        email: error.email,
+        credential: error.credential,
+        fullError: error
+      });
+      alert(`Login failed: ${error.message}. Please check the console for more details.`);
     }
   };
   
