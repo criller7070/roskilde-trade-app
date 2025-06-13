@@ -41,6 +41,17 @@ const Login = () => {
         >
           Log Ind
         </button>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500 mb-2">eller</p>
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            className="w-full bg-white border text-orange-500 font-semibold py-2 rounded-lg shadow hover:bg-orange-50"
+          >
+            Log ind med Google
+          </button>
+        </div>
       </form>
     </div>
   );
