@@ -10,7 +10,7 @@ const ItemList = () => {
   const [selectedChat, setSelectedChat] = useState(null);
 
   useEffect(() => {
-    const q = query(collection(db, "items"), orderBy("timestamp", "desc"));
+    const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
@@ -29,13 +29,13 @@ const ItemList = () => {
             >
               <img
                 src={item.imageUrl || "https://via.placeholder.com/400"}
-                alt={item.name}
+                alt={item.title}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h3 className="text-xl font-semibold text-gray-800">{item.name}</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                <span className="text-sm text-gray-500 mt-2 block">Category: {item.category}</span>
+                <span className="text-sm text-gray-500 mt-2 block">Mode: {item.mode}</span>
                 <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
                 {user && item.userId !== user.uid && (
                   <button

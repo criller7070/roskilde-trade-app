@@ -24,7 +24,7 @@ export default function AddItem() {
       // const snapshot = await uploadBytes(imageRef, image);
       // const imageUrl = await getDownloadURL(snapshot.ref);
 
-      await addDoc(collection(db, "posts"), {
+      await addDoc(collection(db, "items"), {
         title,
         description,
         mode,
@@ -45,14 +45,6 @@ export default function AddItem() {
       alert("Noget gik galt. Prøv igen.");
     }
   };
-
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-6">
-        <p className="text-center text-gray-600">Please log in to add items.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
