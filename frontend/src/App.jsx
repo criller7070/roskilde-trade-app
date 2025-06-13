@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import AddItem from "./components/AddItem";
@@ -10,26 +10,11 @@ import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
-import { auth } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useState, useEffect } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ItemsProvider } from "./contexts/ItemsContext";
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return null; // or a loading spinner if you prefer
-  }
+function AppRoutes() {
+  const { user } = useAuth();
 
   return (
     <Router>
@@ -51,6 +36,16 @@ function App() {
         </Routes>
       </div>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ItemsProvider>
+        <AppRoutes />
+      </ItemsProvider>
+    </AuthProvider>
   );
 }
 

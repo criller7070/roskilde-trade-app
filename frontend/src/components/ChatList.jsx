@@ -1,18 +1,19 @@
-
 import { useState, useEffect } from "react";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "../contexts/AuthContext";
 
 const ChatList = () => {
+  const { user } = useAuth();
   const [chats, setChats] = useState([]);
 
   useEffect(() => {
     const fetchChats = async () => {
-      if (!auth.currentUser) return;
+      if (!user) return;
 
-      const userChatsRef = doc(db, `userChats/${auth.currentUser.uid}`);
+      const userChatsRef = doc(db, `userChats/${user.uid}`);
       const userChatsSnap = await getDoc(userChatsRef);
 
       if (!userChatsSnap.exists()) return;
@@ -45,12 +46,13 @@ const ChatList = () => {
           const lastMsg = messages[messages.length - 1];
 
           return {
-            chatId,
-            itemTitle: itemData.name || "Ukendt vare",
-            itemImage: itemData.imageUrl || "/placeholder.jpg",
+            id: chatId,
+            itemId,
+            itemName: itemData.name || "Unknown Item",
+            itemImage: itemData.imageUrl,
             sellerName,
-            lastMessage: lastMsg?.text || "Ingen beskeder endnu",
-            lastTimestamp: lastMsg?.timestamp?.seconds || null,
+            lastMessage: lastMsg?.text || "No messages yet",
+            lastMessageTime: lastMsg?.timestamp || null,
           };
         })
       );
@@ -59,40 +61,54 @@ const ChatList = () => {
     };
 
     fetchChats();
-  }, []);
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="pt-20 px-4 text-center">
+        <p className="text-gray-600">Please log in to view your chats.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-md mx-auto mt-6 px-4 pb-10">
-      <h2 className="text-2xl font-bold text-orange-500 mb-4">Beskeder</h2>
-      {chats.length > 0 ? (
-        <ul className="space-y-4">
-          {chats.map((chat) => (
+    <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Dine Beskeder</h1>
+      <div className="space-y-4">
+        {chats.length === 0 ? (
+          <p className="text-center text-gray-600">No chats yet.</p>
+        ) : (
+          chats.map((chat) => (
             <Link
-              key={chat.chatId}
-              to={`/chat/${chat.chatId}`}
-              className="flex items-center gap-4 p-3 bg-white rounded-xl shadow hover:bg-orange-50 transition"
+              key={chat.id}
+              to={`/chat/${chat.id}`}
+              className="block bg-white rounded-xl shadow p-4 hover:shadow-md transition-shadow"
             >
-              <img
-                src={chat.itemImage}
-                alt={chat.itemTitle}
-                className="w-16 h-16 rounded-md object-cover"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800">{chat.itemTitle}</h3>
-                <p className="text-sm text-gray-600">{chat.sellerName}</p>
-                <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
-              </div>
-              <div className="text-xs text-gray-400 whitespace-nowrap">
-                {chat.lastTimestamp
-                  ? formatDistanceToNow(new Date(chat.lastTimestamp * 1000), { addSuffix: true })
-                  : ""}
+              <div className="flex items-center space-x-4">
+                {chat.itemImage && (
+                  <img
+                    src={chat.itemImage}
+                    alt={chat.itemName}
+                    className="w-16 h-16 object-cover rounded-lg"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-800 truncate">{chat.itemName}</h3>
+                  <p className="text-sm text-gray-600 truncate">With: {chat.sellerName}</p>
+                  <p className="text-sm text-gray-500 truncate mt-1">{chat.lastMessage}</p>
+                  {chat.lastMessageTime && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      {formatDistanceToNow(new Date(chat.lastMessageTime.seconds * 1000), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
             </Link>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-500 text-center">Ingen samtaler endnu.</p>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };
