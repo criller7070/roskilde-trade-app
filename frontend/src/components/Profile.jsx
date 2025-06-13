@@ -74,7 +74,7 @@ const Profile = () => {
                 className="w-16 h-16 object-cover rounded-md"
               />
               <div className="flex-1">
-                <h3 className="font-bold text-sm truncate">{post.name}</h3>
+                <h3 className="font-bold text-sm truncate">{post.title}</h3>
                 <p className="text-xs text-gray-700">{user.displayName}</p>
                 <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">{post.description}</p>
               </div>
@@ -84,11 +84,7 @@ const Profile = () => {
                 ) : (
                   <DollarSign className="text-gray-600" size={16} />
                 )}
-                {post.status === "godkendt" ? (
-                  <CheckCircle className="text-green-500" size={16} />
-                ) : (
-                  <XCircle className="text-red-500" size={16} />
-                )}
+                {/* Status icons can be handled here if you add a status field */}
               </div>
             </div>
           ))
