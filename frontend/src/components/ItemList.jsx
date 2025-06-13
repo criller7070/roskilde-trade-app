@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import Chat from "./Chat";
+import { useAuth } from "../contexts/AuthContext";
 
 const ItemList = () => {
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
 
@@ -17,7 +19,7 @@ const ItemList = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
-      <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Available Items</h2>
+      <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Nye Opslag</h2>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.length > 0 ? (
           items.map((item) => (
@@ -35,7 +37,7 @@ const ItemList = () => {
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                 <span className="text-sm text-gray-500 mt-2 block">Category: {item.category}</span>
                 <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
-                {auth.currentUser && item.userId !== auth.currentUser?.uid && (
+                {user && item.userId !== user.uid && (
                   <button
                     onClick={() => setSelectedChat({ recipientId: item.userId, recipientName: item.userName })}
                     className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
@@ -43,7 +45,7 @@ const ItemList = () => {
                     Message {item.userName}
                   </button>
                 )}
-                {!auth.currentUser && (
+                {!user && (
                   <p className="text-sm text-red-500 mt-4">Please log in to message the seller.</p>
                 )}
               </div>

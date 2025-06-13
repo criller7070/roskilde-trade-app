@@ -1,25 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Menu, Bell, Share2, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      // If user logs out and is on profile page, redirect to home
-      if (!currentUser && window.location.pathname === '/profile') {
-        navigate('/');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
 
   const handleLogout = async () => {
     try {
@@ -30,6 +18,13 @@ const Navbar = () => {
       console.error('Error signing out:', error);
     }
   };
+
+  // If user logs out and is on profile page, redirect to home
+  React.useEffect(() => {
+    if (!user && window.location.pathname === '/profile') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   return (
     <>
