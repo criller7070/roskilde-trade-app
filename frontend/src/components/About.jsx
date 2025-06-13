@@ -1,11 +1,11 @@
 import React from "react";
 
 const team = [
-  { name: "Hannah Lund", img: "/team/hannah.jpg" },
-  { name: "Lillian Osman", img: "/team/lillian.jpg" },
-  { name: "Philipp Zhuravlev", img: "/team/philipp.jpg" },
-  { name: "Christian Hyllested", img: "/team/christian.jpg" },
-  { name: "Aakash Kugaseelan", img: "/team/aakash.jpg" },
+  { name: "Hannah Lund", img: "/team/Hannah.jpg" },
+  { name: "Lilian Osman", img: "/team/Lilian.jpg" },
+  { name: "Philipp Zhuravlev", img: "/team/Philipp.jpg" },
+  { name: "Christian Hyllested", img: "/team/Criller.png" },
+  { name: "Akkash Vigneswaran", img: "/team/Akkash.jpg" },
 ];
 
 export default function About() {
