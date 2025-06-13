@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { PlusCircle, Camera, Repeat2, DollarSign, CheckCircle, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-
-        // Fetch items by current user
-        const q = query(collection(db, "items"), where("userId", "==", currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPosts(itemData);
-      } else {
-        // If no user is logged in, redirect to home
+    const fetchUserPosts = async () => {
+      if (!user) {
         navigate('/');
+        return;
       }
-    });
 
-    return () => unsubscribe();
-  }, [navigate]);
+      // Fetch items by current user
+      const q = query(collection(db, "items"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPosts(itemData);
+    };
+
+    fetchUserPosts();
+  }, [user, navigate]);
 
   if (!user) {
     return null; // Don't render anything while redirecting
