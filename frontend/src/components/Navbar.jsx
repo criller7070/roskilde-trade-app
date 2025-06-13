@@ -34,6 +34,8 @@ const Navbar = () => {
           </button>
 
           <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link to="/Login" onClick={() => setOpen(false)}>Log ind</Link>
+          <Link to="/Signup" onClick={() => setOpen(false)}>Opret konto</Link>
           <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
           <Link to="/items" onClick={() => setOpen(false)}>Liked</Link>
           <Link to="/add-item" onClick={() => setOpen(false)}>Sælg eller byt</Link>
