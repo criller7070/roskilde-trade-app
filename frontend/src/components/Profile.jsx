@@ -1,13 +1,14 @@
-
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { PlusCircle, Camera, Repeat2, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -19,14 +20,17 @@ const Profile = () => {
         const querySnapshot = await getDocs(q);
         const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setPosts(itemData);
+      } else {
+        // If no user is logged in, redirect to home
+        navigate('/');
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   if (!user) {
-    return <div className="p-6 text-center">Logger ind...</div>;
+    return null; // Don't render anything while redirecting
   }
 
   return (
@@ -56,7 +60,7 @@ const Profile = () => {
 
       {/* Posts */}
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl text-orange-500 font-bold">Dine Post</h2>
+        <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
         <PlusCircle className="text-orange-500" size={28} />
       </div>
 
