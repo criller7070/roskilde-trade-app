@@ -7,6 +7,8 @@ import ChatList from "./components/ChatList";
 import ChatPage from "./components/ChatPage";
 import About from "./components/About";
 import Profile from "./components/Profile";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/chat/:chatId" element={<ChatPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/Signup" element={<Signup />} />
         </Routes>
       </div>
     </Router>
