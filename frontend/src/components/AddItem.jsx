@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { db, auth /*, storage */ } from "../firebase";
+import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useAuth } from "../contexts/AuthContext";
 // import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function AddItem() {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
@@ -11,7 +13,7 @@ export default function AddItem() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !description || !image) {
+    if (!title || !description || !image || !user) {
       alert("Udfyld alle felter og vælg et billede.");
       return;
     }
@@ -22,13 +24,13 @@ export default function AddItem() {
       // const snapshot = await uploadBytes(imageRef, image);
       // const imageUrl = await getDownloadURL(snapshot.ref);
 
-      await addDoc(collection(db, "posts"), {
+      await addDoc(collection(db, "items"), {
         title,
         description,
         mode,
         // imageUrl,
-        userId: auth.currentUser?.uid,
-        userName: auth.currentUser?.displayName,
+        userId: user.uid,
+        userName: user.displayName,
         createdAt: serverTimestamp(),
       });
 
@@ -46,7 +48,7 @@ export default function AddItem() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">Ny Post</h1>
+      <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">Nyt Opslag</h1>
 
       <form onSubmit={handleSubmit}>
         {/* Image Upload */}

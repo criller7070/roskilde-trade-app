@@ -1,32 +1,34 @@
-
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { PlusCircle, Camera, Repeat2, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-
-        // Fetch items by current user
-        const q = query(collection(db, "items"), where("userId", "==", currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPosts(itemData);
+    const fetchUserPosts = async () => {
+      if (!user) {
+        navigate('/');
+        return;
       }
-    });
 
-    return () => unsubscribe();
-  }, []);
+      // Fetch items by current user
+      const q = query(collection(db, "items"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPosts(itemData);
+    };
+
+    fetchUserPosts();
+  }, [user, navigate]);
 
   if (!user) {
-    return <div className="p-6 text-center">Logger ind...</div>;
+    return null; // Don't render anything while redirecting
   }
 
   return (
@@ -72,7 +74,7 @@ const Profile = () => {
                 className="w-16 h-16 object-cover rounded-md"
               />
               <div className="flex-1">
-                <h3 className="font-bold text-sm truncate">{post.name}</h3>
+                <h3 className="font-bold text-sm truncate">{post.title}</h3>
                 <p className="text-xs text-gray-700">{user.displayName}</p>
                 <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">{post.description}</p>
               </div>
@@ -82,11 +84,7 @@ const Profile = () => {
                 ) : (
                   <DollarSign className="text-gray-600" size={16} />
                 )}
-                {post.status === "godkendt" ? (
-                  <CheckCircle className="text-green-500" size={16} />
-                ) : (
-                  <XCircle className="text-red-500" size={16} />
-                )}
+                {/* Status icons can be handled here if you add a status field */}
               </div>
             </div>
           ))

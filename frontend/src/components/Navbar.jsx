@@ -1,9 +1,30 @@
 import React, { useState } from 'react';
 import { Menu, Bell, Share2, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      setOpen(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // If user logs out and is on profile page, redirect to home
+  React.useEffect(() => {
+    if (!user && window.location.pathname === '/profile') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   return (
     <>
@@ -18,11 +39,20 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Right: Placeholder icons */}
-        <div className="flex space-x-4">
+        {/* Right: Icons + Profile Picture */}
+        <div className="flex items-center space-x-4">
           <Bell size={20} />
           <Share2 size={20} />
           <Search size={20} />
+          {user && (
+            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+              <img 
+                src={user.photoURL || "/default_pfp.jpg"} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -34,12 +64,30 @@ const Navbar = () => {
           </button>
 
           <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-          <Link to="/Login" onClick={() => setOpen(false)}>Log ind</Link>
-          <Link to="/Signup" onClick={() => setOpen(false)}>Opret konto</Link>
+          {!user ? (
+            <>
+              <Link to="/Login" onClick={() => setOpen(false)}>Log ind</Link>
+              <Link to="/Signup" onClick={() => setOpen(false)}>Opret konto</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/profile" onClick={() => setOpen(false)}>Profil</Link>
+              <button 
+                onClick={handleLogout}
+                className="text-white"
+              >
+                LOG UD
+              </button>
+            </>
+          )}
           <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
-          <Link to="/items" onClick={() => setOpen(false)}>Liked</Link>
-          <Link to="/add-item" onClick={() => setOpen(false)}>Sælg eller byt</Link>
-          <Link to="/profile" onClick={() => setOpen(false)}>Profil</Link>
+          
+          <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
+          <Link to="/items" onClick={() => setOpen(false)}>Liked Opslag</Link>
+          <Link to="/items" onClick={() => setOpen(false)}>Nye Opslag</Link>
+          <Link to="/add-item" onClick={() => setOpen(false)}>Opret Opslag</Link>
+          <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
+          
           <Link to="/about" onClick={() => setOpen(false)}>Om os</Link>
         </div>
       )}

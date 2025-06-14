@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from "../contexts/AuthContext";
 
 const Chat = ({ recipientId, recipientName }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
   useEffect(() => {
-    if (!recipientId) return;
+    if (!recipientId || !user) return;
 
-    const chatId = [auth.currentUser.uid, recipientId].sort().join("_");
+    const chatId = [user.uid, recipientId].sort().join("_");
     const q = query(collection(db, `chats/${chatId}/messages`), orderBy("timestamp", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -18,7 +20,7 @@ const Chat = ({ recipientId, recipientName }) => {
     });
 
     return () => unsubscribe();
-  }, [recipientId]);
+  }, [recipientId, user]);
 
   useEffect(() => {
     const chatContainer = document.getElementById("chatContainer");
@@ -29,18 +31,22 @@ const Chat = ({ recipientId, recipientName }) => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
-    const chatId = [auth.currentUser.uid, recipientId].sort().join("_");
+    const chatId = [user.uid, recipientId].sort().join("_");
 
     await addDoc(collection(db, `chats/${chatId}/messages`), {
-      senderId: auth.currentUser.uid,
+      senderId: user.uid,
       text: newMessage,
       timestamp: serverTimestamp(),
     });
 
     setNewMessage("");
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="max-w-lg mx-auto mt-8 p-4 bg-white shadow-xl rounded-lg">
@@ -50,7 +56,7 @@ const Chat = ({ recipientId, recipientName }) => {
           <div
             key={index}
             className={`mb-3 p-3 rounded-lg ${
-              msg.senderId === auth.currentUser.uid ? "bg-blue-500 text-white text-right" : "bg-gray-300"
+              msg.senderId === user.uid ? "bg-blue-500 text-white text-right" : "bg-gray-300"
             }`}
           >
             <div>{msg.text}</div>

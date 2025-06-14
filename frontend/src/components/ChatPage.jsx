@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import {
   collection,
   query,
@@ -11,14 +11,16 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "../contexts/AuthContext";
 
 const ChatPage = () => {
   const { chatId } = useParams();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
+  const [chatMeta, setChatMeta] = useState({ recipientName: "", itemName: "", itemImage: "" });
 
   useEffect(() => {
     if (!chatId) return;
@@ -40,10 +42,8 @@ const ChatPage = () => {
     }
   }, [messages]);
 
-  const [chatMeta, setChatMeta] = useState({ recipientName: "", itemName: "", itemImage: "" });
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const fetchChatMeta = async () => {
       if (!user || !chatId) return;
 
       const userChatsRef = doc(db, `userChats/${user.uid}`);
@@ -51,8 +51,8 @@ const ChatPage = () => {
 
       if (userChatsSnap.exists()) {
         const chatData = userChatsSnap.data();
-
         const match = Object.values(chatData).find((entry) => entry.chatId === chatId);
+        
         if (match) {
           const { recipientName, itemId } = match;
 
@@ -69,23 +69,27 @@ const ChatPage = () => {
           setChatMeta({ recipientName, itemName, itemImage });
         }
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [chatId]);
+    fetchChatMeta();
+  }, [chatId, user]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
     await addDoc(collection(db, `chats/${chatId}/messages`), {
-      senderId: auth.currentUser.uid,
+      senderId: user.uid,
       text: newMessage,
       timestamp: serverTimestamp(),
     });
 
     setNewMessage("");
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="pt-20 px-4 pb-24 min-h-screen bg-orange-100 max-w-md mx-auto">
@@ -102,12 +106,12 @@ const ChatPage = () => {
           <div
             key={index}
             className={`flex ${
-              msg.senderId === auth.currentUser.uid ? "justify-end" : "justify-start"
+              msg.senderId === user.uid ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`max-w-xs px-4 py-2 rounded-2xl text-sm ${
-                msg.senderId === auth.currentUser.uid
+                msg.senderId === user.uid
                   ? "bg-orange-500 text-white rounded-br-none"
                   : "bg-white text-gray-800 rounded-bl-none"
               }`}

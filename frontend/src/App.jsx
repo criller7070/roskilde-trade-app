@@ -9,15 +9,23 @@ import About from "./components/About";
 import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import LoginRequired from "./components/LoginRequired";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ItemsProvider } from "./contexts/ItemsContext";
 
-function App() {
+function AppRoutes() {
+  const { user } = useAuth();
+
   return (
     <Router>
       <Navbar />
       <div className="pt-16 min-h-screen bg-orange-100">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/add-item" element={<AddItem />} />
+          <Route 
+            path="/add-item" 
+            element={user ? <AddItem /> : <LoginRequired />} 
+          />
           <Route path="/items" element={<ItemList />} />
           <Route path="/chats" element={<ChatList />} />
           <Route path="/chat/:chatId" element={<ChatPage />} />
@@ -28,6 +36,16 @@ function App() {
         </Routes>
       </div>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ItemsProvider>
+        <AppRoutes />
+      </ItemsProvider>
+    </AuthProvider>
   );
 }
 
