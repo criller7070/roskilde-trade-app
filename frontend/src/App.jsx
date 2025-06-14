@@ -10,6 +10,7 @@ import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
+import Liked from "./components/Liked";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 
@@ -33,6 +34,10 @@ function AppRoutes() {
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/Signup" element={<Signup />} />
+          <Route 
+            path="/liked" 
+            element={user ? <Liked /> : <LoginRequired />}
+          />
         </Routes>
       </div>
     </Router>
