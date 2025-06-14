@@ -3,11 +3,24 @@ import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import Chat from "./Chat";
 import { useAuth } from "../contexts/AuthContext";
+import { useItems } from "../contexts/ItemsContext";
+import { Heart, HeartOff } from "lucide-react";
 
 const ItemList = () => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const { likeItem, unlikeItem, getLikedItemIds } = useItems();
+  const [likedIds, setLikedIds] = useState([]);
+
+  useEffect(() => {
+    const fetchLikedIds = async () => {
+      const ids = await getLikedItemIds();
+      setLikedIds(ids);
+    };
+
+    fetchLikedIds();
+  }, [getLikedItemIds]);
 
   useEffect(() => {
     const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
@@ -17,6 +30,17 @@ const ItemList = () => {
     return () => unsubscribe();
   }, []);
 
+  const toggleLike = async (itemId) => {
+    if (!user) return alert("Log ind for at like opslag.");
+    if (likedIds.includes(itemId)) {
+      await unlikeItem(itemId);
+      setLikedIds(likedIds.filter((id) => id !== itemId));
+    } else {
+      await likeItem(itemId);
+      setLikedIds([...likedIds, itemId]);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Nye Opslag</h2>
@@ -25,7 +49,7 @@ const ItemList = () => {
           items.map((item) => (
             <div
               key={item.id}
-              className="bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl duration-300"
+              className="relative bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl duration-300"
             >
               <img
                 src={item.imageUrl || "https://via.placeholder.com/400"}
@@ -33,6 +57,16 @@ const ItemList = () => {
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
+                <button
+                  onClick={() => toggleLike(item.id)}
+                  className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-orange-100 transition"
+                >
+                  {likedIds.includes(item.id) ? (
+                    <Heart className="text-orange-500 fill-orange-500" size={20} />
+                  ) : (
+                    <Heart className="text-gray-400" size={20} />
+                  )}
+                </button>
                 <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                 <span className="text-sm text-gray-500 mt-2 block">Mode: {item.mode}</span>

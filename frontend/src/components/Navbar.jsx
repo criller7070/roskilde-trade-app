@@ -83,7 +83,7 @@ const Navbar = () => {
           <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
           
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
-          <Link to="/items" onClick={() => setOpen(false)}>Liked Opslag</Link>
+          <Link to="/liked" onClick={() => setOpen(false)}>Liked Opslag</Link>
           <Link to="/items" onClick={() => setOpen(false)}>Nye Opslag</Link>
           <Link to="/add-item" onClick={() => setOpen(false)}>Opret Opslag</Link>
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>

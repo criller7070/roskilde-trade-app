@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, getDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 const ItemsContext = createContext();
@@ -54,12 +54,41 @@ export function ItemsProvider({ children }) {
     return items.filter(item => item.category === category);
   };
 
+  // Like an item
+  const likeItem = async (itemId) => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      likedItemIds: arrayUnion(itemId),
+    });
+  };
+
+  // Unlike an item
+  const unlikeItem = async (itemId) => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      likedItemIds: arrayRemove(itemId),
+    });
+  };
+
+  // Get liked item IDs
+  const getLikedItemIds = async () => {
+    if (!user) return [];
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const data = userSnap.data();
+    return data?.likedItemIds || [];
+  };
+
   const value = {
     items,
     loading,
     addItem,
     getUserItems,
     getItemsByCategory,
+    likeItem,
+    unlikeItem,
+    getLikedItemIds
   };
 
   return (
