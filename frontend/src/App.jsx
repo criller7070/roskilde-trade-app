@@ -11,6 +11,7 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
 import Liked from "./components/Liked";
+import ItemPage from "./components/ItemPage";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 
@@ -38,6 +39,7 @@ function AppRoutes() {
             path="/liked" 
             element={user ? <Liked /> : <LoginRequired />}
           />
+          <Route path="/item/:itemId" element={<ItemPage />} />
         </Routes>
       </div>
     </Router>
