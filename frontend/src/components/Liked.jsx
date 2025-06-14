@@ -3,6 +3,7 @@ import { useItems } from "../contexts/ItemsContext";
 import { db } from "../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { Repeat2, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Liked = () => {
   const { getLikedItemIds } = useItems();
@@ -29,27 +30,29 @@ const Liked = () => {
 
       <div className="space-y-4">
         {likedPosts.map((post) => (
-          <div key={post.id} className="flex bg-gray-100 rounded-xl p-3 items-center shadow-sm">
-            <img
-              src={post.imageUrl || "/placeholder.jpg"}
-              alt={post.name}
-              className="w-20 h-20 rounded-md object-cover mr-3"
-            />
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <span className="bg-orange-500 text-black px-2 py-1 text-sm font-bold rounded-md max-w-[10rem] truncate">
-                  {post.title}
-                </span>
-                {post.mode === "bytte" ? (
-                  <Repeat2 className="text-gray-700" size={18} />
-                ) : (
-                  <DollarSign className="text-gray-700" size={18} />
-                )}
-              </div>
-              <p className="text-sm font-semibold text-gray-800">{post.userName}</p>
-              <p className="text-sm text-gray-600 line-clamp-2 leading-tight">{post.description}</p>
-            </div>
-          </div>
+            <Link to={`/item/${post.id}`} key={post.id}>
+                <div className="flex bg-gray-100 rounded-xl p-3 items-center shadow-sm hover:bg-orange-50 transition">
+                <img
+                    src={post.imageUrl || "/placeholder.jpg"}
+                    alt={post.name}
+                    className="w-20 h-20 rounded-md object-cover mr-3"
+                />
+                <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                    <span className="bg-orange-500 text-black px-2 py-1 text-sm font-bold rounded-md max-w-[10rem] truncate">
+                        {post.title}
+                    </span>
+                    {post.mode === "bytte" ? (
+                        <Repeat2 className="text-gray-700" size={18} />
+                    ) : (
+                        <DollarSign className="text-gray-700" size={18} />
+                    )}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800">{post.userName}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2 leading-tight">{post.description}</p>
+                </div>
+                </div>
+            </Link>
         ))}
       </div>
     </div>
