@@ -4,13 +4,15 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import Chat from "./Chat";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
-import { Heart, HeartOff } from "lucide-react";
+import { useAdmin } from "../contexts/AdminContext";
+import { Heart, HeartOff, Trash2 } from "lucide-react";
 
 const ItemList = () => {
   const { user } = useAuth();
+  const { isAdmin, logAdminAction } = useAdmin();
   const [items, setItems] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
-  const { likeItem, unlikeItem, getLikedItemIds } = useItems();
+  const { likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems();
   const [likedIds, setLikedIds] = useState([]);
 
   useEffect(() => {
@@ -41,6 +43,25 @@ const ItemList = () => {
     }
   };
 
+  const handleRemoveItem = async (itemId, itemTitle) => {
+    const confirmed = window.confirm(`Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`);
+    if (confirmed) {
+      try {
+        await removeItem(itemId);
+        // Log the admin action
+        await logAdminAction('remove_item', {
+          itemId,
+          itemTitle,
+          removedAt: new Date()
+        });
+        alert("Item removed successfully!");
+      } catch (error) {
+        console.error("Error removing item:", error);
+        alert("Failed to remove item. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Nye Opslag</h2>
@@ -57,16 +78,27 @@ const ItemList = () => {
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <button
-                  onClick={() => toggleLike(item.id)}
-                  className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-orange-100 transition"
-                >
-                  {likedIds.includes(item.id) ? (
-                    <Heart className="text-orange-500 fill-orange-500" size={20} />
-                  ) : (
-                    <Heart className="text-gray-400" size={20} />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <button
+                    onClick={() => toggleLike(item.id)}
+                    className="bg-white p-2 rounded-full shadow hover:bg-orange-100 transition"
+                  >
+                    {likedIds.includes(item.id) ? (
+                      <Heart className="text-orange-500 fill-orange-500" size={20} />
+                    ) : (
+                      <Heart className="text-gray-400" size={20} />
+                    )}
+                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleRemoveItem(item.id, item.title)}
+                      className="bg-red-500 p-2 rounded-full shadow hover:bg-red-600 transition"
+                      title="Remove listing (Admin only)"
+                    >
+                      <Trash2 className="text-white" size={20} />
+                    </button>
                   )}
-                </button>
+                </div>
                 <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                 <span className="text-sm text-gray-500 mt-2 block">Mode: {item.mode}</span>

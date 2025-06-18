@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Share2, Search } from 'lucide-react';
+import { Menu, Bell, Share2, Search, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdmin } from '../contexts/AdminContext';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -86,6 +88,12 @@ const Navbar = () => {
           <Link to="/liked" onClick={() => setOpen(false)}>Liked Opslag</Link>
           <Link to="/items" onClick={() => setOpen(false)}>Nye Opslag</Link>
           <Link to="/add-item" onClick={() => setOpen(false)}>Opret Opslag</Link>
+          {isAdmin && (
+            <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-2 text-yellow-300">
+              <Shield size={16} />
+              <span>Admin Panel</span>
+            </Link>
+          )}
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
           
           <Link to="/about" onClick={() => setOpen(false)}>Om os</Link>
