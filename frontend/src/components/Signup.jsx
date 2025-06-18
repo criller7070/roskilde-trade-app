@@ -2,11 +2,13 @@ import { useState } from "react";
 import { auth, db, signInWithGoogle } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { usePopupContext } from "../contexts/PopupContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const { showSuccess, showError } = usePopupContext();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -21,9 +23,9 @@ const Signup = () => {
         createdAt: new Date()
       });
 
-      alert("Bruger oprettet!");
+      showSuccess("Bruger oprettet!");
     } catch (error) {
-      alert("Fejl: " + error.message);
+      showError("Fejl: " + error.message);
     }
   };
 

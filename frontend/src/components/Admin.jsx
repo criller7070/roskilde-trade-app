@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
+import { usePopupContext } from "../contexts/PopupContext";
 import { Trash2, Users, Package, AlertTriangle, Shield } from "lucide-react";
 
 const Admin = () => {
   const { user } = useAuth();
   const { items, removeItem } = useItems();
+  const { showError, showSuccess, showConfirm } = usePopupContext();
   const { 
     isAdmin, 
     adminLoading, 
@@ -39,22 +41,27 @@ const Admin = () => {
   }, [items, isAdmin]);
 
   const handleRemoveItem = async (itemId, itemTitle) => {
-    const confirmed = window.confirm(`Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`);
-    if (confirmed) {
-      try {
-        await removeItem(itemId);
-        // Log the admin action
-        await logAdminAction('remove_item', {
-          itemId,
-          itemTitle,
-          removedAt: new Date()
-        });
-        alert("Item removed successfully!");
-      } catch (error) {
-        console.error("Error removing item:", error);
-        alert("Failed to remove item. Please try again.");
-      }
-    }
+    showConfirm(
+      `Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await removeItem(itemId);
+          // Log the admin action
+          await logAdminAction('remove_item', {
+            itemId,
+            itemTitle,
+            removedAt: new Date()
+          });
+          showSuccess("Item removed successfully!");
+        } catch (error) {
+          console.error("Error removing item:", error);
+          showError("Failed to remove item. Please try again.");
+        }
+      },
+      "Confirm Removal",
+      "Remove",
+      "Cancel"
+    );
   };
 
   if (adminLoading) {
