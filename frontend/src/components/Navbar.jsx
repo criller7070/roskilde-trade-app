@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Share2, Search, Shield } from 'lucide-react';
+import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -65,38 +65,66 @@ const Navbar = () => {
             &times;
           </button>
 
-          <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link to="/" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <Home size={20} />
+            <span>Home</span>
+          </Link>
           {!user ? (
             <>
-              <Link to="/Login" onClick={() => setOpen(false)}>Log ind</Link>
-              <Link to="/Signup" onClick={() => setOpen(false)}>Opret konto</Link>
+              <Link to="/Login" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+                <User size={20} />
+                <span>Log ind</span>
+              </Link>
+              <Link to="/Signup" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+                <Plus size={20} />
+                <span>Opret konto</span>
+              </Link>
             </>
           ) : (
             <>
-              <Link to="/profile" onClick={() => setOpen(false)}>Profil</Link>
+              <Link to="/profile" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+                <User size={20} />
+                <span>Profil</span>
+              </Link>
               <button 
                 onClick={handleLogout}
-                className="text-white"
+                className="flex items-center space-x-3 text-white"
               >
-                LOG UD
+                <LogOut size={20} />
+                <span>LOG UD</span>
               </button>
             </>
           )}
-          <Link to="/chats" onClick={() => setOpen(false)}>Beskeder</Link>
+          <Link to="/chats" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <MessageCircle size={20} />
+            <span>Beskeder</span>
+          </Link>
           
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
-          <Link to="/liked" onClick={() => setOpen(false)}>Liked Opslag</Link>
-          <Link to="/items" onClick={() => setOpen(false)}>Nye Opslag</Link>
-          <Link to="/add-item" onClick={() => setOpen(false)}>Opret Opslag</Link>
+          <Link to="/liked" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <Heart size={20} />
+            <span>Liked Opslag</span>
+          </Link>
+          <Link to="/items" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <List size={20} />
+            <span>Nye Opslag</span>
+          </Link>
+          <Link to="/add-item" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <Plus size={20} />
+            <span>Opret Opslag</span>
+          </Link>
           {isAdmin && (
-            <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-2 text-yellow-300">
-              <Shield size={16} />
+            <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-3 text-yellow-300">
+              <Shield size={20} />
               <span>Admin Panel</span>
             </Link>
           )}
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
           
-          <Link to="/about" onClick={() => setOpen(false)}>Om os</Link>
+          <Link to="/about" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <Info size={20} />
+            <span>Om os</span>
+          </Link>
         </div>
       )}
     </>
