@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import Chat from "./Chat";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { Heart, HeartOff, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ItemList = () => {
   const { user } = useAuth();
   const { isAdmin, logAdminAction } = useAdmin();
   const { showError, showSuccess, showConfirm } = usePopupContext();
   const [items, setItems] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
   const { likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems();
   const [likedIds, setLikedIds] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLikedIds = async () => {
@@ -112,7 +112,17 @@ const ItemList = () => {
                 <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
                 {user && item.userId !== user.uid && (
                   <button
-                    onClick={() => setSelectedChat({ recipientId: item.userId, recipientName: item.userName })}
+                    onClick={() => {
+                      const chatId = [user.uid, item.userId].sort().join("_");
+                      navigate(`/chat/${chatId}`, { 
+                        state: { 
+                          itemId: item.id,
+                          itemName: item.title,
+                          itemImage: item.imageUrl,
+                          recipientName: item.userName
+                        }
+                      });
+                    }}
                     className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   >
                     Message {item.userName}
@@ -128,7 +138,6 @@ const ItemList = () => {
           <p className="text-center text-gray-600">No items available yet.</p>
         )}
       </div>
-      {selectedChat && <Chat recipientId={selectedChat.recipientId} recipientName={selectedChat.recipientName} />}
     </div>
   );
 };
