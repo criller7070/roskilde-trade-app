@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
-// import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function AddItem() {
   const { user } = useAuth();
@@ -19,16 +19,16 @@ export default function AddItem() {
     }
 
     try {
-      // // OPTIONAL: Upload image to Firebase Storage
-      // const imageRef = ref(storage, `posts/${Date.now()}-${image.name}`);
-      // const snapshot = await uploadBytes(imageRef, image);
-      // const imageUrl = await getDownloadURL(snapshot.ref);
+      // Upload image to Firebase Storage
+      const imageRef = ref(storage, `posts/${Date.now()}-${image.name}`);
+      const snapshot = await uploadBytes(imageRef, image);
+      const imageUrl = await getDownloadURL(snapshot.ref);
 
       await addDoc(collection(db, "items"), {
         title,
         description,
         mode,
-        // imageUrl,
+        imageUrl,
         userId: user.uid,
         userName: user.displayName,
         createdAt: serverTimestamp(),
