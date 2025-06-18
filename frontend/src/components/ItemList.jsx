@@ -5,11 +5,13 @@ import Chat from "./Chat";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
+import { usePopupContext } from "../contexts/PopupContext";
 import { Heart, HeartOff, Trash2 } from "lucide-react";
 
 const ItemList = () => {
   const { user } = useAuth();
   const { isAdmin, logAdminAction } = useAdmin();
+  const { showError, showSuccess, showConfirm } = usePopupContext();
   const [items, setItems] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const { likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems();
@@ -33,7 +35,7 @@ const ItemList = () => {
   }, []);
 
   const toggleLike = async (itemId) => {
-    if (!user) return alert("Log ind for at like opslag.");
+    if (!user) return showError("Log ind for at like opslag.");
     if (likedIds.includes(itemId)) {
       await unlikeItem(itemId);
       setLikedIds(likedIds.filter((id) => id !== itemId));
@@ -44,22 +46,27 @@ const ItemList = () => {
   };
 
   const handleRemoveItem = async (itemId, itemTitle) => {
-    const confirmed = window.confirm(`Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`);
-    if (confirmed) {
-      try {
-        await removeItem(itemId);
-        // Log the admin action
-        await logAdminAction('remove_item', {
-          itemId,
-          itemTitle,
-          removedAt: new Date()
-        });
-        alert("Item removed successfully!");
-      } catch (error) {
-        console.error("Error removing item:", error);
-        alert("Failed to remove item. Please try again.");
-      }
-    }
+    showConfirm(
+      `Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`,
+      async () => {
+        try {
+          await removeItem(itemId);
+          // Log the admin action
+          await logAdminAction('remove_item', {
+            itemId,
+            itemTitle,
+            removedAt: new Date()
+          });
+          showSuccess("Item removed successfully!");
+        } catch (error) {
+          console.error("Error removing item:", error);
+          showError("Failed to remove item. Please try again.");
+        }
+      },
+      "Confirm Removal",
+      "Remove",
+      "Cancel"
+    );
   };
 
   return (
