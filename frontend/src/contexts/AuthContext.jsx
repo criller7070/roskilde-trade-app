@@ -23,13 +23,15 @@ export function AuthProvider({ children }) {
 
       // If displayName is missing, pull it from Firestore
       if (!currentUser.displayName) {
-        const ref = doc(db, 'users', currentUser.uid);
-        const snap = await getDoc(ref);
-        const data = snap.exists() ? snap.data() : {};
-        setUser({ ...currentUser, displayName: data.name ?? null });
-      } else {
-        setUser(currentUser);
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          // Manually update the user object with the displayName
+          currentUser.displayName = userData.displayName || null;
+        }
       }
+      setUser(currentUser);
       setLoading(false);
     });
 

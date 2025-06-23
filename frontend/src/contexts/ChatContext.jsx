@@ -10,7 +10,8 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
-  updateDoc
+  updateDoc,
+  increment
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
@@ -39,10 +40,9 @@ export function ChatProvider({ children }) {
     const chatId = generateChatId(userId1, userId2, itemId);
     
     try {
-      // Validate itemData to prevent undefined values
-      if (!itemData || !itemData.title) {
-        console.error('Invalid itemData:', itemData);
-        throw new Error('Invalid item data provided');
+      // Stricter validation before writing
+      if (!userId1 || !userId2 || !itemId || !itemData.title) {
+        throw new Error('Missing required chat initialization parameters');
       }
 
       console.log('Initializing chat with data:', { userId1, userId2, itemId, itemData });
@@ -63,6 +63,14 @@ export function ChatProvider({ children }) {
       };
 
       await setDoc(chatRef, chatPayload);
+
+      // Validate the result after writing
+      const chatDoc = await getDoc(chatRef);
+      const chatData = chatDoc.data();
+
+      if (!chatData || !Array.isArray(chatData.participants) || !chatData.participants.includes(userId1)) {
+        throw new Error('Chat document is invalid or sender not included in participants');
+      }
 
       const user1ChatRef = doc(db, 'userChats', userId1, 'chats', chatId);
       const user2ChatRef = doc(db, 'userChats', userId2, 'chats', chatId);
@@ -93,12 +101,6 @@ export function ChatProvider({ children }) {
         setDoc(user1ChatRef, user1Data),
         setDoc(user2ChatRef, user2Data)
       ]);
-
-      // Verify the chat was created successfully
-      const chatDoc = await getDoc(chatRef);
-      if (!chatDoc.exists()) {
-        throw new Error('Chat document was not created successfully');
-      }
 
       console.log('Chat initialized successfully:', chatId);
       return chatId;
@@ -131,12 +133,17 @@ export function ChatProvider({ children }) {
     const chatRef = doc(db, 'chats', chatId);
     let chatDoc = await getDoc(chatRef);
 
-    if (!chatDoc.exists() && itemData) {
+    if (!chatDoc.exists()) {
+      if (!itemData || !itemData.recipientId) {
+        throw new Error("Missing itemData or recipientId for initializing chat");
+      }
+    
       const parts = chatId.split('_');
       const itemId = parts.slice(2).join('_');
       await initializeChat(user.uid, itemData.recipientId, itemId, itemData);
       chatDoc = await getDoc(chatRef);
     }
+    
 
     if (!chatDoc.exists()) throw new Error('Chat document not available');
 
@@ -154,35 +161,13 @@ export function ChatProvider({ children }) {
       }
     });
 
-    const chatData = chatDoc.data();
-    const participants = chatData.participants || [];
-
-    await Promise.all(participants.map(async (participantId) => {
-      const otherUserId = participants.find(id => id !== participantId);
-      const otherUserName = chatData.userNames?.[otherUserId] || 'Unknown';
-
-      const userChatRef = doc(db, 'userChats', participantId, 'chats', chatId);
-      const userChatDoc = await getDoc(userChatRef);
-
-      const updateData = {
-        lastMessage: text,
-        lastMessageTime: serverTimestamp(),
-        unreadCount: participantId === user.uid ? 0 : 1,
-        otherUserId: otherUserId,
-        otherUserName: otherUserName
-      };
-
-      if (!userChatDoc.exists()) {
-        await setDoc(userChatRef, {
-          ...updateData,
-          itemId: chatData.itemId || '',
-          itemName: chatData.itemName || '',
-          itemImage: chatData.itemImage || ''
-        });
-      } else {
-        await setDoc(userChatRef, updateData, { merge: true });
-      }
-    }));
+    // Update sender's userChat document
+    const senderChatRef = doc(db, 'userChats', user.uid, 'chats', chatId);
+    await setDoc(senderChatRef, {
+      lastMessage: text,
+      lastMessageTime: serverTimestamp(),
+      unreadCount: 0
+    }, { merge: true });
 
     return messageRef.id;
   }, [user, initializeChat]);
