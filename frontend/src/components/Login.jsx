@@ -2,20 +2,22 @@ import { useState } from "react";
 import { auth, signInWithGoogle } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { usePopupContext } from "../contexts/PopupContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { showSuccess, showError } = usePopupContext();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Logget ind!");
+      showSuccess("Logget ind!");
       navigate("/profile");
     } catch (error) {
-      alert("Fejl: " + error.message);
+      showError("Fejl: " + error.message);
     }
   };
 
@@ -24,7 +26,7 @@ const Login = () => {
       await signInWithGoogle();
       navigate("/profile");
     } catch (error) {
-      alert("Fejl: " + error.message);
+      showError("Fejl: " + error.message);
     }
   };
 

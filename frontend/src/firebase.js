@@ -48,7 +48,8 @@ const firebaseConfig = {
         credential: error.credential,
         fullError: error
       });
-      alert(`Login failed: ${error.message}. Please check the console for more details.`);
+      // Let the calling component handle the error with the popup system
+      throw error;
     }
   };
   

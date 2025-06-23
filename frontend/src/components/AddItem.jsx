@@ -3,20 +3,28 @@ import { db, storage } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { usePopupContext } from "../contexts/PopupContext";
 
 export default function AddItem() {
   const { user } = useAuth();
+  const { showError, showSuccess } = usePopupContext();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [mode, setMode] = useState("bytte");
+  const [isSubmitting, setIsSubmitting] = useState(false); // prevent duplicates
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !description || !image || !user) {
-      alert("Udfyld alle felter og vælg et billede.");
+      showError("Udfyld alle felter og vælg et billede.");
       return;
     }
+
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
 
     try {
       // Upload image to Firebase Storage
@@ -39,10 +47,12 @@ export default function AddItem() {
       setImage(null);
       setMode("bytte");
 
-      alert("Posten er oprettet!");
+      showSuccess("Opslaget er oprettet!");
     } catch (err) {
       console.error(err);
-      alert("Noget gik galt. Prøv igen.");
+      showError("Noget gik galt. Prøv igen.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -53,7 +63,7 @@ export default function AddItem() {
       <form onSubmit={handleSubmit}>
         {/* Image Upload */}
         <div className="border border-black rounded-lg p-4 mb-4 text-center">
-          <label className="cursor-pointer">
+          <label className={`cursor-pointer ${isSubmitting ? 'opacity-50' : ''}`}>
             {image ? (
               <img src={URL.createObjectURL(image)} alt="preview" className="mx-auto max-h-48 object-cover" />
             ) : (
@@ -67,6 +77,7 @@ export default function AddItem() {
               accept="image/*"
               onChange={(e) => setImage(e.target.files[0])}
               className="hidden"
+              disabled={isSubmitting}
             />
           </label>
         </div>
@@ -81,6 +92,7 @@ export default function AddItem() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="*****"
+          disabled={isSubmitting}
         />
 
         {/* Description */}
@@ -93,6 +105,7 @@ export default function AddItem() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="*****"
+          disabled={isSubmitting}
         />
 
         {/* Toggle Mode */}
@@ -102,11 +115,12 @@ export default function AddItem() {
               key={option}
               type="button"
               onClick={() => setMode(option.toLowerCase())}
+              disabled={isSubmitting}
               className={`flex-1 mx-2 py-2 rounded-full ${
                 mode === option.toLowerCase()
                   ? "bg-orange-400 text-white font-bold"
                   : "bg-gray-200 text-gray-700"
-              }`}
+              } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {option}
             </button>
@@ -114,8 +128,16 @@ export default function AddItem() {
         </div>
 
         {/* Post Button */}
-        <button type="submit" className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl">
-          POST
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          className={`w-full font-bold py-3 rounded-xl transition-colors ${
+            isSubmitting 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-orange-500 hover:bg-orange-600'
+          } text-white`}
+        >
+          {isSubmitting ? 'Opretter...' : 'POST'}
         </button>
       </form>
     </div>
