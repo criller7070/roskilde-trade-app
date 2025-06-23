@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth, db, signInWithGoogle } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { usePopupContext } from "../contexts/PopupContext";
 
@@ -15,6 +15,8 @@ const Signup = () => {
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
+
+      await updateProfile(user, { displayName: name });
 
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
