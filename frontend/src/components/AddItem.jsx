@@ -12,7 +12,7 @@ export default function AddItem() {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [mode, setMode] = useState("bytte");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // prevent duplicates
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export default function AddItem() {
       setImage(null);
       setMode("bytte");
 
-      showSuccess("Posten er oprettet!");
+      showSuccess("Opslaget er oprettet!");
     } catch (err) {
       console.error(err);
       showError("Noget gik galt. Prøv igen.");

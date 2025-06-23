@@ -4,11 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
+import { useChat } from '../contexts/ChatContext';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
+  const { unreadCount } = useChat();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -96,7 +98,14 @@ const Navbar = () => {
             </>
           )}
           <Link to="/chats" onClick={() => setOpen(false)} className="flex items-center space-x-3">
-            <MessageCircle size={20} />
+            <div className="relative">
+              <MessageCircle size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[18px]">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
             <span>Beskeder</span>
           </Link>
           

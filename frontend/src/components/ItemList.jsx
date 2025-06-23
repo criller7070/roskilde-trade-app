@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
+import { useChat } from "../contexts/ChatContext";
 import { Heart, HeartOff, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,6 +13,7 @@ const ItemList = () => {
   const { user } = useAuth();
   const { isAdmin, logAdminAction } = useAdmin();
   const { showError, showSuccess, showConfirm } = usePopupContext();
+  const { generateChatId } = useChat();
   const [items, setItems] = useState([]);
   const { likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems();
   const [likedIds, setLikedIds] = useState([]);
@@ -113,13 +115,14 @@ const ItemList = () => {
                 {user && item.userId !== user.uid && (
                   <button
                     onClick={() => {
-                      const chatId = [user.uid, item.userId].sort().join("_");
+                      const chatId = generateChatId(user.uid, item.userId, item.id);
                       navigate(`/chat/${chatId}`, { 
                         state: { 
                           itemId: item.id,
                           itemName: item.title,
                           itemImage: item.imageUrl,
-                          recipientName: item.userName
+                          recipientName: item.userName,
+                          recipientId: item.userId
                         }
                       });
                     }}
