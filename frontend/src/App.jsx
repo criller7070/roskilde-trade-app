@@ -17,6 +17,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 import { AdminProvider, useAdmin } from "./contexts/AdminContext";
 import { PopupProvider } from "./contexts/PopupContext";
+import { ChatProvider } from "./contexts/ChatContext";
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -59,9 +60,11 @@ function App() {
     <AuthProvider>
       <AdminProvider>
         <ItemsProvider>
-          <PopupProvider>
-            <AppRoutes />
-          </PopupProvider>
+          <ChatProvider>
+            <PopupProvider>
+              <AppRoutes />
+            </PopupProvider>
+          </ChatProvider>
         </ItemsProvider>
       </AdminProvider>
     </AuthProvider>
