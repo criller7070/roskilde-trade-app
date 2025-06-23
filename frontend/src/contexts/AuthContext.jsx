@@ -21,16 +21,17 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // If displayName is missing, pull it from Firestore
-      if (!currentUser.displayName) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          // Manually update the user object with the displayName
-          currentUser.displayName = userData.displayName || null;
-        }
+      /* ---------- pull extra data from Firestore ---------- */
+      const snap = await getDoc(doc(db, "users", currentUser.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+
+        /* 1. **mutate the real User instance** instead of cloning */
+        if (!currentUser.displayName) currentUser.displayName = data.name ?? null;
+        if (!currentUser.photoURL)    currentUser.photoURL    = data.photoURL ?? null;
       }
+
+      /* 2. hand back the SAME instance (retain methods) */
       setUser(currentUser);
       setLoading(false);
     });
@@ -48,4 +49,4 @@ export function AuthProvider({ children }) {
       {!loading && children}
     </AuthContext.Provider>
   );
-} 
+}
