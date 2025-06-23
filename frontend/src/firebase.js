@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAq_FHFKZ0NMTB3Z51RkSeWn9aif7RPdLk",
@@ -9,7 +10,8 @@ const firebaseConfig = {
     projectId: "roskilde-trade",
     storageBucket: "roskilde-trade.firebasestorage.app",
     messagingSenderId: "599145097942",
-    appId: "1:599145097942:web:b62b1a858afa8c22eaf777"
+    appId: "1:599145097942:web:b62b1a858afa8c22eaf777",
+    measurementId: "G-NS34C8F4EE"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -17,6 +19,7 @@ const firebaseConfig = {
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
+  const analytics = getAnalytics(app);
   
   const signInWithGoogle = async () => {
     try {
@@ -48,7 +51,8 @@ const firebaseConfig = {
         credential: error.credential,
         fullError: error
       });
-      alert(`Login failed: ${error.message}. Please check the console for more details.`);
+      // Let the calling component handle the error with the popup system
+      throw error;
     }
   };
   

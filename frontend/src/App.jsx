@@ -12,11 +12,17 @@ import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
 import Liked from "./components/Liked";
 import ItemPage from "./components/ItemPage";
+import Admin from "./components/Admin";
+import SwipePage from "./components/SwipePage";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
+import { AdminProvider, useAdmin } from "./contexts/AdminContext";
+import { PopupProvider } from "./contexts/PopupContext";
+import { ChatProvider } from "./contexts/ChatContext";
 
 function AppRoutes() {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
 
   return (
     <Router>
@@ -36,10 +42,18 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/Signup" element={<Signup />} />
           <Route 
+            path="/swipe"
+            element={user ? <SwipePage /> : <LoginRequired />}
+          />
+          <Route 
             path="/liked" 
             element={user ? <Liked /> : <LoginRequired />}
           />
           <Route path="/item/:itemId" element={<ItemPage />} />
+          <Route 
+            path="/admin" 
+            element={user && isAdmin ? <Admin /> : <LoginRequired />}
+          />
         </Routes>
       </div>
     </Router>
@@ -49,9 +63,15 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <ItemsProvider>
-        <AppRoutes />
-      </ItemsProvider>
+      <AdminProvider>
+        <ItemsProvider>
+          <ChatProvider>
+            <PopupProvider>
+              <AppRoutes />
+            </PopupProvider>
+          </ChatProvider>
+        </ItemsProvider>
+      </AdminProvider>
     </AuthProvider>
   );
 }

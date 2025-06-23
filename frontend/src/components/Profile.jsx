@@ -1,35 +1,85 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { PlusCircle, Camera, Repeat2, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { db, storage } from "../firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc as fsDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { PlusCircle, Camera, Repeat2, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 
 const Profile = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
+
+  /* ---------- avatar-upload state ---------- */
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [saving, setSaving] = useState(false);
+
   const navigate = useNavigate();
 
+  /* ---------- fetch user’s items ---------- */
   useEffect(() => {
     const fetchUserPosts = async () => {
       if (!user) {
-        navigate('/');
+        navigate("/");
         return;
       }
 
-      // Fetch items by current user
       const q = query(collection(db, "items"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const itemData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const snap = await getDocs(q);
+      const itemData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setPosts(itemData);
     };
 
     fetchUserPosts();
   }, [user, navigate]);
 
-  if (!user) {
-    return null; // Don't render anything while redirecting
-  }
+  /* ---------- file-picker handler ---------- */
+  const handleSelect = (e) => {
+    const chosen = e.target.files[0];
+    if (!chosen) return;
+    setFile(chosen);
+    setPreview(URL.createObjectURL(chosen));
+  };
+
+  /* ---------- upload + profile patch ---------- */
+  const handleUpload = async () => {
+    if (!file || !user) return;
+    setSaving(true);
+    try {
+      // 1. push bytes to Cloud Storage
+      const fileRef = ref(storage, `profilePictures/${user.uid}`);
+      await uploadBytes(fileRef, file);
+
+      // 2. grab a public URL
+      const url = await getDownloadURL(fileRef);
+
+      // 3. update BOTH Auth profile and Firestore doc
+      await Promise.all([
+        updateProfile(user, { photoURL: url }),
+        updateDoc(fsDoc(db, "users", user.uid), { photoURL: url }),
+      ]);
+
+      // 4. clear local state & refresh context
+      setFile(null);
+      setPreview("");
+      window.location.reload();
+    } catch (err) {
+      alert("Kunne ikke uploade billede: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
@@ -37,26 +87,48 @@ const Profile = () => {
         Din Profil <span role="img" aria-label="edit">✏️</span>
       </h1>
 
-      {/* Profile Picture */}
+      {/* ---------- profile picture block ---------- */}
       <div className="relative w-28 h-28 mx-auto mb-4">
         <img
-          src={user.photoURL || "/default-avatar.png"}
-          alt="profile"
+          src={preview || user.photoURL || "/default-avatar.png"}
+          alt="avatar"
           className="rounded-full w-full h-full object-cover"
         />
-        <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md">
+
+        {/* camera icon → hidden file input */}
+        <label
+          htmlFor="avatarInput"
+          className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md cursor-pointer"
+        >
           <Camera size={16} />
-        </div>
+        </label>
+        <input
+          id="avatarInput"
+          type="file"
+          accept="image/*"
+          onChange={handleSelect}
+          className="hidden"
+        />
       </div>
 
-      {/* User Info */}
+      {/* save button appears only after a file is chosen */}
+      {preview && (
+        <button
+          onClick={handleUpload}
+          disabled={saving}
+          className="block mx-auto mb-6 bg-orange-500 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {saving ? "Uploader…" : "Gem billede"}
+        </button>
+      )}
+
+      {/* ---------- user info ---------- */}
       <div className="text-center mb-6">
         <p><strong>Navn:</strong> {user.displayName}</p>
-        {/* <p><strong>Alder:</strong> 29</p> */}
         <p><strong>Email:</strong> {user.email}</p>
       </div>
 
-      {/* Posts */}
+      {/* ---------- user’s posts ---------- */}
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
         <PlusCircle className="text-orange-500" size={28} />
@@ -67,7 +139,10 @@ const Profile = () => {
           <p className="text-center text-sm text-gray-500">Ingen opslag endnu</p>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="flex bg-white rounded-xl shadow p-3 gap-3 items-center">
+            <div
+              key={post.id}
+              className="flex bg-white rounded-xl shadow p-3 gap-3 items-center"
+            >
               <img
                 src={post.imageUrl || "/placeholder.jpg"}
                 alt="item"
@@ -76,7 +151,9 @@ const Profile = () => {
               <div className="flex-1">
                 <h3 className="font-bold text-sm truncate">{post.title}</h3>
                 <p className="text-xs text-gray-700">{user.displayName}</p>
-                <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">{post.description}</p>
+                <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">
+                  {post.description}
+                </p>
               </div>
               <div className="flex flex-col items-center space-y-2">
                 {post.mode === "bytte" ? (
@@ -84,7 +161,6 @@ const Profile = () => {
                 ) : (
                   <DollarSign className="text-gray-600" size={16} />
                 )}
-                {/* Status icons can be handled here if you add a status field */}
               </div>
             </div>
           ))
