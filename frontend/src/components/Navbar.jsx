@@ -39,7 +39,7 @@ const Navbar = () => {
             <Menu size={24} className="text-white" />
           </button>
           <Link to="/">
-            <img src="/logo.png" alt="RosSwap" className="h-8" />
+            <img src="/RosSwap-White-Thick.png" alt="RosSwap" className="h-8" />
           </Link>
         </div>
 
