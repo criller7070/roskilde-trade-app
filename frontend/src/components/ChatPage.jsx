@@ -64,7 +64,11 @@ const ChatPage = () => {
           setChatMeta({
             itemName: itemData.itemName,
             itemImage: itemData.itemImage,
-            participants: [user.uid, itemData.recipientId]
+            participants: [user.uid, itemData.recipientId],
+            userNames: {
+              [user.uid]: user.displayName || 'Unknown',
+              [itemData.recipientId]: itemData.recipientName || 'Unknown User'
+            }
           });
         }
 
@@ -91,15 +95,18 @@ const ChatPage = () => {
     if (!newMessage.trim() || !user || !chatId) return;
 
     try {
-      // Ensure itemData has the correct structure - use consistent field names
-      const messageItemData = itemData ? {
-        title: itemData.itemName || 'Unknown Item',
-        imageUrl: itemData.itemImage || '',
-        senderName: user.displayName || 'Unknown',  // Current user's name
-        recipientName: itemData.recipientName || 'Unknown User',  // Other user's name
-        recipientId: itemData.recipientId  // Keep this for sendMessage function
-      } : null;
+      // Get recipient data from chat metadata
+      const recipientId = chatMeta?.participants?.find(id => id !== user.uid);
+      const recipientName = chatMeta?.userNames?.[recipientId] || 'Unknown User';
 
+      const messageItemData = {
+        title: chatMeta?.itemName || 'Unknown Item',
+        imageUrl: chatMeta?.itemImage || '',
+        senderName: user.displayName || 'Unknown',
+        recipientName,
+        recipientId
+      };
+      
       await sendMessage(chatId, newMessage.trim(), messageItemData);
       setNewMessage("");
     } catch (error) {
@@ -134,7 +141,7 @@ const ChatPage = () => {
 
   // Get other participant's name
   const otherParticipantId = chatMeta.participants?.find(id => id !== user.uid);
-  const otherParticipantName = itemData?.recipientName || 'Unknown User';
+  const otherParticipantName = chatMeta?.userNames?.[otherParticipantId] || itemData?.recipientName || 'Unknown User';
 
   return (
     <div className="pt-20 px-4 pb-32 min-h-screen bg-orange-100 max-w-md mx-auto relative">
