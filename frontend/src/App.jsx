@@ -13,6 +13,7 @@ import LoginRequired from "./components/LoginRequired";
 import Liked from "./components/Liked";
 import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
+import SwipePage from "./components/SwipePage";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 import { AdminProvider, useAdmin } from "./contexts/AdminContext";
@@ -40,6 +41,10 @@ function AppRoutes() {
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/Signup" element={<Signup />} />
+          <Route 
+            path="/swipe"
+            element={user ? <SwipePage /> : <LoginRequired />}
+          />
           <Route 
             path="/liked" 
             element={user ? <Liked /> : <LoginRequired />}
