@@ -46,17 +46,15 @@ export function ItemsProvider({ children }) {
     }
   };
 
-  // Get items by user
+  // getters
   const getUserItems = () => {
     return items.filter(item => item.userId === user?.uid);
   };
-
-  // Get items by category
   const getItemsByCategory = (category) => {
     return items.filter(item => item.category === category);
   };
 
-  // Like an item
+  // Like an item - "I'm interested in this, add to my favorites!"	
   const likeItem = async (itemId) => {
     if (!user) return;
     const userRef = doc(db, "users", user.uid);
@@ -65,7 +63,16 @@ export function ItemsProvider({ children }) {
     });
   };
 
-  // Unlike an item
+  // Dislike an item - "I'm not interested. Hide it from swipe page."	
+  const dislikeItem = async (itemId) => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      dislikedItemIds: arrayUnion(itemId),
+    });
+  };
+
+  // Unlike an item - "I'm no longer interested in this item from my favorites."	
   const unlikeItem = async (itemId) => {
     if (!user) return;
     const userRef = doc(db, "users", user.uid);
@@ -80,6 +87,14 @@ export function ItemsProvider({ children }) {
     const userSnap = await getDoc(doc(db, "users", user.uid));
     const data = userSnap.data();
     return data?.likedItemIds || [];
+  };
+
+  // Get disliked item IDs
+  const getDislikedItemIds = async () => {
+    if (!user) return [];
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const data = userSnap.data();
+    return data?.dislikedItemIds || [];
   };
 
   // Admin function to remove an item
@@ -104,6 +119,8 @@ export function ItemsProvider({ children }) {
     likeItem,
     unlikeItem,
     getLikedItemIds,
+    dislikeItem,
+    getDislikedItemIds,
     removeItem
   };
 
