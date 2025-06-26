@@ -64,6 +64,15 @@ const Login = () => {
           >
             Log ind med Google
           </button>
+
+          <p className="text-sm text-gray-500 mt-6">Har du ikke en konto?</p>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="mt-2 text-orange-500 font-semibold hover:underline"
+            >
+              Opret en konto
+            </button>
         </div>
       </form>
     </div>

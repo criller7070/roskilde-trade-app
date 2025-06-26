@@ -145,6 +145,7 @@ const Profile = () => {
           posts.map((post) => (
             <div
               key={post.id}
+              onClick={() => navigate(`/item/${post.id}`)}
               className="flex bg-white rounded-xl shadow p-3 gap-3 items-center"
             >
               <img
