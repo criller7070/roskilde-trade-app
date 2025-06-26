@@ -64,7 +64,14 @@ const Navbar = () => {
 
         {/* Right: Icons + Profile Picture */}
         <div className="flex items-center space-x-4">
-          <Bell size={20} />
+          <Link to="/chats" className="relative">
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[18px]">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
           <button onClick={handleShare}>
             <Share2 size={20} />
           </button>

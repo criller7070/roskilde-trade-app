@@ -169,6 +169,16 @@ export function ChatProvider({ children }) {
       unreadCount: 0
     }, { merge: true });
 
+    const chatData = chatDoc.data();
+    const recipientId = chatData.participants.find(id => id !== user.uid);
+    const recipientChatRef = doc(db, 'userChats', recipientId, 'chats', chatId);
+
+    await setDoc(recipientChatRef, {
+      lastMessage: text,
+      lastMessageTime: serverTimestamp(),
+      unreadCount: increment(1)
+    }, { merge: true });
+
     return messageRef.id;
   }, [user, initializeChat]);
 
