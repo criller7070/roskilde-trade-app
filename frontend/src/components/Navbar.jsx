@@ -30,6 +30,25 @@ const Navbar = () => {
     }
   }, [user, navigate]);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: document.title,
+      text: "Tjek denne side ud på RosSwap!",
+      url: "https://rosswap.dk",
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link kopieret til udklipsholder 📋");
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  };
+
   return (
     <>
       <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-3 fixed top-0 left-0 z-50">
@@ -46,7 +65,9 @@ const Navbar = () => {
         {/* Right: Icons + Profile Picture */}
         <div className="flex items-center space-x-4">
           <Bell size={20} />
-          <Share2 size={20} />
+          <button onClick={handleShare}>
+            <Share2 size={20} />
+          </button>
           {!user ? (
             <>
               <Link 
