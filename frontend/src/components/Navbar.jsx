@@ -42,7 +42,7 @@ const Navbar = () => {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link kopieret til udklipsholder 📋");
+        alert("Link kopieret til udklipsholder");
       }
     } catch (err) {
       console.error("Share failed:", err);
@@ -76,20 +76,22 @@ const Navbar = () => {
             <Share2 size={20} />
           </button>
           {!user ? (
-            <>
+            <div className="flex items-center space-x-2">
               <Link 
                 to="/Login" 
-                className="text-white font-semibold text-sm px-3 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition"
+                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
               >
-                Log ind
+                <span className="hidden sm:inline">Log ind</span>
+                <span className="sm:hidden">Log Ind</span>
               </Link>
               <Link 
                 to="/Signup" 
-                className="text-white font-semibold text-sm px-3 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition"
+                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
               >
-                Opret konto
+                <span className="hidden sm:inline">Opret konto</span>
+                <span className="sm:hidden">Opret Konto</span>
               </Link>
-            </>
+            </div>
           ) : (
             <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
               <img 

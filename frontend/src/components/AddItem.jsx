@@ -50,7 +50,7 @@ export default function AddItem() {
       showSuccess("Opslaget er oprettet!");
     } catch (err) {
       console.error(err);
-      showError("Noget gik galt. Prøv igen.");
+      showError("Noget gik galt.");
     } finally {
       setIsSubmitting(false);
     }

@@ -79,7 +79,7 @@ const BugReport = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-6">
       <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">
-        Rapporter en Fejl
+        Rapportér en Fejl
       </h1>
       
       <p className="text-gray-600 text-sm mb-6 text-center">
