@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { Repeat2, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const Liked = () => {
   const { getLikedItemIds } = useItems();
@@ -32,10 +33,11 @@ const Liked = () => {
         {likedPosts.map((post) => (
             <Link to={`/item/${post.id}`} key={post.id}>
                 <div className="flex bg-gray-100 rounded-xl p-3 items-center shadow-sm hover:bg-orange-50 transition">
-                <img
+                <LoadingPlaceholder
                     src={post.imageUrl || "/placeholder.jpg"}
                     alt={post.name}
                     className="w-20 h-20 rounded-md object-cover mr-3"
+                    placeholderClassName="rounded-md"
                 />
                 <div className="flex-1">
                     <div className="flex justify-between items-start">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ImageWithPlaceholder = ({ 
+const LoadingPlaceholder = ({ 
   src, 
   alt, 
   className = "", 
@@ -65,4 +65,4 @@ const ImageWithPlaceholder = ({
   );
 };
 
-export default ImageWithPlaceholder; 
+export default LoadingPlaceholder; 

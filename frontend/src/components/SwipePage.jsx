@@ -6,14 +6,14 @@ import { useItems } from '../contexts/ItemsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '../contexts/ChatContext';
-import ImageWithPlaceholder from './ImageWithPlaceholder';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
 const SwipeCard = ({ item }) => {
   if (!item) return null;
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200">
-      <ImageWithPlaceholder
+      <LoadingPlaceholder
         src={item.imageUrl || "https://via.placeholder.com/400"}
         alt={item.title}
         className="w-full h-full object-cover"
@@ -24,7 +24,7 @@ const SwipeCard = ({ item }) => {
           <p className="text-sm mt-1">By: {item.userName}</p>
           <p className="text-base mt-2 line-clamp-2">{item.description}</p>
         </div>
-      </ImageWithPlaceholder>
+      </LoadingPlaceholder>
     </div>
   );
 };

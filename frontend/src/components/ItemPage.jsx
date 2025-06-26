@@ -4,7 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
-import ImageWithPlaceholder from "./ImageWithPlaceholder";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ItemPage = () => {
   const { itemId } = useParams();
@@ -62,7 +62,7 @@ const ItemPage = () => {
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4">{item.title}</h1>
-      <ImageWithPlaceholder
+      <LoadingPlaceholder
         src={item.imageUrl || "/placeholder.jpg"}
         alt={item.title}
         className="w-full rounded-lg border mb-4"
@@ -75,10 +75,12 @@ const ItemPage = () => {
       </p>
 
       <div className="flex items-center gap-3 p-3 rounded-xl shadow bg-white mb-4">
-        <img
+        <LoadingPlaceholder
           src={sellerProfile?.photoURL || "/default_pfp.jpg"}
           alt={item.userName}
           className="w-10 h-10 rounded-full object-cover"
+          placeholderClassName="rounded-full"
+          fallbackSrc="/default_pfp.jpg"
         />
         <div className="flex-1">
           <p className="text-sm font-bold">{item.userName}</p>

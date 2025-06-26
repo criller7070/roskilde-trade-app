@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ChatList = () => {
   const { user } = useAuth();
@@ -45,10 +46,11 @@ const ChatList = () => {
             >
               <div className="flex items-center space-x-4">
                 {chat.itemImage && (
-                  <img
+                  <LoadingPlaceholder
                     src={chat.itemImage}
                     alt={chat.itemName}
                     className="w-16 h-16 object-cover rounded-lg"
+                    placeholderClassName="rounded-lg"
                   />
                 )}
                 <div className="flex-1 min-w-0">

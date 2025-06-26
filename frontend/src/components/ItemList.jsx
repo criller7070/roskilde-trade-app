@@ -8,7 +8,7 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
 import { Heart, HeartOff, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ImageWithPlaceholder from "./ImageWithPlaceholder";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ItemList = () => {
   const { user } = useAuth();
@@ -82,7 +82,7 @@ const ItemList = () => {
               key={item.id}
               className="relative bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl duration-300"
             >
-              <ImageWithPlaceholder
+              <LoadingPlaceholder
                 src={item.imageUrl || "https://via.placeholder.com/400"}
                 alt={item.title}
                 className="w-full h-48 object-cover"

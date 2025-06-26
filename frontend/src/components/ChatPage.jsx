@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ChatPage = () => {
   const { chatId } = useParams();
@@ -149,7 +150,12 @@ const ChatPage = () => {
         <h2 className="text-xl font-bold text-orange-500">Chat med {otherParticipantName}</h2>
         <p className="text-sm text-gray-600">Om: <strong>{chatMeta.itemName}</strong></p>
         {chatMeta.itemImage && (
-          <img src={chatMeta.itemImage} alt={chatMeta.itemName} className="mx-auto mt-2 h-20 rounded-lg object-cover" />
+          <LoadingPlaceholder 
+            src={chatMeta.itemImage} 
+            alt={chatMeta.itemName} 
+            className="mx-auto mt-2 h-20 rounded-lg object-cover"
+            placeholderClassName="rounded-lg"
+          />
         )}
       </div>
 

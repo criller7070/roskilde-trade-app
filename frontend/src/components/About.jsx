@@ -1,4 +1,5 @@
 import React from "react";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const team = [
   { name: "Hannah Lund", img: "/team/Hannah.jpg" },
@@ -29,10 +30,11 @@ export default function About() {
       <div className="flex flex-wrap justify-center gap-6 mb-10">
         {team.map((person) => (
           <div key={person.name} className="flex flex-col items-center text-sm w-24">
-            <img
+            <LoadingPlaceholder
               src={person.img}
               alt={person.name}
               className="w-20 h-20 rounded-full object-cover shadow-sm"
+              placeholderClassName="rounded-full"
             />
             <span className="mt-2 text-wrap">{person.name}</span>
           </div>
@@ -44,10 +46,11 @@ export default function About() {
       </p>
 
       <div className="mb-6">
-        <img
+        <LoadingPlaceholder
           src="/team/group.png"
           alt="Team photo"
           className="rounded-xl shadow-md w-full max-w-md mx-auto"
+          placeholderClassName="rounded-xl"
         />
       </div>
 

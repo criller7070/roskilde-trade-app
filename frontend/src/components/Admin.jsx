@@ -6,6 +6,7 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { Trash2, Users, Package, AlertTriangle, Shield, Bug, Eye, CheckCircle } from "lucide-react";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -247,10 +248,11 @@ const Admin = () => {
               {items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center space-x-4">
-                    <img
+                    <LoadingPlaceholder
                       src={item.imageUrl || "https://via.placeholder.com/60"}
                       alt={item.title}
                       className="w-16 h-16 object-cover rounded"
+                      placeholderClassName="rounded"
                     />
                     <div>
                       <h3 className="font-medium text-gray-800">{item.title}</h3>
@@ -320,13 +322,18 @@ const Admin = () => {
                       
                       <div className="flex items-start space-x-3">
                         {report.imageUrl && (
-                          <img 
+                          <LoadingPlaceholder 
                             src={report.imageUrl} 
                             alt="Bug screenshot" 
                             className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 transition flex-shrink-0"
-                            onClick={() => window.open(report.imageUrl, '_blank')}
-                            title="Click to view full size"
-                          />
+                            placeholderClassName="rounded border"
+                          >
+                            <div 
+                              className="absolute inset-0 cursor-pointer"
+                              onClick={() => window.open(report.imageUrl, '_blank')}
+                              title="Click to view full size"
+                            />
+                          </LoadingPlaceholder>
                         )}
                         
                         <div className="text-xs text-gray-500 space-y-1 flex-1">

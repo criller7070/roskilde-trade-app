@@ -51,7 +51,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-3 fixed top-0 left-0 z-50">
+      <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-2 fixed top-0 left-0 z-50">
         {/* Left: Hamburger + Logo */}
         <div className="flex items-center space-x-4">
           <button onClick={() => setOpen(!open)} className="p-1">

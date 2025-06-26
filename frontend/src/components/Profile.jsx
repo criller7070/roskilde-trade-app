@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
-import ImageWithPlaceholder from "./ImageWithPlaceholder";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -90,7 +90,7 @@ const Profile = () => {
 
       {/* ---------- profile picture block ---------- */}
       <div className="relative w-28 h-28 mx-auto mb-4">
-        <ImageWithPlaceholder
+        <LoadingPlaceholder
           src={preview || user.photoURL || "/default_pfp.jpg"}
           alt="avatar"
           className="rounded-full w-full h-full object-cover"
@@ -151,7 +151,7 @@ const Profile = () => {
               onClick={() => navigate(`/item/${post.id}`)}
               className="flex bg-white rounded-xl shadow p-3 gap-3 items-center"
             >
-              <ImageWithPlaceholder
+              <LoadingPlaceholder
                 src={post.imageUrl || "/placeholder.jpg"}
                 alt="item"
                 className="w-16 h-16 object-cover rounded-md"
