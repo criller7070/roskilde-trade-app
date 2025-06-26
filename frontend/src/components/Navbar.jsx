@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info, Bug, Flame } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
@@ -93,13 +93,7 @@ const Navbar = () => {
               </Link>
             </div>
           ) : (
-            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
-              <img 
-                src={user.photoURL || "/default_pfp.jpg"} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            </Link>
+            <ProfileDropdown />
           )}
         </div>
       </div>
@@ -189,6 +183,69 @@ const Navbar = () => {
         </div>
       )}
     </>
+  );
+};
+
+const ProfileDropdown = () => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      setDropdownOpen(false);
+      navigate('/');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
+  // Detect outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setDropdownOpen((prev) => !prev)}
+        className="focus:outline-none"
+      >
+        <img
+          src={user?.photoURL || '/default-avatar.png'}
+          alt="Profile"
+          className="w-8 h-8 rounded-full border border-white"
+        />
+      </button>
+
+      {dropdownOpen && (
+        <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-md shadow-lg z-50">
+          <button
+            onClick={() => {
+              navigate('/profile');
+              setDropdownOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Profil
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Log ud
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
