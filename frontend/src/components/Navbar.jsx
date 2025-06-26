@@ -93,7 +93,7 @@ const Navbar = () => {
               </Link>
             </div>
           ) : (
-            <ProfileDropdown />
+            <ProfileDropdown setOpen={setOpen} />
           )}
         </div>
       </div>
@@ -107,7 +107,7 @@ const Navbar = () => {
 
           <Link to="/" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Home size={20} />
-            <span>Home</span>
+            <span>HJEM</span>
           </Link>
           {!user ? (
             <>
@@ -124,7 +124,7 @@ const Navbar = () => {
             <>
               <Link to="/profile" onClick={() => setOpen(false)} className="flex items-center space-x-3">
                 <User size={20} />
-                <span>Profil</span>
+                <span>PROFIL</span>
               </Link>
               <button 
                 onClick={handleLogout}
@@ -186,7 +186,7 @@ const Navbar = () => {
   );
 };
 
-const ProfileDropdown = () => {
+const ProfileDropdown = ({ setOpen }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { user } = useAuth();
@@ -220,7 +220,7 @@ const ProfileDropdown = () => {
         className="focus:outline-none"
       >
         <img
-          src={user?.photoURL || '/default-avatar.png'}
+          src={user?.photoURL || '/default_pfp.jpg'}
           alt="Profile"
           className="w-8 h-8 rounded-full border border-white"
         />
@@ -232,6 +232,7 @@ const ProfileDropdown = () => {
             onClick={() => {
               navigate('/profile');
               setDropdownOpen(false);
+              if (setOpen) setOpen(false); // Close hamburger menu if it's open
             }}
             className="w-full text-left px-4 py-2 hover:bg-gray-100"
           >
