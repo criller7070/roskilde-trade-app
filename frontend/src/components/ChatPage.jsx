@@ -75,7 +75,7 @@ const ChatPage = () => {
         setIsLoading(false);
       } catch (error) {
         console.error('Error setting up chat:', error);
-        showError('Failed to load chat');
+        showError('Kunne ikke indlæse chat');
         setIsLoading(false);
       }
     };
@@ -111,14 +111,14 @@ const ChatPage = () => {
       setNewMessage("");
     } catch (error) {
       console.error('Error sending message:', error);
-      showError('Failed to send message');
+      showError('Kunne ikke sende besked');
     }
   };
 
   if (!user) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Please log in to view chats.</p>
+        <p className="text-gray-600">Log ind for at se chats.</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ const ChatPage = () => {
   if (isLoading) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Loading chat...</p>
+        <p className="text-gray-600">Indlæser chat...</p>
       </div>
     );
   }
@@ -134,7 +134,7 @@ const ChatPage = () => {
   if (!chatMeta) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Chat not found.</p>
+        <p className="text-gray-600">Chat ikke fundet.</p>
       </div>
     );
   }

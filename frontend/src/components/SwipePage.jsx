@@ -108,7 +108,7 @@ const SwipePage = () => {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading cards...</div>;
+    return <div className="flex justify-center items-center h-full">Indlæser kort...</div>;
   }
 
   return (
@@ -138,8 +138,8 @@ const SwipePage = () => {
             </motion.div>
           ) : (
             <div className="text-center">
-              <h3 className="text-xl font-semibold">No more items!</h3>
-              <p className="text-gray-500">Check back later for new trades.</p>
+              <h3 className="text-xl font-semibold">Ikke flere opslag!</h3>
+              <p className="text-gray-500">Kom tilbage senere for nye byttehandler.</p>
             </div>
           )}
         </AnimatePresence>

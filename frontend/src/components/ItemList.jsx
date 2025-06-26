@@ -49,7 +49,7 @@ const ItemList = () => {
 
   const handleRemoveItem = async (itemId, itemTitle) => {
     showConfirm(
-      `Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`,
+      `Er du sikker på at du vil fjerne "${itemTitle}"? Denne handling kan ikke fortrydes.`,
       async () => {
         try {
           await removeItem(itemId);
@@ -59,15 +59,15 @@ const ItemList = () => {
             itemTitle,
             removedAt: new Date()
           });
-          showSuccess("Item removed successfully!");
+          showSuccess("Opslag fjernet!");
         } catch (error) {
           console.error("Error removing item:", error);
-          showError("Failed to remove item. Please try again.");
+          showError("Kunne ikke fjerne opslag. Prøv igen.");
         }
       },
-      "Confirm Removal",
-      "Remove",
-      "Cancel"
+      "Bekræft Fjernelse",
+      "Fjern",
+      "Annuller"
     );
   };
 
@@ -110,8 +110,8 @@ const ItemList = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                <span className="text-sm text-gray-500 mt-2 block">Mode: {item.mode}</span>
-                <p className="text-sm text-gray-500 mt-2">Posted by: {item.userName}</p>
+                <span className="text-sm text-gray-500 mt-2 block">Type: {item.mode}</span>
+                <p className="text-sm text-gray-500 mt-2">Opslået af: {item.userName}</p>
                 {user && item.userId !== user.uid && (
                   <button
                     onClick={() => {
@@ -128,17 +128,17 @@ const ItemList = () => {
                     }}
                     className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   >
-                    Message {item.userName}
+                    Besked til {item.userName}
                   </button>
                 )}
                 {!user && (
-                  <p className="text-sm text-red-500 mt-4">Please log in to message the seller.</p>
+                  <p className="text-sm text-red-500 mt-4">Log ind for at sende besked til sælgeren.</p>
                 )}
               </div>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-600">No items available yet.</p>
+          <p className="text-center text-gray-600">Ingen opslag tilgængelige endnu.</p>
         )}
       </div>
     </div>

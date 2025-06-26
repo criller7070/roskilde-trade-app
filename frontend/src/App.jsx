@@ -14,6 +14,7 @@ import Liked from "./components/Liked";
 import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
 import SwipePage from "./components/SwipePage";
+import BugReport from "./components/BugReport";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 import { AdminProvider, useAdmin } from "./contexts/AdminContext";
@@ -53,6 +54,10 @@ function AppRoutes() {
           <Route 
             path="/admin" 
             element={user && isAdmin ? <Admin /> : <LoginRequired />}
+          />
+          <Route 
+            path="/bug-report" 
+            element={user ? <BugReport /> : <LoginRequired />}
           />
         </Routes>
       </div>

@@ -3,7 +3,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
-import { Trash2, Users, Package, AlertTriangle, Shield } from "lucide-react";
+import { db } from "../firebase";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { Trash2, Users, Package, AlertTriangle, Shield, Bug, Eye, CheckCircle } from "lucide-react";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -16,6 +18,29 @@ const Admin = () => {
     logAdminAction,
     updateAdminStats
   } = useAdmin();
+  
+  const [bugReports, setBugReports] = useState([]);
+  const [bugReportsLoading, setBugReportsLoading] = useState(true);
+
+  // Subscribe to bug reports
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const q = query(collection(db, "bugReports"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reportsData = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setBugReports(reportsData);
+      setBugReportsLoading(false);
+    }, (error) => {
+      console.error("Error fetching bug reports:", error);
+      setBugReportsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -34,11 +59,13 @@ const Admin = () => {
           today.setHours(0, 0, 0, 0); // Start of today
           return itemDate >= today;
         }).length,
-        flaggedItems: items.filter(item => item.flagged).length || 0
+        flaggedItems: items.filter(item => item.flagged).length || 0,
+        bugReports: bugReports.length,
+        openBugReports: bugReports.filter(report => report.status === "open").length
       };
       updateAdminStats(newStats);
     }
-  }, [items, isAdmin]);
+  }, [items, isAdmin, bugReports]);
 
   const handleRemoveItem = async (itemId, itemTitle) => {
     showConfirm(
@@ -61,6 +88,45 @@ const Admin = () => {
       "Confirm Removal",
       "Remove",
       "Cancel"
+    );
+  };
+
+  const handleUpdateBugReportStatus = async (reportId, newStatus) => {
+    try {
+      await updateDoc(doc(db, "bugReports", reportId), {
+        status: newStatus
+      });
+      await logAdminAction('update_bug_report_status', {
+        reportId,
+        newStatus,
+        updatedAt: new Date()
+      });
+      showSuccess(`Bug report marked as ${newStatus}!`);
+    } catch (error) {
+      console.error("Error updating bug report status:", error);
+      showError("Failed to update bug report status.");
+    }
+  };
+
+  const handleDeleteBugReport = async (reportId, reportDescription) => {
+    showConfirm(
+      `Er du sikker på at du vil slette denne fejlrapport? Denne handling kan ikke fortrydes.\n\n"${reportDescription.substring(0, 100)}${reportDescription.length > 100 ? '...' : ''}"`,
+      async () => {
+        try {
+          await deleteDoc(doc(db, "bugReports", reportId));
+          await logAdminAction('delete_bug_report', {
+            reportId,
+            deletedAt: new Date()
+          });
+          showSuccess("Fejlrapport slettet!");
+        } catch (error) {
+          console.error("Error deleting bug report:", error);
+          showError("Kunne ikke slette fejlrapport. Prøv igen.");
+        }
+      },
+      "Bekræft Sletning",
+      "Slet",
+      "Annuller"
     );
   };
 
@@ -115,7 +181,7 @@ const Admin = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <Package className="text-blue-500 mr-3" size={24} />
@@ -152,6 +218,17 @@ const Admin = () => {
             <div>
               <p className="text-sm text-gray-600">Flagged Items</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.flaggedItems}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center">
+            <Bug className="text-purple-500 mr-3" size={24} />
+            <div>
+              <p className="text-sm text-gray-600">Bug Reports</p>
+              <p className="text-2xl font-bold text-gray-800">{adminStats.bugReports || 0}</p>
+              <p className="text-xs text-purple-600">{adminStats.openBugReports || 0} open</p>
             </div>
           </div>
         </div>
@@ -201,6 +278,100 @@ const Admin = () => {
             </div>
           ) : (
             <p className="text-center text-gray-600 py-8">No items available.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bug Reports Management */}
+      <div className="bg-white rounded-lg shadow-md mt-8">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-800">Bug Reports</h2>
+          <p className="text-sm text-gray-600 mt-1">Review and manage user-reported issues</p>
+        </div>
+        
+        <div className="p-6">
+          {bugReportsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+              <p className="text-gray-600 mt-2">Loading bug reports...</p>
+            </div>
+          ) : bugReports.length > 0 ? (
+            <div className="space-y-4">
+              {bugReports.map((report) => (
+                <div key={report.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                          report.status === 'open' 
+                            ? 'bg-red-100 text-red-800' 
+                            : report.status === 'resolved'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {report.status || 'open'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {report.createdAt?.toDate?.()?.toLocaleDateString('da-DK') || 'Unknown date'}
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-800 mb-3">{report.description}</p>
+                      
+                      <div className="flex items-start space-x-3">
+                        {report.imageUrl && (
+                          <img 
+                            src={report.imageUrl} 
+                            alt="Bug screenshot" 
+                            className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 transition flex-shrink-0"
+                            onClick={() => window.open(report.imageUrl, '_blank')}
+                            title="Click to view full size"
+                          />
+                        )}
+                        
+                        <div className="text-xs text-gray-500 space-y-1 flex-1">
+                          <p><strong>User:</strong> {report.userName} ({report.userEmail})</p>
+                          <p><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Unknown'}</p>
+                          <p><strong>URL:</strong> {report.url || 'Unknown'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col space-y-2 ml-4">
+                      {report.status === 'open' && (
+                        <button
+                          onClick={() => handleUpdateBugReportStatus(report.id, 'resolved')}
+                          className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
+                        >
+                          <CheckCircle size={12} />
+                          <span>Mark Resolved</span>
+                        </button>
+                      )}
+                      
+                      {report.status === 'resolved' && (
+                        <button
+                          onClick={() => handleUpdateBugReportStatus(report.id, 'open')}
+                          className="flex items-center space-x-1 px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition"
+                        >
+                          <Eye size={12} />
+                          <span>Reopen</span>
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => handleDeleteBugReport(report.id, report.description)}
+                        className="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                      >
+                        <Trash2 size={12} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-600 py-8">No bug reports yet.</p>
           )}
         </div>
       </div>
