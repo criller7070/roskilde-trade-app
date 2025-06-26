@@ -84,7 +84,7 @@ const Profile = () => {
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4 flex items-center justify-center gap-2">
-        Din Profil <span role="img" aria-label="edit">✏️</span>
+        Din Profil
       </h1>
 
       {/* ---------- profile picture block ---------- */}
@@ -131,7 +131,11 @@ const Profile = () => {
       {/* ---------- user’s posts ---------- */}
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
-        <PlusCircle className="text-orange-500" size={28} />
+        <PlusCircle
+          className="text-orange-500 cursor-pointer"
+          size={28}
+          onClick={() => navigate("/add-item")}
+        />
       </div>
 
       <div className="space-y-4">
