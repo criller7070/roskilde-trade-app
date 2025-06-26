@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info, Bug } from 'lucide-react';
+import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info, Bug, Flame } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -154,6 +154,10 @@ const Navbar = () => {
           </Link>
           
           <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
+          <Link to="/swipe" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+            <Flame size={20} />
+            <span>Swipe Opslag</span>
+          </Link>
           <Link to="/liked" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Heart size={20} />
             <span>Liked Opslag</span>
