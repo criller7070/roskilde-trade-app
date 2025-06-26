@@ -8,6 +8,7 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
 import { Heart, HeartOff, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ImageWithPlaceholder from "./ImageWithPlaceholder";
 
 const ItemList = () => {
   const { user } = useAuth();
@@ -62,7 +63,7 @@ const ItemList = () => {
           showSuccess("Opslag fjernet!");
         } catch (error) {
           console.error("Error removing item:", error);
-          showError("Kunne ikke fjerne opslag. Prøv igen.");
+          showError("Kunne ikke fjerne opslag. Prøv igen senere.");
         }
       },
       "Bekræft Fjernelse",
@@ -81,10 +82,11 @@ const ItemList = () => {
               key={item.id}
               className="relative bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl duration-300"
             >
-              <img
+              <ImageWithPlaceholder
                 src={item.imageUrl || "https://via.placeholder.com/400"}
                 alt={item.title}
                 className="w-full h-48 object-cover"
+                placeholderClassName="rounded-t-lg"
               />
               <div className="p-4">
                 <div className="absolute top-2 right-2 flex gap-2">

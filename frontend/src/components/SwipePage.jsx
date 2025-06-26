@@ -6,22 +6,25 @@ import { useItems } from '../contexts/ItemsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '../contexts/ChatContext';
+import ImageWithPlaceholder from './ImageWithPlaceholder';
 
 const SwipeCard = ({ item }) => {
   if (!item) return null;
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200">
-      <img 
-        src={item.imageUrl || "https://via.placeholder.com/400"} 
-        alt={item.title} 
+      <ImageWithPlaceholder
+        src={item.imageUrl || "https://via.placeholder.com/400"}
+        alt={item.title}
         className="w-full h-full object-cover"
-      />
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
-        <h3 className="text-2xl font-bold">{item.title}</h3>
-        <p className="text-sm mt-1">By: {item.userName}</p>
-        <p className="text-base mt-2 line-clamp-2">{item.description}</p>
-      </div>
+        placeholderClassName="rounded-2xl"
+      >
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
+          <h3 className="text-2xl font-bold">{item.title}</h3>
+          <p className="text-sm mt-1">By: {item.userName}</p>
+          <p className="text-base mt-2 line-clamp-2">{item.description}</p>
+        </div>
+      </ImageWithPlaceholder>
     </div>
   );
 };
@@ -108,7 +111,7 @@ const SwipePage = () => {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Indlæser kort...</div>;
+    return <div className="flex justify-center items-center h-full">Indlæser...</div>;
   }
 
   return (
@@ -139,7 +142,7 @@ const SwipePage = () => {
           ) : (
             <div className="text-center">
               <h3 className="text-xl font-semibold">Ikke flere opslag!</h3>
-              <p className="text-gray-500">Kom tilbage senere for nye byttehandler.</p>
+              <p className="text-gray-500">Vend tilbage senere for nye trades.</p>
             </div>
           )}
         </AnimatePresence>

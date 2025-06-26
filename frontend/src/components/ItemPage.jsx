@@ -4,6 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
+import ImageWithPlaceholder from "./ImageWithPlaceholder";
 
 const ItemPage = () => {
   const { itemId } = useParams();
@@ -61,10 +62,11 @@ const ItemPage = () => {
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4">{item.title}</h1>
-      <img
+      <ImageWithPlaceholder
         src={item.imageUrl || "/placeholder.jpg"}
         alt={item.title}
         className="w-full rounded-lg border mb-4"
+        placeholderClassName="rounded-lg border"
       />
 
       <h2 className="text-lg font-bold mb-1">Beskrivelse</h2>
