@@ -47,8 +47,22 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           <Bell size={20} />
           <Share2 size={20} />
-          <Search size={20} />
-          {user && (
+          {!user ? (
+            <>
+              <Link 
+                to="/Login" 
+                className="text-white font-semibold text-sm px-3 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition"
+              >
+                Log ind
+              </Link>
+              <Link 
+                to="/Signup" 
+                className="text-white font-semibold text-sm px-3 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition"
+              >
+                Opret konto
+              </Link>
+            </>
+          ) : (
             <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
               <img 
                 src={user.photoURL || "/default_pfp.jpg"} 
