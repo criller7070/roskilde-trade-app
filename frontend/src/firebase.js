@@ -38,7 +38,7 @@ const firebaseConfig = {
           uid: user.uid,
           name: user.displayName,
           email: user.email,
-          profilePic: user.photoURL,
+          photoURL: user.photoURL,
           createdAt: new Date(),
         });
         console.log("New user document created");

@@ -11,14 +11,31 @@ const ItemPage = () => {
   const { user } = useAuth();
   const { generateChatId } = useChat();
   const [item, setItem] = useState(null);
+  const [sellerProfile, setSellerProfile] = useState(null);
 
   useEffect(() => {
-    const fetchItem = async () => {
-      const docRef = doc(db, "items", itemId);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) setItem({ id: snap.id, ...snap.data() });
+    const fetchItemAndSeller = async () => {
+      try {
+        const itemRef = doc(db, "items", itemId);
+        const itemSnap = await getDoc(itemRef);
+
+        if (!itemSnap.exists()) return;
+
+        const itemData = { id: itemSnap.id, ...itemSnap.data() };
+        setItem(itemData);
+
+        const sellerRef = doc(db, "users", itemData.userId);
+        const sellerSnap = await getDoc(sellerRef);
+
+        if (sellerSnap.exists()) {
+          setSellerProfile(sellerSnap.data());
+        }
+      } catch (err) {
+        console.error("Failed to load item or seller:", err);
+      }
     };
-    fetchItem();
+
+    fetchItemAndSeller();
   }, [itemId]);
 
   const handleStartChat = () => {
@@ -57,7 +74,7 @@ const ItemPage = () => {
 
       <div className="flex items-center gap-3 p-3 rounded-xl shadow bg-white mb-4">
         <img
-          src={item.userProfilePic || "/default-avatar.png"}
+          src={sellerProfile?.photoURL || "/default_pfp.jpg"}
           alt={item.userName}
           className="w-10 h-10 rounded-full object-cover"
         />
