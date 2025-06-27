@@ -187,7 +187,7 @@ const Profile = () => {
   if (!user) return null;
 
   return (
-    <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
+    <div className="pt-12 px-4 pb-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4 flex items-center justify-center gap-2">
         Din Profil
       </h1>

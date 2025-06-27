@@ -100,7 +100,7 @@ const ChatList = () => {
   }
 
   return (
-    <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
+    <div className="pt-12 px-4 pb-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Dine Beskeder</h1>
       <div className="space-y-4">
         {chats.length === 0 ? (

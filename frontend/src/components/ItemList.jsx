@@ -37,8 +37,14 @@ const ItemList = () => {
     return () => unsubscribe();
   }, []);
 
-  const toggleLike = async (itemId) => {
+  const toggleLike = async (itemId, itemUserId) => {
     if (!user) return showError("Log ind for at like opslag.");
+    
+    // Prevent users from liking their own posts
+    if (user.uid === itemUserId) {
+      return showError("Du kan ikke like dine egne opslag.");
+    }
+    
     if (likedIds.includes(itemId)) {
       await unlikeItem(itemId);
       setLikedIds(likedIds.filter((id) => id !== itemId));
@@ -90,16 +96,19 @@ const ItemList = () => {
               />
               <div className="p-4">
                 <div className="absolute top-2 right-2 flex gap-2">
-                  <button
-                    onClick={() => toggleLike(item.id)}
-                    className="bg-white p-2 rounded-full shadow hover:bg-orange-100 transition"
-                  >
-                    {likedIds.includes(item.id) ? (
-                      <Heart className="text-orange-500 fill-orange-500" size={20} />
-                    ) : (
-                      <Heart className="text-gray-400" size={20} />
-                    )}
-                  </button>
+                  {/* Only show like button if the user is not the owner of the post */}
+                  {user && item.userId !== user.uid && (
+                    <button
+                      onClick={() => toggleLike(item.id, item.userId)}
+                      className="bg-white p-2 rounded-full shadow hover:bg-orange-100 transition"
+                    >
+                      {likedIds.includes(item.id) ? (
+                        <Heart className="text-orange-500 fill-orange-500" size={20} />
+                      ) : (
+                        <Heart className="text-gray-400" size={20} />
+                      )}
+                    </button>
+                  )}
                   {isAdmin && (
                     <button
                       onClick={() => handleRemoveItem(item.id, item.title)}

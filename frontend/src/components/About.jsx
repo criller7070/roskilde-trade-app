@@ -3,8 +3,8 @@ import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const team = [
   { name: "Hannah Lund", img: "/team/Hannah.jpg" },
-  { name: "Lilian Osman", img: "/team/Lilian.jpg" },
-  { name: "Philipp Zhuravlev", img: "/team/Philipp.jpg" },
+  { name: "Lilian Osman", img: "/team/Lilian.png" },
+  { name: "Philipp Zhuravlev", img: "/team/Philipp.png" },
   { name: "Christian Hyllested", img: "/team/Criller.png" },
   { name: "Akkash Vigneswaran", img: "/team/Akkash.jpg" },
 ];

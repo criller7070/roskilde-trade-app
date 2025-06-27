@@ -51,10 +51,8 @@ export function ChatProvider({ children }) {
     // Handle visibility change (mobile app backgrounding)
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        console.log('App backgrounded - cleaning up connections');
         setConnectionState('background');
       } else {
-        console.log('App foregrounded - restoring connections');
         setConnectionState('connected');
         // Small delay to ensure network is stable
         setTimeout(() => {

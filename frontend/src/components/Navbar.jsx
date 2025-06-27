@@ -115,11 +115,11 @@ const Navbar = () => {
             <Share2 size={20} />
           </button>
           {!user ? (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 h-8">
               <Link 
                 to="/Login" 
                 onClick={() => setOpen(false)}
-                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
+                className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
                 <span className="hidden sm:inline">Log ind</span>
                 <span className="sm:hidden">Log Ind</span>
@@ -127,17 +127,17 @@ const Navbar = () => {
               <Link 
                 to="/Signup" 
                 onClick={() => setOpen(false)}
-                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
+                className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
                 <span className="hidden sm:inline">Opret konto</span>
                 <span className="sm:hidden">Opret Konto</span>
               </Link>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 h-8">
               <button 
                 onClick={handleLogout}
-                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
+                className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
                 <span className="hidden sm:inline">Log ud</span>
                 <span className="sm:hidden">Log Ud</span>
