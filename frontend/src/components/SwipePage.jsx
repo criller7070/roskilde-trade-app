@@ -164,14 +164,38 @@ const SwipePage = () => {
       </div>
 
       <div className="flex items-center justify-center gap-8">
-        <button onClick={() => currentItem && handleSwipe(currentItem, 'dislike')} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <X size={32} className="text-red-500" />
+        <button 
+          onClick={() => currentItem && handleSwipe(currentItem, 'dislike')} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <X size={32} className={currentItem ? "text-red-500" : "text-gray-400"} />
         </button>
-        <button onClick={handleChat} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <MessageCircle size={32} className="text-blue-500" />
+        <button 
+          onClick={handleChat} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <MessageCircle size={32} className={currentItem ? "text-blue-500" : "text-gray-400"} />
         </button>
-        <button onClick={() => currentItem && handleSwipe(currentItem, 'like')} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <Heart size={32} className="text-orange-500" />
+        <button 
+          onClick={() => currentItem && handleSwipe(currentItem, 'like')} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <Heart size={32} className={currentItem ? "text-orange-500" : "text-gray-400"} />
         </button>
       </div>
     </div>

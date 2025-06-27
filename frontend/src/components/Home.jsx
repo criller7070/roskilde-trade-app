@@ -7,7 +7,7 @@ const Home = () => {
     return (
       <div className="h-screen flex flex-col items-center justify-center text-center px-6 -mt-16 overflow-hidden">
         <LoadingPlaceholder
-          src="/logo.png"
+          src="/logo-compressed.png"
           alt="RosSwap Logo"
           className="w-32 h-40 mb-4 object-contain mx-auto"
           placeholderClassName="bg-orange-200 rounded-lg"
