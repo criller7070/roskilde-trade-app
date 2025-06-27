@@ -8,10 +8,17 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [hasConsented, setHasConsented] = useState(false);
   const { showSuccess, showError } = usePopupContext();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    if (!hasConsented) {
+      showError("Du skal acceptere vilkårene og privatlivspolitikken for at oprette en konto.");
+      return;
+    }
+    
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
@@ -22,7 +29,9 @@ const Signup = () => {
         uid: user.uid,
         name,
         email,
-        createdAt: new Date()
+        createdAt: new Date(),
+        consentedAt: new Date(), // GDPR compliance
+        gdprConsent: true
       });
 
       showSuccess("Bruger oprettet!");
@@ -71,9 +80,32 @@ const Signup = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 rounded-lg bg-gray-100"
         />
+        
+        {/* GDPR Consent Checkbox */}
+        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+          <input
+            type="checkbox"
+            id="consent"
+            checked={hasConsented}
+            onChange={(e) => setHasConsented(e.target.checked)}
+            className="mt-1 w-4 h-4 text-orange-500 rounded focus:ring-orange-400"
+            required
+          />
+          <label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
+            Jeg accepterer <a href="/terms" target="_blank" className="text-orange-500 underline">vilkårene</a> og{' '}
+            <a href="/privacy" target="_blank" className="text-orange-500 underline">privatlivspolitikken</a>.
+            Ved at oprette en konto samtykker jeg til behandling af mine personoplysninger som beskrevet i privatlivspolitikken.
+          </label>
+        </div>
+        
         <button
           type="submit"
-          className="w-full bg-orange-500 text-white py-3 rounded-lg font-bold text-lg"
+          disabled={!hasConsented}
+          className={`w-full py-3 rounded-lg font-bold text-lg ${
+            hasConsented 
+              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
           Opret
         </button>
@@ -83,10 +115,20 @@ const Signup = () => {
           <button
             type="button"
             onClick={signInWithGoogle}
-            className="w-full bg-white border text-orange-500 font-semibold py-2 rounded-lg shadow hover:bg-orange-50"
+            disabled={!hasConsented}
+            className={`w-full border font-semibold py-2 rounded-lg shadow ${
+              hasConsented
+                ? 'bg-white text-orange-500 hover:bg-orange-50'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+            }`}
           >
             Log ind med Google
           </button>
+          {!hasConsented && (
+            <p className="text-xs text-gray-500 mt-2">
+              Du skal acceptere vilkårene før du kan logge ind
+            </p>
+          )}
         </div>
 
       </form>

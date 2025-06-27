@@ -16,6 +16,8 @@ import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
 import SwipePage from "./components/SwipePage";
 import BugReport from "./components/BugReport";
+import Terms from "./components/Terms";
+import Privacy from "./components/Privacy";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 import { AdminProvider, useAdmin } from "./contexts/AdminContext";
@@ -64,6 +66,8 @@ function AppRoutes() {
             path="/bug-report" 
             element={user ? <BugReport /> : <LoginRequired />}
           />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </div>
     </Router>

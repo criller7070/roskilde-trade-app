@@ -582,7 +582,7 @@ MIT License - Open source project
 ## Team & Maintenance
 
 - **Lead Developer**: Philipp Zhuravlev (philippzhuravlev@gmail.com)
-- **Co-developer**: Criller Hylle (crillerhylle@gmail.com)
+- **Co-developer**: Christian Hyllested (crillerhylle@gmail.com)
 - **Additional Contributors**: Hannah, Lilian, Akkash
 
 ## Technical Debt & Future Improvements
