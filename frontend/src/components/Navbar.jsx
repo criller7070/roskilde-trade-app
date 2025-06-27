@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info, Bug, Flame } from 'lucide-react';
+import { Menu, Bell, Share2, Search, Shield, Home, User, LogOut, MessageCircle, Heart, List, Plus, Info, Bug, Flame, FileText, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,7 @@ import LoadingPlaceholder from './LoadingPlaceholder';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [moreExpanded, setMoreExpanded] = useState(false);
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
   const { unreadCount } = useChat();
@@ -36,6 +37,8 @@ const Navbar = () => {
     } else {
       // Re-enable scrolling
       document.body.style.overflow = 'unset';
+      // Reset more section when menu closes
+      setMoreExpanded(false);
     }
 
     // Cleanup: ensure scrolling is re-enabled when component unmounts
@@ -218,14 +221,35 @@ const Navbar = () => {
           </Link>
           <div className="w-24 mx-auto border-t-2 border-white/50 my-3"></div>
           
-          <Link to="/bug-report" onClick={() => setOpen(false)} className="flex items-center space-x-3">
-            <Bug size={20} />
-            <span>Rapporter Fejl</span>
-          </Link>
-          <Link to="/about" onClick={() => setOpen(false)} className="flex items-center space-x-3">
-            <Info size={20} />
-            <span>Om os</span>
-          </Link>
+          {/* More Section */}
+          <button 
+            onClick={() => setMoreExpanded(!moreExpanded)} 
+            className="flex items-center space-x-3 w-full justify-center"
+          >
+            {moreExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            <span>MERE</span>
+          </button>
+          
+          {moreExpanded && (
+            <div className="space-y-4 mt-4 border-t border-white/30 pt-4">
+              <Link to="/bug-report" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
+                <Bug size={18} />
+                <span>Rapporter Fejl</span>
+              </Link>
+              <Link to="/about" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
+                <Info size={18} />
+                <span>Om os</span>
+              </Link>
+              <Link to="/terms" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
+                <FileText size={18} />
+                <span>Vilkår</span>
+              </Link>
+              <Link to="/privacy" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
+                <Lock size={18} />
+                <span>Privatlivspolitik</span>
+              </Link>
+            </div>
+          )}
           {isAdmin && (
             <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-3 text-yellow-300">
               <Shield size={20} />
