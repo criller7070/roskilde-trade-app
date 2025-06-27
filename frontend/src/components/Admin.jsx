@@ -70,7 +70,7 @@ const Admin = () => {
 
   const handleRemoveItem = async (itemId, itemTitle) => {
     showConfirm(
-      `Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`,
+      `Er du sikker på at du vil slette "${itemTitle}"? Denne handling kan ikke fortrydes.`,
       async () => {
         try {
           await removeItem(itemId);
@@ -80,15 +80,15 @@ const Admin = () => {
             itemTitle,
             removedAt: new Date()
           });
-          showSuccess("Item removed successfully!");
+          showSuccess("Opslag fjernet!");
         } catch (error) {
           console.error("Error removing item:", error);
-          showError("Failed to remove item. Please try again.");
+          showError("Kunne ikke fjerne opslag. Prøv igen.");
         }
       },
-      "Confirm Removal",
-      "Remove",
-      "Cancel"
+      "Bekræft Fjernelse",
+      "Fjern",
+      "Annuller"
     );
   };
 
@@ -102,10 +102,10 @@ const Admin = () => {
         newStatus,
         updatedAt: new Date()
       });
-      showSuccess(`Bug report marked as ${newStatus}!`);
+      showSuccess(`Fejlrapport markeret som ${newStatus}!`);
     } catch (error) {
       console.error("Error updating bug report status:", error);
-      showError("Failed to update bug report status.");
+      showError("Kunne ikke opdatere fejlrapport.");
     }
   };
 
@@ -136,7 +136,7 @@ const Admin = () => {
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading admin panel...</p>
+          <p className="text-gray-600 mt-4">Indlæser administratorpanel...</p>
         </div>
       </div>
     );
@@ -146,8 +146,8 @@ const Admin = () => {
     return (
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600">Please log in to access the admin panel.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Adgang Nægtet</h2>
+          <p className="text-gray-600">Log venligst ind for at få adgang til administratorpanelet.</p>
         </div>
       </div>
     );
@@ -158,9 +158,9 @@ const Admin = () => {
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
           <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access the admin panel.</p>
-          <p className="text-sm text-gray-500 mt-2">Contact an administrator if you believe this is an error.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Adgang Nægtet</h2>
+          <p className="text-gray-600">Du har ikke tilladelse til at få adgang til administratorpanelet.</p>
+          <p className="text-sm text-gray-500 mt-2">Kontakt en administrator, hvis du mener, dette er en fejl.</p>
         </div>
       </div>
     );
@@ -171,12 +171,12 @@ const Admin = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Welcome, {user.displayName} ({user.email})</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Administrator Dashboard</h1>
+            <p className="text-gray-600">Velkommen, {user.displayName} ({user.email})</p>
           </div>
           <div className="flex items-center space-x-2 bg-orange-100 px-3 py-2 rounded-lg">
             <Shield className="text-orange-600" size={20} />
-            <span className="text-orange-800 font-medium">Admin</span>
+            <span className="text-orange-800 font-medium">Administrator</span>
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ const Admin = () => {
           <div className="flex items-center">
             <Package className="text-blue-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Total Items</p>
+              <p className="text-sm text-gray-600">Samlede Opslag</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.totalItems}</p>
             </div>
           </div>
@@ -197,7 +197,7 @@ const Admin = () => {
           <div className="flex items-center">
             <Users className="text-green-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Active Users</p>
+              <p className="text-sm text-gray-600">Aktive Brugere</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.totalUsers}</p>
             </div>
           </div>
@@ -207,7 +207,7 @@ const Admin = () => {
           <div className="flex items-center">
             <Package className="text-orange-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Recent Items (today)</p>
+              <p className="text-sm text-gray-600">Nye Opslag (i dag)</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.recentItems}</p>
             </div>
           </div>
@@ -217,7 +217,7 @@ const Admin = () => {
           <div className="flex items-center">
             <AlertTriangle className="text-red-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Flagged Items</p>
+              <p className="text-sm text-gray-600">Flagede Opslag</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.flaggedItems}</p>
             </div>
           </div>
@@ -227,9 +227,9 @@ const Admin = () => {
           <div className="flex items-center">
             <Bug className="text-purple-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Bug Reports</p>
+              <p className="text-sm text-gray-600">Fejlrapporter</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.bugReports || 0}</p>
-              <p className="text-xs text-purple-600">{adminStats.openBugReports || 0} open</p>
+              <p className="text-xs text-purple-600">{adminStats.openBugReports || 0} åben</p>
             </div>
           </div>
         </div>
@@ -238,8 +238,8 @@ const Admin = () => {
       {/* Items Management */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Manage Listings</h2>
-          <p className="text-sm text-gray-600 mt-1">Remove inappropriate or expired listings</p>
+          <h2 className="text-xl font-semibold text-gray-800">Administrer Opslag</h2>
+          <p className="text-sm text-gray-600 mt-1">Fjern upassende eller udløbne opslag</p>
         </div>
         
         <div className="p-6">
@@ -256,7 +256,7 @@ const Admin = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 truncate">{item.title}</h3>
-                      <p className="text-sm text-gray-600 truncate">Posted by: {item.userName}</p>
+                      <p className="text-sm text-gray-600 truncate">Opslået af: {item.userName}</p>
                       <p className="text-xs text-gray-500">
                         {item.createdAt?.toDate?.()?.toLocaleDateString() || 
                          new Date(item.createdAt).toLocaleDateString() ||
@@ -272,14 +272,14 @@ const Admin = () => {
                       className="flex items-center justify-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex-shrink-0 w-full sm:w-auto"
                     >
                       <Trash2 size={16} />
-                      <span>Remove</span>
+                      <span>Fjern</span>
                     </button>
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-600 py-8">No items available.</p>
+            <p className="text-center text-gray-600 py-8">Ingen opslag tilgængelige.</p>
           )}
         </div>
       </div>
@@ -287,15 +287,15 @@ const Admin = () => {
       {/* Bug Reports Management */}
       <div className="bg-white rounded-lg shadow-md mt-8">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Bug Reports</h2>
-          <p className="text-sm text-gray-600 mt-1">Review and manage user-reported issues</p>
+          <h2 className="text-xl font-semibold text-gray-800">Fejlrapporter</h2>
+          <p className="text-sm text-gray-600 mt-1">Gennemgå og administrer brugerrapporterede problemer</p>
         </div>
         
         <div className="p-6">
           {bugReportsLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading bug reports...</p>
+              <p className="text-gray-600 mt-2">Indlæser fejlrapporter...</p>
             </div>
           ) : bugReports.length > 0 ? (
             <div className="space-y-4">
@@ -311,10 +311,10 @@ const Admin = () => {
                             ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {report.status || 'open'}
+                          {report.status === 'open' ? 'åben' : report.status === 'resolved' ? 'løst' : report.status || 'åben'}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {report.createdAt?.toDate?.()?.toLocaleDateString('da-DK') || 'Unknown date'}
+                          {report.createdAt?.toDate?.()?.toLocaleDateString('da-DK') || 'Ukendt dato'}
                         </span>
                       </div>
                       
@@ -331,15 +331,15 @@ const Admin = () => {
                             <div 
                               className="absolute inset-0 cursor-pointer"
                               onClick={() => window.open(report.imageUrl, '_blank')}
-                              title="Click to view full size"
+                              title="Klik for at se i fuld størrelse"
                             />
                           </LoadingPlaceholder>
                         )}
                         
                         <div className="text-xs text-gray-500 space-y-1 flex-1 min-w-0">
-                          <p className="break-words"><strong>User:</strong> {report.userName} ({report.userEmail})</p>
-                          <p className="break-words"><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Unknown'}</p>
-                          <p className="break-words"><strong>URL:</strong> {report.url || 'Unknown'}</p>
+                          <p className="break-words"><strong>Bruger:</strong> {report.userName} ({report.userEmail})</p>
+                          <p className="break-words"><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Ukendt'}</p>
+                          <p className="break-words"><strong>URL:</strong> {report.url || 'Ukendt'}</p>
                         </div>
                       </div>
                     </div>
@@ -351,8 +351,8 @@ const Admin = () => {
                           className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition flex-1 lg:flex-none whitespace-nowrap"
                         >
                           <CheckCircle size={12} />
-                          <span className="hidden sm:inline">Mark Resolved</span>
-                          <span className="sm:hidden">Resolve</span>
+                          <span className="hidden sm:inline">Markér som Løst</span>
+                          <span className="sm:hidden">Løs</span>
                         </button>
                       )}
                       
@@ -362,7 +362,7 @@ const Admin = () => {
                           className="flex items-center justify-center space-x-1 px-3 py-2 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition flex-1 lg:flex-none whitespace-nowrap"
                         >
                           <Eye size={12} />
-                          <span>Reopen</span>
+                          <span>Genåbn</span>
                         </button>
                       )}
                       
@@ -371,7 +371,7 @@ const Admin = () => {
                         className="flex items-center justify-center space-x-1 px-3 py-2 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition flex-1 lg:flex-none whitespace-nowrap"
                       >
                         <Trash2 size={12} />
-                        <span>Delete</span>
+                        <span>Slet</span>
                       </button>
                     </div>
                   </div>
@@ -379,7 +379,7 @@ const Admin = () => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-600 py-8">No bug reports yet.</p>
+            <p className="text-center text-gray-600 py-8">Ingen fejlrapporter endnu.</p>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
@@ -13,6 +13,7 @@ const ChatList = () => {
   const { user } = useAuth();
   const { chats, loading } = useChat();
   const { showConfirm, showSuccess, showError } = usePopupContext();
+  const navigate = useNavigate();
   const [chatStatuses, setChatStatuses] = useState({});
 
   // Delete a chat from user's chat list
@@ -35,6 +36,14 @@ const ChatList = () => {
       "Slet",
       "Annuller"
     );
+  };
+
+  const handleItemImageClick = (e, itemId, isDeleted) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (itemId && !isDeleted) {
+      navigate(`/item/${itemId}`);
+    }
   };
 
   // Check which items are deleted
@@ -77,7 +86,7 @@ const ChatList = () => {
   if (!user) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Please log in to view your chats.</p>
+        <p className="text-gray-600">Log venligst ind for at se dine beskeder.</p>
       </div>
     );
   }
@@ -85,7 +94,7 @@ const ChatList = () => {
   if (loading) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Loading chats...</p>
+        <p className="text-gray-600">Indlæser beskeder...</p>
       </div>
     );
   }
@@ -96,8 +105,8 @@ const ChatList = () => {
       <div className="space-y-4">
         {chats.length === 0 ? (
           <div className="text-center text-gray-600">
-            <p>No chats yet.</p>
-            <p className="text-xs text-gray-400 mt-2">Try messaging someone from an item listing!</p>
+            <p>Ingen beskeder endnu.</p>
+            <p className="text-xs text-gray-400 mt-2">Prøv at sende en besked til nogen fra et opslag!</p>
           </div>
         ) : (
           chats.map((chat) => {
@@ -118,14 +127,22 @@ const ChatList = () => {
                 >
                   <div className="flex items-center space-x-4 pr-12">
                   {chat.itemImage && (
-                    <LoadingPlaceholder
-                      src={chat.itemImage}
-                      alt={chat.itemName}
-                      className={`w-16 h-16 object-cover rounded-lg ${
-                        isDeleted ? 'grayscale opacity-50' : ''
+                    <div
+                      onClick={(e) => handleItemImageClick(e, chat.itemId, isDeleted)}
+                      className={`flex-shrink-0 ${
+                        !isDeleted && chat.itemId ? 'cursor-pointer hover:opacity-80 transition-opacity duration-200' : ''
                       }`}
-                      placeholderClassName="rounded-lg"
-                    />
+                      title={!isDeleted && chat.itemId ? "Klik for at se opslaget" : ""}
+                    >
+                      <LoadingPlaceholder
+                        src={chat.itemImage}
+                        alt={chat.itemName}
+                        className={`w-16 h-16 object-cover rounded-lg ${
+                          isDeleted ? 'grayscale opacity-50' : ''
+                        }`}
+                        placeholderClassName="rounded-lg"
+                      />
+                    </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className={`font-semibold truncate ${
@@ -152,17 +169,18 @@ const ChatList = () => {
                         })}
                       </p>
                     )}
-                    {chat.unreadCount > 0 && !isDeleted && (
-                      <div className="mt-2">
-                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-500 rounded-full">
-                          {chat.unreadCount}
-                        </span>
-                      </div>
-                    )}                     
-
                     </div>
                   </div>
                 </Link>
+                
+                {/* Notification badge */}
+                {chat.unreadCount > 0 && !isDeleted && (
+                  <div className="absolute top-4 right-2 z-10">
+                    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-orange-500 rounded-full">
+                      {chat.unreadCount}
+                    </span>
+                  </div>
+                )}
                 
                 {/* Delete button for deleted items */}
                 {isDeleted && (
@@ -173,7 +191,7 @@ const ChatList = () => {
                       confirmDeleteChat(chat.id, chat.itemName);
                     }}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Slet chat"
+                    title="Slet besked"
                   >
                     <Trash2 size={16} />
                   </button>

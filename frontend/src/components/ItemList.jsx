@@ -104,7 +104,7 @@ const ItemList = () => {
                     <button
                       onClick={() => handleRemoveItem(item.id, item.title)}
                       className="bg-red-500 p-2 rounded-full shadow hover:bg-red-600 transition"
-                      title="Remove listing (Admin only)"
+                      title="Fjern opslag (Kun administrator)"
                     >
                       <Trash2 className="text-white" size={20} />
                     </button>
@@ -123,7 +123,7 @@ const ItemList = () => {
                   )}
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Lagt op af: {user && item.userId === user.uid ? "Dig" : item.userName}
+                  Opslået af: {user && item.userId === user.uid ? "Dig" : item.userName}
                 </p>
                 {user && item.userId !== user.uid && (
                   <button
@@ -145,7 +145,7 @@ const ItemList = () => {
                   </button>
                 )}
                 {!user && (
-                  <p className="text-sm text-red-500 mt-4">Log ind for at sende besked til sælgeren.</p>
+                  <p className="text-sm text-red-500 mt-4">Log ind for at sende en besked til sælgeren.</p>
                 )}
               </div>
             </div>

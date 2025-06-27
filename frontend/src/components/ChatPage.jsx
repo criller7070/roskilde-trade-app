@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
 import { usePopupContext } from "../contexts/PopupContext";
@@ -11,6 +11,7 @@ import LoadingPlaceholder from "./LoadingPlaceholder";
 const ChatPage = () => {
   const { chatId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { showError } = usePopupContext();
   const { 
@@ -138,6 +139,12 @@ const ChatPage = () => {
     }
   };
 
+  const handleItemImageClick = () => {
+    if (chatMeta?.itemId && !chatMeta.isItemDeleted) {
+      navigate(`/item/${chatMeta.itemId}`);
+    }
+  };
+
   if (!user) {
     return (
       <div className="pt-20 px-4 text-center">
@@ -188,12 +195,18 @@ const ChatPage = () => {
           </div>
         )}
         {chatMeta.itemImage && !chatMeta.isItemDeleted && (
-          <LoadingPlaceholder 
-            src={chatMeta.itemImage} 
-            alt={chatMeta.itemName} 
-            className="mx-auto mt-2 h-20 rounded-lg object-cover"
-            placeholderClassName="rounded-lg"
-          />
+          <div 
+            onClick={handleItemImageClick}
+            className="flex justify-center mt-3 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+            title="Klik for at se opslaget"
+          >
+            <LoadingPlaceholder 
+              src={chatMeta.itemImage} 
+              alt={chatMeta.itemName} 
+              className="h-28 w-28 rounded-lg object-cover"
+              placeholderClassName="rounded-lg"
+            />
+          </div>
         )}
       </div>
 
