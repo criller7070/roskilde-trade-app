@@ -44,7 +44,7 @@ function AppRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/Signup" element={<Signup />} />
+          <Route path="/signup" element={<Signup />} />
           <Route 
             path="/swipe"
             element={user ? <SwipePage /> : <LoginRequired />}

@@ -290,6 +290,9 @@ export function ChatProvider({ children }) {
     if (!user) {
       setChats([]);
       setLoading(false);
+      setUnreadCount(0); // Reset notification count when user logs out
+      setActiveChat(null); // Clear active chat
+      setMessages([]); // Clear messages
       return;
     }
 

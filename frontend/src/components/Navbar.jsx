@@ -128,7 +128,7 @@ const Navbar = () => {
                 <span className="sm:hidden">Log Ind</span>
               </Link>
               <Link 
-                to="/Signup" 
+                to="/signup" 
                 onClick={() => setOpen(false)}
                 className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
@@ -170,7 +170,7 @@ const Navbar = () => {
                 <User size={20} />
                 <span>Log ind</span>
               </Link>
-              <Link to="/Signup" onClick={() => setOpen(false)} className="flex items-center space-x-3">
+              <Link to="/signup" onClick={() => setOpen(false)} className="flex items-center space-x-3">
                 <Plus size={20} />
                 <span>Opret konto</span>
               </Link>
@@ -234,7 +234,7 @@ const Navbar = () => {
             <div className="space-y-4 mt-4 border-t border-white/30 pt-4">
               <Link to="/bug-report" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <Bug size={18} />
-                <span>Rapporter Fejl</span>
+                <span>Rapportér Fejl</span>
               </Link>
               <Link to="/about" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <Info size={18} />

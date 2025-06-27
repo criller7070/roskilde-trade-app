@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { auth, db, signInWithGoogle } from "../firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth, db, signInWithGoogle, createGoogleUser } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { usePopupContext } from "../contexts/PopupContext";
 
@@ -10,6 +11,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [hasConsented, setHasConsented] = useState(false);
   const { showSuccess, showError } = usePopupContext();
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -35,8 +37,78 @@ const Signup = () => {
       });
 
       showSuccess("Bruger oprettet!");
+      navigate("/profile");
     } catch (error) {
-      showError("Fejl: " + error.message);
+      // Check if email is already in use
+      if (error.code === 'auth/email-already-in-use') {
+        try {
+          // Try to sign them in with the provided credentials
+          await signInWithEmailAndPassword(auth, email, password);
+          showSuccess("Du har allerede en konto. Logger ind i stedet...");
+          navigate("/profile");
+                 } catch (loginError) {
+           // Login failed, handle with clean messages
+           if (loginError.code === 'auth/wrong-password' || loginError.code === 'auth/invalid-credential') {
+             showError("Denne email er allerede registreret. Skift over til Log Ind siden og indtast den korrekte adgangskode.");
+           } else if (loginError.code === 'auth/too-many-requests') {
+             showError("For mange login-forsøg. Vent et øjeblik og prøv igen.");
+           } else if (loginError.code === 'auth/user-disabled') {
+             showError("Denne konto er deaktiveret. Kontakt support.");
+           } else {
+             showError("Denne email er allerede registreret. Skift over til Log Ind siden.");
+           }
+         }
+      } else {
+        // Handle other Firebase auth errors with clean messages
+        let errorMessage;
+        switch (error.code) {
+          case 'auth/invalid-email':
+            errorMessage = "Ugyldig email-adresse. Tjek venligst din email.";
+            break;
+          case 'auth/invalid-credential':
+            errorMessage = "Ugyldige oplysninger. Tjek venligst din email og adgangskode.";
+            break;
+          case 'auth/weak-password':
+            errorMessage = "Adgangskoden er for svag. Brug mindst 6 tegn.";
+            break;
+          case 'auth/operation-not-allowed':
+            errorMessage = "Email/adgangskode login er ikke aktiveret.";
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = "For mange forsøg. Prøv igen senere.";
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = "Netværksfejl. Tjek din internetforbindelse.";
+            break;
+          default:
+            errorMessage = "Der opstod en fejl. Prøv igen.";
+        }
+        showError(errorMessage);
+      }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!hasConsented) {
+      showError("Du skal acceptere vilkårene og privatlivspolitikken for at oprette en konto.");
+      return;
+    }
+
+    try {
+      const result = await signInWithGoogle();
+      
+      if (result.isNewUser) {
+        // Create new user with consent
+        await createGoogleUser(result.user, true);
+        showSuccess("Konto oprettet med Google!");
+      } else {
+        // Existing user - just log them in
+        showSuccess("Du har allerede en konto. Logger ind i stedet...");
+      }
+      
+      navigate("/profile");
+    } catch (error) {
+      showError("Fejl ved Google signup: " + error.message);
     }
   };
 
@@ -114,7 +186,7 @@ const Signup = () => {
           <p className="text-sm text-gray-500 mb-2">eller</p>
           <button
             type="button"
-            onClick={signInWithGoogle}
+            onClick={handleGoogleSignIn}
             disabled={!hasConsented}
             className={`w-full border font-semibold py-2 rounded-lg shadow ${
               hasConsented
@@ -122,11 +194,11 @@ const Signup = () => {
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
             }`}
           >
-            Log ind med Google
+            Opret med Google
           </button>
           {!hasConsented && (
             <p className="text-xs text-gray-500 mt-2">
-              Du skal acceptere vilkårene før du kan logge ind
+              Du skal acceptere vilkårene før du kan oprette en konto
             </p>
           )}
         </div>
