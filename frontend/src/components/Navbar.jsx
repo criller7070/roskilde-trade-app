@@ -197,7 +197,7 @@ const Navbar = () => {
             <span>Beskeder</span>
           </Link>
           
-          <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
+          <div className="w-24 mx-auto border-t-2 border-white/50 my-3"></div>
           <Link to="/swipe" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Flame size={20} />
             <span>Swipe Opslag</span>
@@ -214,13 +214,7 @@ const Navbar = () => {
             <Plus size={20} />
             <span>Opret Opslag</span>
           </Link>
-          {isAdmin && (
-            <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-3 text-yellow-300">
-              <Shield size={20} />
-              <span>Admin Panel</span>
-            </Link>
-          )}
-          <div className="w-16 mx-auto border-t border-white/30 my-1"></div>
+          <div className="w-24 mx-auto border-t-2 border-white/50 my-3"></div>
           
           <Link to="/bug-report" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Bug size={20} />
@@ -230,6 +224,12 @@ const Navbar = () => {
             <Info size={20} />
             <span>Om os</span>
           </Link>
+          {isAdmin && (
+            <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-3 text-yellow-300">
+              <Shield size={20} />
+              <span>Admin Panel</span>
+            </Link>
+          )}
         </div>
       )}
     </>

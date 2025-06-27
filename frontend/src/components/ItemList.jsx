@@ -130,7 +130,7 @@ const ItemList = () => {
                     }}
                     className="mt-4 w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   >
-                    Besked til {item.userName}
+                    Send besked til {item.userName}
                   </button>
                 )}
                 {!user && (

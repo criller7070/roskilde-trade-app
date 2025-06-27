@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSwipeable } from 'react-swipeable';
 import { Heart, MessageCircle, X } from 'lucide-react';
 import { useItems } from '../contexts/ItemsContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,11 +7,14 @@ import { useNavigate } from 'react-router-dom';
 import { useChat } from '../contexts/ChatContext';
 import LoadingPlaceholder from './LoadingPlaceholder';
 
-const SwipeCard = ({ item }) => {
+const SwipeCard = ({ item, onCardClick }) => {
   if (!item) return null;
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200">
+    <div 
+      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200 cursor-pointer"
+      onClick={onCardClick}
+    >
       <LoadingPlaceholder
         src={item.imageUrl || "https://via.placeholder.com/400"}
         alt={item.title}
@@ -89,12 +91,7 @@ const SwipePage = () => {
     }
   };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => currentItem && handleSwipe(currentItem, 'dislike'),
-    onSwipedRight: () => currentItem && handleSwipe(currentItem, 'like'),
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
+
 
   const handleChat = () => {
     if (!currentItem) return;
@@ -110,18 +107,23 @@ const SwipePage = () => {
     });
   }
 
+  const handleCardClick = () => {
+    if (!currentItem) return;
+    navigate(`/item/${currentItem.id}`);
+  }
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-full">Indlæser...</div>;
   }
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-4 bg-orange-50">
+    <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-4 bg-orange-50 relative isolate">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-800">Velkommen</h2>
         <p className="text-gray-600">Swipe for at få flere gode deals</p>
       </div>
       
-      <div {...swipeHandlers} className="relative w-full max-w-sm h-[60vh] flex items-center justify-center">
+      <div className="relative w-full max-w-sm h-[60vh] flex items-center justify-center overflow-hidden">
         <AnimatePresence>
           {currentItem ? (
             <motion.div
@@ -132,17 +134,26 @@ const SwipePage = () => {
               exit={{ x: 300, opacity: 0, scale: 0.5, transition: { duration: 0.3 } }}
               drag="x"
               dragConstraints={{ left: -100, right: 100 }}
+              dragPropagation={false}
+              dragElastic={0.1}
               onDragEnd={(e, { offset }) => {
                 if (offset.x > 50) handleSwipe(currentItem, 'like');
                 else if (offset.x < -50) handleSwipe(currentItem, 'dislike');
               }}
             >
-              <SwipeCard item={currentItem} />
+              <SwipeCard item={currentItem} onCardClick={handleCardClick} />
             </motion.div>
           ) : (
-            <div className="text-center">
+            <div className="text-center -mt-8">
               <h3 className="text-xl font-semibold">Ikke flere opslag!</h3>
-              <p className="text-gray-500">Vend tilbage senere for nye trades.</p>
+              <p className="text-gray-500 mb-4">Vend tilbage senere for nye trades, men i mellemtiden kan du se de opslag, du har disliked nedenfor:</p>
+              <button 
+                onClick={() => navigate('/disliked')}
+                className="bg-slate-600 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-lg flex items-center justify-center gap-2 mx-auto"
+              >
+                <X size={18} />
+                Se Disliked Opslag
+              </button>
             </div>
           )}
         </AnimatePresence>

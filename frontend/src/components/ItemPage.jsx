@@ -72,8 +72,8 @@ const ItemPage = () => {
       <LoadingPlaceholder
         src={item.imageUrl || "/placeholder.jpg"}
         alt={item.title}
-        className="w-full rounded-lg border mb-4"
-        placeholderClassName="rounded-lg border"
+        className="w-full max-w-sm max-h-64 object-cover rounded-lg border mb-4 mx-auto"
+        placeholderClassName="rounded-lg border max-w-sm max-h-64 mx-auto"
       />
 
       <h2 className="text-lg font-bold mb-1">Beskrivelse</h2>
@@ -91,7 +91,11 @@ const ItemPage = () => {
         />
         <div className="flex-1">
           <p className="text-sm font-bold">{item.userName}</p>
-          <p className="text-xs text-gray-500">Skriv til sælger her</p>
+          {user && item.userId === user.uid ? (
+            <p className="text-xs text-green-600 font-medium">Dette er dit opslag</p>
+          ) : (
+            <p className="text-xs text-gray-500">Skriv til sælger her</p>
+          )}
         </div>
         {user && item.userId !== user.uid && (
           <button
