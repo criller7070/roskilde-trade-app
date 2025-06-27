@@ -182,7 +182,7 @@ const Admin = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <Package className="text-blue-500 mr-3" size={24} />
@@ -246,17 +246,17 @@ const Admin = () => {
           {items.length > 0 ? (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg space-y-3 sm:space-y-0">
                   <div className="flex items-center space-x-4">
                     <LoadingPlaceholder
                       src={item.imageUrl || "https://via.placeholder.com/60"}
                       alt={item.title}
-                      className="w-16 h-16 object-cover rounded"
+                      className="w-16 h-16 object-cover rounded flex-shrink-0"
                       placeholderClassName="rounded"
                     />
-                    <div>
-                      <h3 className="font-medium text-gray-800">{item.title}</h3>
-                      <p className="text-sm text-gray-600">Posted by: {item.userName}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-800 truncate">{item.title}</h3>
+                      <p className="text-sm text-gray-600 truncate">Posted by: {item.userName}</p>
                       <p className="text-xs text-gray-500">
                         {item.createdAt?.toDate?.()?.toLocaleDateString() || 
                          new Date(item.createdAt).toLocaleDateString() ||
@@ -269,7 +269,7 @@ const Admin = () => {
                   {isAdmin && (
                     <button
                       onClick={() => handleRemoveItem(item.id, item.title)}
-                      className="flex items-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
+                      className="flex items-center justify-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex-shrink-0 w-full sm:w-auto"
                     >
                       <Trash2 size={16} />
                       <span>Remove</span>
@@ -301,9 +301,9 @@ const Admin = () => {
             <div className="space-y-4">
               {bugReports.map((report) => (
                 <div key={report.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
+                    <div className="flex-1 lg:mr-4">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                           report.status === 'open' 
                             ? 'bg-red-100 text-red-800' 
@@ -318,9 +318,9 @@ const Admin = () => {
                         </span>
                       </div>
                       
-                      <p className="text-gray-800 mb-3">{report.description}</p>
+                      <p className="text-gray-800 mb-3 break-words">{report.description}</p>
                       
-                      <div className="flex items-start space-x-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-3">
                         {report.imageUrl && (
                           <LoadingPlaceholder 
                             src={report.imageUrl} 
@@ -336,29 +336,30 @@ const Admin = () => {
                           </LoadingPlaceholder>
                         )}
                         
-                        <div className="text-xs text-gray-500 space-y-1 flex-1">
-                          <p><strong>User:</strong> {report.userName} ({report.userEmail})</p>
-                          <p><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Unknown'}</p>
-                          <p><strong>URL:</strong> {report.url || 'Unknown'}</p>
+                        <div className="text-xs text-gray-500 space-y-1 flex-1 min-w-0">
+                          <p className="break-words"><strong>User:</strong> {report.userName} ({report.userEmail})</p>
+                          <p className="break-words"><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Unknown'}</p>
+                          <p className="break-words"><strong>URL:</strong> {report.url || 'Unknown'}</p>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col space-y-2 ml-4">
+                    <div className="flex flex-row lg:flex-col gap-2 lg:space-y-2 lg:flex-shrink-0">
                       {report.status === 'open' && (
                         <button
                           onClick={() => handleUpdateBugReportStatus(report.id, 'resolved')}
-                          className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
+                          className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition flex-1 lg:flex-none whitespace-nowrap"
                         >
                           <CheckCircle size={12} />
-                          <span>Mark Resolved</span>
+                          <span className="hidden sm:inline">Mark Resolved</span>
+                          <span className="sm:hidden">Resolve</span>
                         </button>
                       )}
                       
                       {report.status === 'resolved' && (
                         <button
                           onClick={() => handleUpdateBugReportStatus(report.id, 'open')}
-                          className="flex items-center space-x-1 px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition"
+                          className="flex items-center justify-center space-x-1 px-3 py-2 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition flex-1 lg:flex-none whitespace-nowrap"
                         >
                           <Eye size={12} />
                           <span>Reopen</span>
@@ -367,7 +368,7 @@ const Admin = () => {
                       
                       <button
                         onClick={() => handleDeleteBugReport(report.id, report.description)}
-                        className="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                        className="flex items-center justify-center space-x-1 px-3 py-2 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition flex-1 lg:flex-none whitespace-nowrap"
                       >
                         <Trash2 size={12} />
                         <span>Delete</span>

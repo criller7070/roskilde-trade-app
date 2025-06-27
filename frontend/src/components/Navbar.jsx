@@ -28,6 +28,22 @@ const Navbar = () => {
     return () => document.removeEventListener('keydown', handleEscKey);
   }, []);
 
+  // Prevent scrolling when menu is open
+  useEffect(() => {
+    if (open) {
+      // Prevent scrolling
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Re-enable scrolling
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup: ensure scrolling is re-enabled when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [open]);
+
   const handleLogout = async () => {
     try {
       await auth.signOut();
@@ -118,7 +134,16 @@ const Navbar = () => {
               </Link>
             </div>
           ) : (
-            <ProfileDropdown setOpen={setOpen} />
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={handleLogout}
+                className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
+              >
+                <span className="hidden sm:inline">Log ud</span>
+                <span className="sm:hidden">Log Ud</span>
+              </button>
+              <ProfileDropdown setOpen={setOpen} />
+            </div>
           )}
         </div>
       </div>
