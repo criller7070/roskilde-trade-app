@@ -14,6 +14,10 @@ import Liked from "./components/Liked";
 import Disliked from "./components/Disliked";
 import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
+import AdminPosts from "./components/AdminPosts";
+import AdminBugReports from "./components/AdminBugReports";
+import AdminUsers from "./components/AdminUsers";
+import AdminFlagged from "./components/AdminFlagged";
 import SwipePage from "./components/SwipePage";
 import BugReport from "./components/BugReport";
 import Terms from "./components/Terms";
@@ -61,6 +65,22 @@ function AppRoutes() {
           <Route 
             path="/admin" 
             element={user && isAdmin ? <Admin /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/posts" 
+            element={user && isAdmin ? <AdminPosts /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/bug-reports" 
+            element={user && isAdmin ? <AdminBugReports /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/users" 
+            element={user && isAdmin ? <AdminUsers /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/flagged" 
+            element={user && isAdmin ? <AdminFlagged /> : <LoginRequired />}
           />
           <Route 
             path="/bug-report" 

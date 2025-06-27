@@ -12,12 +12,13 @@ import {
   serverTimestamp,
   orderBy,
 } from "firebase/firestore";
-import { PlusCircle, Camera, Repeat2, DollarSign, Trash2 } from "lucide-react";
+import { PlusCircle, Camera, Repeat2, DollarSign, Trash2, AlertTriangle, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const Profile = () => {
@@ -184,6 +185,130 @@ const Profile = () => {
     );
   };
 
+  /* ---------- delete account functionality ---------- */
+  const handleDeleteAccount = async () => {
+    try {
+      console.log("Starting account deletion process...");
+      
+      // 1. Delete all user's posts
+      const deletePostPromises = posts.map(post => deleteDoc(fsDoc(db, "items", post.id)));
+      await Promise.all(deletePostPromises);
+      console.log(`Deleted ${posts.length} posts`);
+      
+      // 2. Handle chats for all deleted items
+      for (const post of posts) {
+        await handleDeletedItemChats(post.id, post.title);
+      }
+      
+      // 3. Delete all user's chats and related data
+      try {
+        // Query all chats where user is a participant
+        const userChatsQuery = query(collection(db, "chats"), where("participants", "array-contains", user.uid));
+        const userChatsSnapshot = await getDocs(userChatsQuery);
+        
+        const chatCleanupPromises = [];
+        
+        userChatsSnapshot.forEach((chatDoc) => {
+          const chatId = chatDoc.id;
+          const chatData = chatDoc.data();
+          
+          // Send system message about account deletion
+          const systemMessagePromise = addDoc(collection(db, `chats/${chatId}/messages`), {
+            text: `Brugeren har slettet sin konto. Denne chat forbliver tilgængelig for de resterende deltagere.`,
+            timestamp: serverTimestamp(),
+            senderId: "system",
+            isSystemMessage: true
+          });
+          chatCleanupPromises.push(systemMessagePromise);
+          
+          // Remove user from participants list
+          const updatedParticipants = chatData.participants.filter(p => p !== user.uid);
+          if (updatedParticipants.length > 0) {
+            const updateChatPromise = updateDoc(fsDoc(db, "chats", chatId), {
+              participants: updatedParticipants
+            });
+            chatCleanupPromises.push(updateChatPromise);
+          } else {
+            // If no participants left, delete the chat
+            const deleteChatPromise = deleteDoc(fsDoc(db, "chats", chatId));
+            chatCleanupPromises.push(deleteChatPromise);
+          }
+        });
+        
+        await Promise.all(chatCleanupPromises);
+        console.log("Cleaned up chat data");
+        
+        // Delete user's userChats document
+        const userChatsDocRef = fsDoc(db, "userChats", user.uid);
+        await deleteDoc(userChatsDocRef);
+        console.log("Deleted userChats document");
+        
+      } catch (error) {
+        console.error("Error cleaning up chat data:", error);
+        // Continue with deletion even if chat cleanup fails
+      }
+      
+      // 4. Delete user document from users collection
+      try {
+        await deleteDoc(fsDoc(db, "users", user.uid));
+        console.log("Deleted user document");
+      } catch (error) {
+        console.error("Error deleting user document:", error);
+        // Continue even if user document deletion fails
+      }
+      
+      // 5. Delete any flag reports made by this user
+      try {
+        const flagsQuery = query(collection(db, "flags"), where("reportedBy", "==", user.uid));
+        const flagsSnapshot = await getDocs(flagsQuery);
+        const deleteFlagPromises = flagsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deleteFlagPromises);
+        console.log(`Deleted ${flagsSnapshot.size} flag reports`);
+      } catch (error) {
+        console.error("Error deleting flag reports:", error);
+        // Continue even if flag deletion fails
+      }
+      
+      showSuccess("Din konto og alle data er blevet slettet. Du vil blive logget ud om et øjeblik.");
+      
+      // Wait a moment then properly sign out and redirect
+      setTimeout(async () => {
+        try {
+          await signOut(auth);
+          navigate("/");
+        } catch (signOutError) {
+          console.error("Error signing out:", signOutError);
+          // Fallback to navigation even if signOut fails
+          navigate("/");
+          window.location.reload();
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      showError("Der opstod en fejl ved sletning af din konto. Prøv igen eller kontakt support.");
+    }
+  };
+
+  const confirmDeleteAccount = () => {
+    showConfirm(
+      `ADVARSEL: Dette vil permanent slette din konto og ALLE dine data, herunder:
+
+- Alle dine opslag (${posts.length} stk.)
+- Din profil og personlige oplysninger
+- Alle dine beskeder og chats  
+- Alle rapporter du har indsendt
+
+Denne handling kan IKKE fortrydes, og du vil ikke kunne gendanne dine data.
+
+Er du helt sikker på, at du vil fortsætte?`,
+      handleDeleteAccount,
+      "Slet Konto Permanent",
+      "JA, SLET ALT",
+      "Nej, behold min konto"
+    );
+  };
+
   if (!user) return null;
 
   return (
@@ -295,6 +420,37 @@ const Profile = () => {
             </div>
           ))
         )}
+      </div>
+
+      {/* ---------- GDPR Account Deletion Section ---------- */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <AlertTriangle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={20} />
+            <div>
+              <h3 className="text-sm font-medium text-red-800 mb-2">DANGER ZONE: Slet Din Konto</h3>
+              <p className="text-sm text-red-700 mb-3">
+                I overensstemmelse med GDPR kan du permanent slette din konto og alle tilknyttede data. 
+                Dette inkluderer alle dine opslag, beskeder, profil oplysninger og aktivitetshistorik.
+              </p>
+              <p className="text-xs text-red-600 font-medium">
+                Denne handling kan ikke fortrydes og alle dine data vil være permanent tabt.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <button
+          onClick={confirmDeleteAccount}
+          className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 font-medium"
+        >
+          <UserX size={18} />
+          <span>Slet Min Konto Permanent</span>
+        </button>
+        
+        <p className="text-xs text-gray-500 text-center mt-2">
+          Du vil få en bekræftelsesdialog før sletning gennemføres
+        </p>
       </div>
     </div>
   );

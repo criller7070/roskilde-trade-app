@@ -14,7 +14,7 @@ const Home = () => {
         />
         <h1 className="text-3xl font-bold text-orange-600">Velkommen til RosSwap</h1>
         <p className="text-base text-gray-700 mt-3 px-2">
-          Byt ting, mad og meget mere med andre festivalgæster for at reducere spild og skabe nye venskaber!
+          Byt ting og meget mere med andre festivalgæster for at reducere spild og skabe nye venskaber!
         </p>
         <button
           className="mt-4 px-6 py-3 bg-orange-500 text-white rounded-xl shadow-md hover:bg-orange-600"

@@ -1,9 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
+import { usePopupContext } from "../contexts/PopupContext";
+import { Flag, X } from "lucide-react";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ItemPage = () => {
@@ -11,8 +13,22 @@ const ItemPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { generateChatId } = useChat();
+  const { showSuccess, showError } = usePopupContext();
   const [item, setItem] = useState(null);
   const [sellerProfile, setSellerProfile] = useState(null);
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagComment, setFlagComment] = useState("");
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+
+  const flagReasons = [
+    "Upassende indhold",
+    "Spam eller reklame", 
+    "Falsk opslag",
+    "Vildledende information",
+    "Ulovligt indhold",
+    "Andet"
+  ];
 
   useEffect(() => {
     const fetchItemAndSeller = async () => {
@@ -64,11 +80,73 @@ const ItemPage = () => {
     });
   };
 
+  const handleFlagSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!user) {
+      showError("Du skal være logget ind for at rapportere opslag.");
+      return;
+    }
+
+    if (!flagReason) {
+      showError("Vælg venligst en grund til rapportering.");
+      return;
+    }
+
+    setIsSubmittingFlag(true);
+
+    try {
+      // Create flag report
+      await addDoc(collection(db, "flags"), {
+        itemId: item.id,
+        itemTitle: item.title,
+        itemUserId: item.userId,
+        itemUserName: item.userName,
+        reporterId: user.uid,
+        reporterName: user.displayName || user.email,
+        reporterEmail: user.email,
+        reason: flagReason,
+        comment: flagComment,
+        createdAt: new Date(),
+        status: "open"
+      });
+
+      // Optionally update the item to mark it as flagged
+      await updateDoc(doc(db, "items", item.id), {
+        flagged: true,
+        flagCount: (item.flagCount || 0) + 1
+      });
+
+      showSuccess("Opslag rapporteret! Tak for din feedback.");
+      setShowFlagModal(false);
+      setFlagReason("");
+      setFlagComment("");
+      
+    } catch (error) {
+      console.error("Error submitting flag:", error);
+      showError("Kunne ikke rapportere opslag. Prøv igen.");
+    } finally {
+      setIsSubmittingFlag(false);
+    }
+  };
+
   if (!item) return <p className="text-center mt-10">Indlæser...</p>;
 
   return (
     <div className="pt-4 px-4 pb-10 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-orange-500 text-center mb-4">{item.title}</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-orange-500 text-center flex-1">{item.title}</h1>
+        {user && item.userId !== user.uid && (
+          <button
+            onClick={() => setShowFlagModal(true)}
+            className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors"
+            title="Rapportér opslag"
+          >
+            <Flag size={20} />
+          </button>
+        )}
+      </div>
+      
       <LoadingPlaceholder
         src={item.imageUrl || "/placeholder.jpg"}
         alt={item.title}
@@ -109,6 +187,78 @@ const ItemPage = () => {
           <p className="text-sm text-red-500">Please log in to message the seller.</p>
         )}
       </div>
+
+      {/* Flag Modal */}
+      {showFlagModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Rapportér opslag</h3>
+                <button
+                  onClick={() => setShowFlagModal(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleFlagSubmit}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hvad er problemet med dette opslag?
+                  </label>
+                  <div className="space-y-2">
+                    {flagReasons.map((reason) => (
+                      <label key={reason} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="flagReason"
+                          value={reason}
+                          checked={flagReason === reason}
+                          onChange={(e) => setFlagReason(e.target.value)}
+                          className="mr-2 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-gray-700">{reason}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Yderligere kommentarer (valgfrit)
+                  </label>
+                  <textarea
+                    value={flagComment}
+                    onChange={(e) => setFlagComment(e.target.value)}
+                    placeholder="Beskriv problemet nærmere..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFlagModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                  >
+                    Annuller
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingFlag || !flagReason}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                  >
+                    {isSubmittingFlag ? "Rapporterer..." : "Rapportér"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,7 +11,7 @@ const Terms = () => {
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">1. Om RosSwap</h2>
             <p className="text-gray-700">
-              RosSwap muliggør kontakt mellem brugere, der ønsker at bytte eller handle varer, mad og tjenester, særligt i forbindelse med Roskilde Festival 2025 og dets arealer, samt omegn.
+              RosSwap muliggør kontakt mellem brugere, der ønsker at bytte eller handle varer og tjenester, særligt i forbindelse med Roskilde Festival 2025 og dets arealer, samt omegn.
             </p>
             <p className="text-gray-700 mb-4">
               RosSwap er et <strong>ikke-kommercielt skoleprojekt</strong> udviklet som et samarbejde mellem studerende på Dansk Teknisk Universitet ("DTU") og Roskilde Festival. 
@@ -49,7 +49,82 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">4. Platformens Ansvar</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">4. Sikkerhedsretningslinjer og Handel</h2>
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-800 mb-2">Tjek Lovligheden</h3>
+                <p className="text-blue-700 mb-2">
+                  <strong>Det er dit ansvar som køber og sælger at sikre, at alle varer og tjenester er lovlige:</strong>
+                </p>
+                <ul className="list-disc list-inside text-blue-700 space-y-1">
+                  <li>Undersøg selv om varen må handles lovligt</li>
+                  <li>Respektér aldersgrænser (alkohol, tobak, etc.)</li>
+                  <li>Tjek om der kræves tilladelser eller licenser</li>
+                  <li>Ved tvivl - spørg eller lad være med at indgå aftalen!</li>
+                </ul>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h3 className="font-semibold text-orange-800 mb-2">Rapporter Mistænkelig Aktivitet</h3>
+                <p className="text-orange-700 mb-2">
+                  Hjælp med at holde platformen sikker:
+                </p>
+                <ul className="list-disc list-inside text-orange-700 space-y-1">
+                  <li>Brug flag-funktionen (🚩) til at rapportere upassende opslag</li>
+                  <li>Anmeld opslag der bryder loven eller vores regler</li>
+                  <li>Kontakt os ved alvorlige overtredelser</li>
+                  <li>Bliv ikke involveret i tvivlsomme handeler</li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-2">Mad og Drikkevarer</h3>
+                <ul className="list-disc list-inside text-green-700 space-y-1">
+                  <li><strong>Køb KUN forseglede/uåbnede fødevarer</strong></li>
+                  <li>Tjek holdbarhedsdatoer før køb</li>
+                  <li>Undgå hjemmelavede produkter fra fremmede</li>
+                  <li>Vær ekstra forsigtig med mælkeprodukter og kød</li>
+                  <li>Ved tvivl om fødevaresikkerhed - lad være med at indgå aftalen!</li>
+                </ul>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 className="font-semibold text-purple-800 mb-2">Medicin og Sundhedsprodukter</h3>
+                <ul className="list-disc list-inside text-purple-700 space-y-1">
+                  <li><strong>Køb KUN forseglede/uåbnede produkter</strong></li>
+                  <li>Tjek udløbsdatoer nøje</li>
+                  <li>Receptpligtig medicin må IKKE handles</li>
+                  <li>Vær forsigtig med vitaminer og kosttilskud</li>
+                  <li>Spørg en farmaceut ved tvivl</li>
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-2">Sikre Møder og Transaktioner</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Mød op offentlige steder med mange mennesker</li>
+                  <li>Tag en ven med, hvis muligt</li>
+                  <li>Fortæl nogen hvor du skal hen</li>
+                  <li>Betal ikke på forhånd til ukendte</li>
+                  <li>Stol på din mavefornemmelse</li>
+                  <li>Forlad situationen hvis noget føles forkert</li>
+                </ul>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="font-semibold text-red-800 mb-2">Vigtige Påmindelser</h3>
+                <ul className="list-disc list-inside text-red-700 space-y-1">
+                  <li>RosSwap er ikke ansvarlige for handel mellem brugere</li>
+                  <li>Vi garanterer ikke for varernes kvalitet eller sikkerhed</li>
+                  <li>Al handel sker på eget ansvar og risiko</li>
+                  <li>Ved problemer, kontakt politiet ikke RosSwap</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">5. Platformens Ansvar</h2>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-yellow-800">
                 <strong>Vigtigt:</strong> RosSwap fungerer kun som en kontaktplatform. Vi:
@@ -64,7 +139,7 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">5. Moderation og Håndhævelse</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">6. Moderation og Håndhævelse</h2>
             <p className="text-gray-700 mb-4">
               Vi forbeholder os retten til at:
             </p>
@@ -77,7 +152,7 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">6. Persondata</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">7. Persondata</h2>
             <p className="text-gray-700">
               Vi behandler dine oplysninger i overensstemmelse med vores{' '}
               <a href="/privacy" className="text-orange-500 underline">privatlivspolitik</a>.
@@ -86,7 +161,7 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">7. Kontakt</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">8. Kontakt</h2>
             <p className="text-gray-700">
               Spørgsmål til disse vilkår kan sendes til:
             </p>

@@ -66,7 +66,7 @@ const Popup = ({
 
         {/* Content */}
         <div className="p-4">
-          <p className="text-gray-700 leading-relaxed">{message}</p>
+          <div className="text-gray-700 leading-relaxed whitespace-pre-line">{message}</div>
         </div>
 
         {/* Actions */}

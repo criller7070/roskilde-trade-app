@@ -2,26 +2,22 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
-import { usePopupContext } from "../contexts/PopupContext";
 import { db } from "../firebase";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { Trash2, Users, Package, AlertTriangle, Shield, Bug, Eye, CheckCircle } from "lucide-react";
-import LoadingPlaceholder from "./LoadingPlaceholder";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { Users, Package, AlertTriangle, Shield, Bug, Flag } from "lucide-react";
 
 const Admin = () => {
   const { user } = useAuth();
-  const { items, removeItem } = useItems();
-  const { showError, showSuccess, showConfirm } = usePopupContext();
+  const { items } = useItems();
   const { 
     isAdmin, 
     adminLoading, 
     adminStats, 
-    logAdminAction,
     updateAdminStats
   } = useAdmin();
   
   const [bugReports, setBugReports] = useState([]);
-  const [bugReportsLoading, setBugReportsLoading] = useState(true);
+  const [flags, setFlags] = useState([]);
 
   // Subscribe to bug reports
   useEffect(() => {
@@ -34,10 +30,26 @@ const Admin = () => {
         ...doc.data() 
       }));
       setBugReports(reportsData);
-      setBugReportsLoading(false);
     }, (error) => {
       console.error("Error fetching bug reports:", error);
-      setBugReportsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin]);
+
+  // Subscribe to flags
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const q = query(collection(db, "flags"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const flagsData = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setFlags(flagsData);
+    }, (error) => {
+      console.error("Error fetching flags:", error);
     });
 
     return () => unsubscribe();
@@ -62,74 +74,13 @@ const Admin = () => {
         }).length,
         flaggedItems: items.filter(item => item.flagged).length || 0,
         bugReports: bugReports.length,
-        openBugReports: bugReports.filter(report => report.status === "open").length
+        openBugReports: bugReports.filter(report => report.status === "open").length,
+        flags: flags.length,
+        openFlags: flags.filter(flag => flag.status === "open").length
       };
       updateAdminStats(newStats);
     }
-  }, [items, isAdmin, bugReports]);
-
-  const handleRemoveItem = async (itemId, itemTitle) => {
-    showConfirm(
-      `Er du sikker på at du vil slette "${itemTitle}"? Denne handling kan ikke fortrydes.`,
-      async () => {
-        try {
-          await removeItem(itemId);
-          // Log the admin action
-          await logAdminAction('remove_item', {
-            itemId,
-            itemTitle,
-            removedAt: new Date()
-          });
-          showSuccess("Opslag fjernet!");
-        } catch (error) {
-          console.error("Error removing item:", error);
-          showError("Kunne ikke fjerne opslag. Prøv igen.");
-        }
-      },
-      "Bekræft Fjernelse",
-      "Fjern",
-      "Annuller"
-    );
-  };
-
-  const handleUpdateBugReportStatus = async (reportId, newStatus) => {
-    try {
-      await updateDoc(doc(db, "bugReports", reportId), {
-        status: newStatus
-      });
-      await logAdminAction('update_bug_report_status', {
-        reportId,
-        newStatus,
-        updatedAt: new Date()
-      });
-      showSuccess(`Fejlrapport markeret som ${newStatus}!`);
-    } catch (error) {
-      console.error("Error updating bug report status:", error);
-      showError("Kunne ikke opdatere fejlrapport.");
-    }
-  };
-
-  const handleDeleteBugReport = async (reportId, reportDescription) => {
-    showConfirm(
-      `Er du sikker på at du vil slette denne fejlrapport? Denne handling kan ikke fortrydes.\n\n"${reportDescription.substring(0, 100)}${reportDescription.length > 100 ? '...' : ''}"`,
-      async () => {
-        try {
-          await deleteDoc(doc(db, "bugReports", reportId));
-          await logAdminAction('delete_bug_report', {
-            reportId,
-            deletedAt: new Date()
-          });
-          showSuccess("Fejlrapport slettet!");
-        } catch (error) {
-          console.error("Error deleting bug report:", error);
-          showError("Kunne ikke slette fejlrapport. Prøv igen.");
-        }
-      },
-      "Bekræft Sletning",
-      "Slet",
-      "Annuller"
-    );
-  };
+  }, [items, isAdmin, bugReports, flags, updateAdminStats]);
 
   if (adminLoading) {
     return (
@@ -182,7 +133,7 @@ const Admin = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <Package className="text-blue-500 mr-3" size={24} />
@@ -233,154 +184,83 @@ const Admin = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Items Management */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Administrer Opslag</h2>
-          <p className="text-sm text-gray-600 mt-1">Fjern upassende eller udløbne opslag</p>
-        </div>
-        
-        <div className="p-6">
-          {items.length > 0 ? (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg space-y-3 sm:space-y-0">
-                  <div className="flex items-center space-x-4">
-                    <LoadingPlaceholder
-                      src={item.imageUrl || "https://via.placeholder.com/60"}
-                      alt={item.title}
-                      className="w-16 h-16 object-cover rounded flex-shrink-0"
-                      placeholderClassName="rounded"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-800 truncate">{item.title}</h3>
-                      <p className="text-sm text-gray-600 truncate">Lagt op af: {item.userName}</p>
-                      <p className="text-xs text-gray-500">
-                        {item.createdAt?.toDate?.()?.toLocaleDateString() || 
-                         new Date(item.createdAt).toLocaleDateString() ||
-                         item.timestamp?.toDate?.()?.toLocaleDateString() ||
-                         new Date(item.timestamp).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleRemoveItem(item.id, item.title)}
-                      className="flex items-center justify-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex-shrink-0 w-full sm:w-auto"
-                    >
-                      <Trash2 size={16} />
-                      <span>Fjern</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center">
+            <Flag className="text-red-500 mr-3" size={24} />
+            <div>
+              <p className="text-sm text-gray-600">Flag Rapporter</p>
+              <p className="text-2xl font-bold text-gray-800">{adminStats.flags || 0}</p>
+              <p className="text-xs text-red-600">{adminStats.openFlags || 0} åben</p>
             </div>
-          ) : (
-            <p className="text-center text-gray-600 py-8">Ingen opslag tilgængelige.</p>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Bug Reports Management */}
-      <div className="bg-white rounded-lg shadow-md mt-8">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Fejlrapporter</h2>
-          <p className="text-sm text-gray-600 mt-1">Gennemgå og administrer brugerrapporterede problemer</p>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Package className="text-blue-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Administrer Opslag</h3>
+              <p className="text-sm text-gray-600">Fjern upassende eller udløbne opslag</p>
+            </div>
+          </div>
+          <a 
+            href="/admin/posts" 
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Gå til Opslag →
+          </a>
         </div>
-        
-        <div className="p-6">
-          {bugReportsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Indlæser fejlrapporter...</p>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Users className="text-green-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Brugerstyring</h3>
+              <p className="text-sm text-gray-600">Administrer brugere og tilladelser</p>
             </div>
-          ) : bugReports.length > 0 ? (
-            <div className="space-y-4">
-              {bugReports.map((report) => (
-                <div key={report.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
-                    <div className="flex-1 lg:mr-4">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                          report.status === 'open' 
-                            ? 'bg-red-100 text-red-800' 
-                            : report.status === 'resolved'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {report.status === 'open' ? 'åben' : report.status === 'resolved' ? 'løst' : report.status || 'åben'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {report.createdAt?.toDate?.()?.toLocaleDateString('da-DK') || 'Ukendt dato'}
-                        </span>
-                      </div>
-                      
-                      <p className="text-gray-800 mb-3 break-words">{report.description}</p>
-                      
-                      <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-3">
-                        {report.imageUrl && (
-                          <LoadingPlaceholder 
-                            src={report.imageUrl} 
-                            alt="Bug screenshot" 
-                            className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 transition flex-shrink-0"
-                            placeholderClassName="rounded border"
-                          >
-                            <div 
-                              className="absolute inset-0 cursor-pointer"
-                              onClick={() => window.open(report.imageUrl, '_blank')}
-                              title="Klik for at se i fuld størrelse"
-                            />
-                          </LoadingPlaceholder>
-                        )}
-                        
-                        <div className="text-xs text-gray-500 space-y-1 flex-1 min-w-0">
-                          <p className="break-words"><strong>Bruger:</strong> {report.userName} ({report.userEmail})</p>
-                          <p className="break-words"><strong>Browser:</strong> {report.userAgent?.split(' ').slice(-2).join(' ') || 'Ukendt'}</p>
-                          <p className="break-words"><strong>URL:</strong> {report.url || 'Ukendt'}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-row lg:flex-col gap-2 lg:space-y-2 lg:flex-shrink-0">
-                      {report.status === 'open' && (
-                        <button
-                          onClick={() => handleUpdateBugReportStatus(report.id, 'resolved')}
-                          className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition flex-1 lg:flex-none whitespace-nowrap"
-                        >
-                          <CheckCircle size={12} />
-                          <span className="hidden sm:inline">Markér som Løst</span>
-                          <span className="sm:hidden">Løs</span>
-                        </button>
-                      )}
-                      
-                      {report.status === 'resolved' && (
-                        <button
-                          onClick={() => handleUpdateBugReportStatus(report.id, 'open')}
-                          className="flex items-center justify-center space-x-1 px-3 py-2 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition flex-1 lg:flex-none whitespace-nowrap"
-                        >
-                          <Eye size={12} />
-                          <span>Genåbn</span>
-                        </button>
-                      )}
-                      
-                      <button
-                        onClick={() => handleDeleteBugReport(report.id, report.description)}
-                        className="flex items-center justify-center space-x-1 px-3 py-2 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition flex-1 lg:flex-none whitespace-nowrap"
-                      >
-                        <Trash2 size={12} />
-                        <span>Slet</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          </div>
+          <a 
+            href="/admin/users" 
+            className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
+          >
+            Gå til Brugere →
+          </a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Bug className="text-purple-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Fejlrapporter</h3>
+              <p className="text-sm text-gray-600">Gennemgå og løs brugerrapporterede problemer</p>
             </div>
-          ) : (
-            <p className="text-center text-gray-600 py-8">Ingen fejlrapporter endnu.</p>
-          )}
+          </div>
+          <a 
+            href="/admin/bug-reports" 
+            className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
+          >
+            Gå til Fejlrapporter →
+          </a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Flag className="text-red-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Flaggede Opslag</h3>
+              <p className="text-sm text-gray-600">Administrer rapporterede og flaggede opslag</p>
+            </div>
+          </div>
+          <a 
+            href="/admin/flagged" 
+            className="inline-flex items-center text-red-600 hover:text-red-800 font-medium"
+          >
+            Gå til Flaggede →
+          </a>
         </div>
       </div>
     </div>
