@@ -81,6 +81,15 @@ export function ItemsProvider({ children }) {
     });
   };
 
+  // Undislike an item - "Remove this item from my disliked list."	
+  const undislikeItem = async (itemId) => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      dislikedItemIds: arrayRemove(itemId),
+    });
+  };
+
   // Get liked item IDs
   const getLikedItemIds = async () => {
     if (!user) return [];
@@ -120,6 +129,7 @@ export function ItemsProvider({ children }) {
     unlikeItem,
     getLikedItemIds,
     dislikeItem,
+    undislikeItem,
     getDislikedItemIds,
     removeItem
   };

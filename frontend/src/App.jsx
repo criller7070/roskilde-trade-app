@@ -11,9 +11,17 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
 import Liked from "./components/Liked";
+import Disliked from "./components/Disliked";
 import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
+import AdminPosts from "./components/AdminPosts";
+import AdminBugReports from "./components/AdminBugReports";
+import AdminUsers from "./components/AdminUsers";
+import AdminFlagged from "./components/AdminFlagged";
 import SwipePage from "./components/SwipePage";
+import BugReport from "./components/BugReport";
+import Terms from "./components/Terms";
+import Privacy from "./components/Privacy";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ItemsProvider } from "./contexts/ItemsContext";
 import { AdminProvider, useAdmin } from "./contexts/AdminContext";
@@ -40,7 +48,7 @@ function AppRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/Signup" element={<Signup />} />
+          <Route path="/signup" element={<Signup />} />
           <Route 
             path="/swipe"
             element={user ? <SwipePage /> : <LoginRequired />}
@@ -49,11 +57,37 @@ function AppRoutes() {
             path="/liked" 
             element={user ? <Liked /> : <LoginRequired />}
           />
+          <Route 
+            path="/disliked" 
+            element={user ? <Disliked /> : <LoginRequired />}
+          />
           <Route path="/item/:itemId" element={<ItemPage />} />
           <Route 
             path="/admin" 
             element={user && isAdmin ? <Admin /> : <LoginRequired />}
           />
+          <Route 
+            path="/admin/posts" 
+            element={user && isAdmin ? <AdminPosts /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/bug-reports" 
+            element={user && isAdmin ? <AdminBugReports /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/users" 
+            element={user && isAdmin ? <AdminUsers /> : <LoginRequired />}
+          />
+          <Route 
+            path="/admin/flagged" 
+            element={user && isAdmin ? <AdminFlagged /> : <LoginRequired />}
+          />
+          <Route 
+            path="/bug-report" 
+            element={user ? <BugReport /> : <LoginRequired />}
+          />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </div>
     </Router>

@@ -4,10 +4,12 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { usePopupContext } from "../contexts/PopupContext";
+import { useNavigate } from "react-router-dom";
 
 export default function AddItem() {
   const { user } = useAuth();
   const { showError, showSuccess } = usePopupContext();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
@@ -48,9 +50,14 @@ export default function AddItem() {
       setMode("bytte");
 
       showSuccess("Opslaget er oprettet!");
+      
+      // Redirect to items page after successful creation
+      setTimeout(() => {
+        navigate("/items");
+      }, 1500);
     } catch (err) {
       console.error(err);
-      showError("Noget gik galt. Prøv igen.");
+      showError("Noget gik galt.");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,25 +95,51 @@ export default function AddItem() {
           id="title"
           name="title"
           type="text"
-          className="w-full mb-4 p-2 bg-gray-100 rounded"
+          className="w-full mb-2 p-2 bg-gray-100 rounded"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="*****"
+          onChange={(e) => {
+            if (e.target.value.length <= 60) {
+              setTitle(e.target.value);
+            }
+          }}
+          placeholder="Hvad vil du bytte/sælge?"
           disabled={isSubmitting}
+          maxLength={60}
         />
+        <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
+          title.length >= 54 ? 'text-red-500 font-medium' :
+          title.length >= 48 ? 'text-orange-500' :
+          title.length >= 36 ? 'text-yellow-600' :
+          'text-gray-500'
+        }`}>
+          {title.length}/60 tegn
+        </div>
 
         {/* Description */}
         <label htmlFor="description" className="block font-semibold">Beskrivelse</label>
         <textarea
           id="description"
           name="description"
-          className="w-full mb-4 p-2 bg-gray-100 rounded"
-          rows={3}
+          className="w-full mb-2 p-2 bg-gray-100 rounded"
+          rows={4}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="*****"
+          onChange={(e) => {
+            if (e.target.value.length <= 500) {
+              setDescription(e.target.value);
+            }
+          }}
+          placeholder="Beskriv din genstand..."
           disabled={isSubmitting}
+          maxLength={500}
         />
+        <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
+          description.length >= 450 ? 'text-red-500 font-medium' :
+          description.length >= 400 ? 'text-orange-500' :
+          description.length >= 300 ? 'text-yellow-600' :
+          'text-gray-500'
+        }`}>
+          {description.length}/500 tegn
+        </div>
 
         {/* Toggle Mode */}
         <div className="flex justify-between items-center mb-6">

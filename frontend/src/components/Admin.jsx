@@ -2,20 +2,58 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
-import { usePopupContext } from "../contexts/PopupContext";
-import { Trash2, Users, Package, AlertTriangle, Shield } from "lucide-react";
+import { db } from "../firebase";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { Users, Package, AlertTriangle, Shield, Bug, Flag } from "lucide-react";
 
 const Admin = () => {
   const { user } = useAuth();
-  const { items, removeItem } = useItems();
-  const { showError, showSuccess, showConfirm } = usePopupContext();
+  const { items } = useItems();
   const { 
     isAdmin, 
     adminLoading, 
     adminStats, 
-    logAdminAction,
     updateAdminStats
   } = useAdmin();
+  
+  const [bugReports, setBugReports] = useState([]);
+  const [flags, setFlags] = useState([]);
+
+  // Subscribe to bug reports
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const q = query(collection(db, "bugReports"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reportsData = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setBugReports(reportsData);
+    }, (error) => {
+      console.error("Error fetching bug reports:", error);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin]);
+
+  // Subscribe to flags
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const q = query(collection(db, "flags"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const flagsData = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setFlags(flagsData);
+    }, (error) => {
+      console.error("Error fetching flags:", error);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -34,42 +72,22 @@ const Admin = () => {
           today.setHours(0, 0, 0, 0); // Start of today
           return itemDate >= today;
         }).length,
-        flaggedItems: items.filter(item => item.flagged).length || 0
+        flaggedItems: items.filter(item => item.flagged).length || 0,
+        bugReports: bugReports.length,
+        openBugReports: bugReports.filter(report => report.status === "open").length,
+        flags: flags.length,
+        openFlags: flags.filter(flag => flag.status === "open").length
       };
       updateAdminStats(newStats);
     }
-  }, [items, isAdmin]);
-
-  const handleRemoveItem = async (itemId, itemTitle) => {
-    showConfirm(
-      `Are you sure you want to remove "${itemTitle}"? This action cannot be undone.`,
-      async () => {
-        try {
-          await removeItem(itemId);
-          // Log the admin action
-          await logAdminAction('remove_item', {
-            itemId,
-            itemTitle,
-            removedAt: new Date()
-          });
-          showSuccess("Item removed successfully!");
-        } catch (error) {
-          console.error("Error removing item:", error);
-          showError("Failed to remove item. Please try again.");
-        }
-      },
-      "Confirm Removal",
-      "Remove",
-      "Cancel"
-    );
-  };
+  }, [items, isAdmin, bugReports, flags, updateAdminStats]);
 
   if (adminLoading) {
     return (
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading admin panel...</p>
+          <p className="text-gray-600 mt-4">Indlæser administratorpanel...</p>
         </div>
       </div>
     );
@@ -79,8 +97,8 @@ const Admin = () => {
     return (
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600">Please log in to access the admin panel.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Adgang Nægtet</h2>
+          <p className="text-gray-600">Log venligst ind for at få adgang til administratorpanelet.</p>
         </div>
       </div>
     );
@@ -91,9 +109,9 @@ const Admin = () => {
       <div className="max-w-4xl mx-auto mt-8 p-8">
         <div className="text-center">
           <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access the admin panel.</p>
-          <p className="text-sm text-gray-500 mt-2">Contact an administrator if you believe this is an error.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Adgang Nægtet</h2>
+          <p className="text-gray-600">Du har ikke tilladelse til at få adgang til administratorpanelet.</p>
+          <p className="text-sm text-gray-500 mt-2">Kontakt en administrator, hvis du mener, dette er en fejl.</p>
         </div>
       </div>
     );
@@ -104,23 +122,23 @@ const Admin = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Welcome, {user.displayName} ({user.email})</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Administrator Dashboard</h1>
+            <p className="text-gray-600">Velkommen, {user.displayName} ({user.email})</p>
           </div>
           <div className="flex items-center space-x-2 bg-orange-100 px-3 py-2 rounded-lg">
             <Shield className="text-orange-600" size={20} />
-            <span className="text-orange-800 font-medium">Admin</span>
+            <span className="text-orange-800 font-medium">Administrator</span>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
             <Package className="text-blue-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Total Items</p>
+              <p className="text-sm text-gray-600">Samlede Opslag</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.totalItems}</p>
             </div>
           </div>
@@ -130,7 +148,7 @@ const Admin = () => {
           <div className="flex items-center">
             <Users className="text-green-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Active Users</p>
+              <p className="text-sm text-gray-600">Aktive Brugere</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.totalUsers}</p>
             </div>
           </div>
@@ -140,7 +158,7 @@ const Admin = () => {
           <div className="flex items-center">
             <Package className="text-orange-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Recent Items (today)</p>
+              <p className="text-sm text-gray-600">Nye Opslag (i dag)</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.recentItems}</p>
             </div>
           </div>
@@ -150,58 +168,99 @@ const Admin = () => {
           <div className="flex items-center">
             <AlertTriangle className="text-red-500 mr-3" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Flagged Items</p>
+              <p className="text-sm text-gray-600">Flagede Opslag</p>
               <p className="text-2xl font-bold text-gray-800">{adminStats.flaggedItems}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center">
+            <Bug className="text-purple-500 mr-3" size={24} />
+            <div>
+              <p className="text-sm text-gray-600">Fejlrapporter</p>
+              <p className="text-2xl font-bold text-gray-800">{adminStats.bugReports || 0}</p>
+              <p className="text-xs text-purple-600">{adminStats.openBugReports || 0} åben</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center">
+            <Flag className="text-red-500 mr-3" size={24} />
+            <div>
+              <p className="text-sm text-gray-600">Flag Rapporter</p>
+              <p className="text-2xl font-bold text-gray-800">{adminStats.flags || 0}</p>
+              <p className="text-xs text-red-600">{adminStats.openFlags || 0} åben</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Items Management */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Manage Listings</h2>
-          <p className="text-sm text-gray-600 mt-1">Remove inappropriate or expired listings</p>
-        </div>
-        
-        <div className="p-6">
-          {items.length > 0 ? (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={item.imageUrl || "https://via.placeholder.com/60"}
-                      alt={item.title}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div>
-                      <h3 className="font-medium text-gray-800">{item.title}</h3>
-                      <p className="text-sm text-gray-600">Posted by: {item.userName}</p>
-                      <p className="text-xs text-gray-500">
-                        {item.createdAt?.toDate?.()?.toLocaleDateString() || 
-                         new Date(item.createdAt).toLocaleDateString() ||
-                         item.timestamp?.toDate?.()?.toLocaleDateString() ||
-                         new Date(item.timestamp).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleRemoveItem(item.id, item.title)}
-                      className="flex items-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-                    >
-                      <Trash2 size={16} />
-                      <span>Remove</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Package className="text-blue-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Administrer Opslag</h3>
+              <p className="text-sm text-gray-600">Fjern upassende eller udløbne opslag</p>
             </div>
-          ) : (
-            <p className="text-center text-gray-600 py-8">No items available.</p>
-          )}
+          </div>
+          <a 
+            href="/admin/posts" 
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Gå til Opslag →
+          </a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Users className="text-green-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Brugerstyring</h3>
+              <p className="text-sm text-gray-600">Administrer brugere og tilladelser</p>
+            </div>
+          </div>
+          <a 
+            href="/admin/users" 
+            className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
+          >
+            Gå til Brugere →
+          </a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Bug className="text-purple-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Fejlrapporter</h3>
+              <p className="text-sm text-gray-600">Gennemgå og løs brugerrapporterede problemer</p>
+            </div>
+          </div>
+          <a 
+            href="/admin/bug-reports" 
+            className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
+          >
+            Gå til Fejlrapporter →
+          </a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center mb-4">
+            <Flag className="text-red-500 mr-3" size={32} />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Flaggede Opslag</h3>
+              <p className="text-sm text-gray-600">Administrer rapporterede og flaggede opslag</p>
+            </div>
+          </div>
+          <a 
+            href="/admin/flagged" 
+            className="inline-flex items-center text-red-600 hover:text-red-800 font-medium"
+          >
+            Gå til Flaggede →
+          </a>
         </div>
       </div>
     </div>

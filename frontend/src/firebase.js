@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAq_FHFKZ0NMTB3Z51RkSeWn9aif7RPdLk",
@@ -19,7 +18,6 @@ const firebaseConfig = {
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
-  const analytics = getAnalytics(app);
   
   const signInWithGoogle = async () => {
     try {
@@ -28,21 +26,49 @@ const firebaseConfig = {
       console.log("Sign-in successful:", result);
       const user = result.user;
   
-      // Check if the user already exists in Firestore
+      // Check if the user exists in Firestore (for GDPR consent tracking)
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
-  
-      if (!userSnap.exists()) {
-        console.log("Creating new user document...");
-        await setDoc(userRef, {
-          uid: user.uid,
-          name: user.displayName,
-          email: user.email,
-          profilePic: user.photoURL,
-          createdAt: new Date(),
-        });
-        console.log("New user document created");
+      
+      // Use Firebase Auth's additionalUserInfo to detect truly new users
+      const isNewUser = result.additionalUserInfo?.isNewUser || false;
+      
+      let userDoc = userSnap.exists() ? userSnap.data() : null;
+      
+      // Handle existing users without GDPR fields
+      if (!isNewUser) {
+        if (!userSnap.exists()) {
+          // No Firestore doc at all - create one
+          console.log("Creating Firestore document for existing Firebase Auth user...");
+          const newUserData = {
+            uid: user.uid,
+            name: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            createdAt: new Date(),
+            gdprConsent: true, // Assume existing users had consented previously
+            consentedAt: new Date()
+          };
+          await setDoc(userRef, newUserData);
+          userDoc = newUserData;
+        } else if (userDoc && userDoc.gdprConsent === undefined) {
+          // Has Firestore doc but missing GDPR consent field - update it
+          console.log("Adding GDPR consent to existing user document...");
+          const updatedFields = {
+            gdprConsent: true, // Assume existing users had consented previously
+            consentedAt: new Date()
+          };
+          await setDoc(userRef, updatedFields, { merge: true });
+          userDoc = { ...userDoc, ...updatedFields };
+        }
       }
+  
+      // Return user info and whether they're new
+      return {
+        user,
+        isNewUser,
+        userDoc
+      };
     } catch (error) {
       console.error("Detailed Google sign-in error:", {
         code: error.code,
@@ -51,7 +77,37 @@ const firebaseConfig = {
         credential: error.credential,
         fullError: error
       });
+      
+      // Handle specific authentication errors
+      if (error.code === 'auth/network-request-failed') {
+        console.warn('Network error during authentication - this may cause subsequent Firestore listener issues');
+      } else if (error.code === 'auth/popup-blocked') {
+        console.warn('Popup blocked - this is common on mobile devices');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        console.warn('Popup cancelled or closed');
+      }
+      
       // Let the calling component handle the error with the popup system
+      throw error;
+    }
+  };
+
+  // Create user document with GDPR consent
+  const createGoogleUser = async (user, hasConsent = false) => {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        createdAt: new Date(),
+        consentedAt: hasConsent ? new Date() : null,
+        gdprConsent: hasConsent
+      });
+      console.log("New Google user document created");
+    } catch (error) {
+      console.error("Error creating Google user:", error);
       throw error;
     }
   };
@@ -64,4 +120,4 @@ const firebaseConfig = {
     }
   };
   
-export { auth, db, storage, signInWithGoogle, logout };
+export { auth, db, storage, signInWithGoogle, createGoogleUser, logout };

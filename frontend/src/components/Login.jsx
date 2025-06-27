@@ -17,16 +17,80 @@ const Login = () => {
       showSuccess("Logget ind!");
       navigate("/profile");
     } catch (error) {
-      showError("Fejl: " + error.message);
+      // Handle Firebase auth errors with clean messages
+      let errorMessage;
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = "Ugyldig email-adresse. Tjek venligst din email.";
+          break;
+        case 'auth/invalid-credential':
+          errorMessage = "Forkert email eller adgangskode. Prøv igen.";
+          break;
+        case 'auth/user-not-found':
+          errorMessage = "Ingen bruger fundet med denne email. Opret venligst en konto.";
+          break;
+        case 'auth/wrong-password':
+          errorMessage = "Forkert adgangskode. Prøv igen.";
+          break;
+        case 'auth/user-disabled':
+          errorMessage = "Denne konto er deaktiveret. Kontakt support.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "For mange forsøg. Prøv igen senere.";
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = "Netværksfejl. Tjek din internetforbindelse.";
+          break;
+        default:
+          errorMessage = "Login fejlede. Prøv igen.";
+      }
+      showError(errorMessage);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      
+      if (result.isNewUser) {
+        // New user must go through signup with consent
+        showError("Du skal først oprette en konto. Du bliver omdirigeret til oprettelsessiden.");
+        navigate("/signup");
+        return;
+      }
+      
+      // Check if existing user has given GDPR consent
+      if (!result.userDoc?.gdprConsent) {
+        showError("Du mangler at acceptere vilkårene. Du bliver omdirigeret til oprettelsessiden.");
+        navigate("/signup");
+        return;
+      }
+      
+      showSuccess("Logget ind!");
       navigate("/profile");
     } catch (error) {
-      showError("Fejl: " + error.message);
+      // Handle Google login errors with clean messages
+      let errorMessage;
+      switch (error.code) {
+        case 'auth/popup-blocked':
+          errorMessage = "Popup blev blokeret. Tillad popups og prøv igen.";
+          break;
+        case 'auth/popup-closed-by-user':
+          errorMessage = "Login blev annulleret.";
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = "Netværksfejl. Tjek din internetforbindelse.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "For mange forsøg. Prøv igen senere.";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "Google login er ikke aktiveret.";
+          break;
+        default:
+          errorMessage = "Google login fejlede. Prøv igen.";
+      }
+      showError(errorMessage);
     }
   };
 
@@ -64,6 +128,15 @@ const Login = () => {
           >
             Log ind med Google
           </button>
+
+          <p className="text-sm text-gray-500 mt-6">Har du ikke en konto?</p>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="mt-2 text-orange-500 font-semibold hover:underline"
+            >
+              Opret en konto
+            </button>
         </div>
       </form>
     </div>

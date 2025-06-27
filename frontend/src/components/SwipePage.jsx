@@ -1,27 +1,36 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSwipeable } from 'react-swipeable';
 import { Heart, MessageCircle, X } from 'lucide-react';
 import { useItems } from '../contexts/ItemsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '../contexts/ChatContext';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
-const SwipeCard = ({ item }) => {
+const SwipeCard = ({ item, onCardClick }) => {
   if (!item) return null;
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200">
-      <img 
-        src={item.imageUrl || "https://via.placeholder.com/400"} 
-        alt={item.title} 
+    <div 
+      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200"
+    >
+      <LoadingPlaceholder
+        src={item.imageUrl || "https://via.placeholder.com/400"}
+        alt={item.title}
         className="w-full h-full object-cover"
-      />
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
-        <h3 className="text-2xl font-bold">{item.title}</h3>
-        <p className="text-sm mt-1">By: {item.userName}</p>
-        <p className="text-base mt-2 line-clamp-2">{item.description}</p>
-      </div>
+        placeholderClassName="rounded-2xl"
+      >
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
+          <h3 className="text-2xl font-bold">{item.title}</h3>
+          <p className="text-sm mt-1">By: {item.userName}</p>
+          <p 
+            className="text-base mt-2 line-clamp-2 cursor-pointer hover:text-orange-200 transition-colors"
+            onClick={onCardClick}
+          >
+            {item.description}
+          </p>
+        </div>
+      </LoadingPlaceholder>
     </div>
   );
 };
@@ -86,12 +95,7 @@ const SwipePage = () => {
     }
   };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => currentItem && handleSwipe(currentItem, 'dislike'),
-    onSwipedRight: () => currentItem && handleSwipe(currentItem, 'like'),
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
+
 
   const handleChat = () => {
     if (!currentItem) return;
@@ -107,18 +111,23 @@ const SwipePage = () => {
     });
   }
 
+  const handleCardClick = () => {
+    if (!currentItem) return;
+    navigate(`/item/${currentItem.id}`);
+  }
+
   if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading cards...</div>;
+    return <div className="flex justify-center items-center h-full">Indlæser...</div>;
   }
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-4 bg-orange-50">
+    <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-between p-4 bg-orange-50 relative isolate">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-800">Velkommen</h2>
         <p className="text-gray-600">Swipe for at få flere gode deals</p>
       </div>
       
-      <div {...swipeHandlers} className="relative w-full max-w-sm h-[60vh] flex items-center justify-center">
+      <div className="relative w-full max-w-sm h-[60vh] flex items-center justify-center overflow-hidden">
         <AnimatePresence>
           {currentItem ? (
             <motion.div
@@ -129,31 +138,64 @@ const SwipePage = () => {
               exit={{ x: 300, opacity: 0, scale: 0.5, transition: { duration: 0.3 } }}
               drag="x"
               dragConstraints={{ left: -100, right: 100 }}
+              dragPropagation={false}
+              dragElastic={0.1}
               onDragEnd={(e, { offset }) => {
                 if (offset.x > 50) handleSwipe(currentItem, 'like');
                 else if (offset.x < -50) handleSwipe(currentItem, 'dislike');
               }}
             >
-              <SwipeCard item={currentItem} />
+              <SwipeCard item={currentItem} onCardClick={handleCardClick} />
             </motion.div>
           ) : (
-            <div className="text-center">
-              <h3 className="text-xl font-semibold">No more items!</h3>
-              <p className="text-gray-500">Check back later for new trades.</p>
+            <div className="text-center -mt-8">
+              <h3 className="text-xl font-semibold">Ikke flere opslag!</h3>
+              <p className="text-gray-500 mb-4">Vend tilbage senere for nye trades, men i mellemtiden kan du se de opslag, du har disliked nedenfor:</p>
+              <button 
+                onClick={() => navigate('/disliked')}
+                className="bg-slate-600 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-lg flex items-center justify-center gap-2 mx-auto"
+              >
+                <X size={18} />
+                Se Disliked Opslag
+              </button>
             </div>
           )}
         </AnimatePresence>
       </div>
 
       <div className="flex items-center justify-center gap-8">
-        <button onClick={() => currentItem && handleSwipe(currentItem, 'dislike')} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <X size={32} className="text-red-500" />
+        <button 
+          onClick={() => currentItem && handleSwipe(currentItem, 'dislike')} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <X size={32} className={currentItem ? "text-red-500" : "text-gray-400"} />
         </button>
-        <button onClick={handleChat} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <MessageCircle size={32} className="text-blue-500" />
+        <button 
+          onClick={handleChat} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <MessageCircle size={32} className={currentItem ? "text-blue-500" : "text-gray-400"} />
         </button>
-        <button onClick={() => currentItem && handleSwipe(currentItem, 'like')} className="bg-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform">
-          <Heart size={32} className="text-orange-500" />
+        <button 
+          onClick={() => currentItem && handleSwipe(currentItem, 'like')} 
+          disabled={!currentItem}
+          className={`rounded-full p-4 shadow-lg transition-all ${
+            currentItem 
+              ? 'bg-white hover:scale-110 cursor-pointer' 
+              : 'bg-gray-200 cursor-not-allowed'
+          }`}
+        >
+          <Heart size={32} className={currentItem ? "text-orange-500" : "text-gray-400"} />
         </button>
       </div>
     </div>
