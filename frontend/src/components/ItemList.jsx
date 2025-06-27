@@ -6,7 +6,7 @@ import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
-import { Heart, HeartOff, Trash2 } from "lucide-react";
+import { Heart, HeartOff, Trash2, Repeat2, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -112,8 +112,19 @@ const ItemList = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                <span className="text-sm text-gray-500 mt-2 block">Type: {item.mode}</span>
-                <p className="text-sm text-gray-500 mt-2">Postet af: {item.userName}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-sm text-gray-600">
+                    Type: {item.mode === "bytte" ? "Bytte" : "Sælge"}
+                  </span>
+                  {item.mode === "bytte" ? (
+                    <Repeat2 className="text-gray-600" size={18} />
+                  ) : (
+                    <DollarSign className="text-gray-600" size={18} />
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Lagt op af: {user && item.userId === user.uid ? "Dig" : item.userName}
+                </p>
                 {user && item.userId !== user.uid && (
                   <button
                     onClick={() => {

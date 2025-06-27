@@ -56,48 +56,48 @@ const Disliked = () => {
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-2">Disliked</h1>
-      <p className="text-gray-600 text-center mb-6">Har du disliked et opslag ved en fejl? Like det igen her!</p>
+      <p className="text-gray-600 text-center mb-6 text-sm px-2">Har du disliked et opslag ved en fejl? Like det igen her!</p>
 
       {dislikedPosts.length === 0 ? (
         <div className="text-center text-gray-500 mt-8">
           <p>Du har ikke disliked nogen opslag endnu.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {dislikedPosts.map((post) => (
-            <div key={post.id} className="flex bg-gray-100 rounded-xl p-3 items-center shadow-sm">
-              <Link to={`/item/${post.id}`} className="flex flex-1 items-center">
-                <LoadingPlaceholder
-                  src={post.imageUrl || "/placeholder.jpg"}
-                  alt={post.name}
-                  className="w-20 h-20 rounded-md object-cover mr-3"
-                  placeholderClassName="rounded-md"
-                />
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <span className="bg-orange-500 text-black px-2 py-1 text-sm font-bold rounded-md max-w-[10rem] truncate">
-                      {post.title}
-                    </span>
-                    {post.mode === "bytte" ? (
-                      <Repeat2 className="text-gray-700" size={18} />
-                    ) : (
-                      <DollarSign className="text-gray-700" size={18} />
-                    )}
+            <div key={post.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              {/* Main content area */}
+              <Link to={`/item/${post.id}`} className="block">
+                <div className="flex gap-4 mb-4">
+                  <LoadingPlaceholder
+                    src={post.imageUrl || "/placeholder.jpg"}
+                    alt={post.name}
+                    className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                    placeholderClassName="rounded-lg"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-base font-bold text-gray-900 flex-1">{post.title}</h3>
+                      {post.mode === "bytte" ? (
+                        <Repeat2 className="text-gray-600 ml-2 flex-shrink-0" size={18} />
+                      ) : (
+                        <DollarSign className="text-gray-600 ml-2 flex-shrink-0" size={18} />
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-2">{post.userName}</p>
+                    <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{post.description}</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-800">{post.userName}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2 leading-tight">{post.description}</p>
                 </div>
               </Link>
-              
-              <div className="flex ml-3">
-                <button
-                  onClick={() => handleLike(post.id)}
-                  className="bg-orange-500 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center gap-1"
-                >
-                  <Heart size={14} />
-                  Like
-                </button>
-              </div>
+
+              {/* Action button - full width for easy tapping */}
+              <button
+                onClick={() => handleLike(post.id)}
+                className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Heart size={16} />
+                Like igen
+              </button>
             </div>
           ))}
         </div>

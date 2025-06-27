@@ -262,22 +262,39 @@ const ChatPage = () => {
       ) : (
         <form
           onSubmit={handleSendMessage}
-          className="fixed bottom-0 left-0 w-full bg-white px-4 py-3 border-t flex items-center z-50"
+          className="fixed bottom-0 left-0 w-full bg-white px-4 py-3 border-t z-50"
           style={{maxWidth: '100%'}}
         >
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Skriv en besked..."
-            className="flex-1 p-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-          />
-          <button
-            type="submit"
-            className="ml-3 bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600"
-          >
-            Send
-          </button>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => {
+                  if (e.target.value.length <= 500) {
+                    setNewMessage(e.target.value);
+                  }
+                }}
+                placeholder="Skriv en besked..."
+                className="flex-1 p-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                maxLength={500}
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim()}
+                className={`ml-3 px-4 py-2 rounded-full text-sm transition-colors ${
+                  newMessage.trim() 
+                    ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Send
+              </button>
+            </div>
+            <div className="text-right text-xs text-gray-500">
+              {newMessage.length}/500 tegn
+            </div>
+          </div>
         </form>
       )}
     </div>

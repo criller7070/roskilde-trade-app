@@ -95,25 +95,41 @@ export default function AddItem() {
           id="title"
           name="title"
           type="text"
-          className="w-full mb-4 p-2 bg-gray-100 rounded"
+          className="w-full mb-2 p-2 bg-gray-100 rounded"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="*****"
+          onChange={(e) => {
+            if (e.target.value.length <= 60) {
+              setTitle(e.target.value);
+            }
+          }}
+          placeholder="Hvad vil du bytte/sælge?"
           disabled={isSubmitting}
+          maxLength={60}
         />
+        <div className="text-right text-xs text-gray-500 mb-4">
+          {title.length}/60 tegn
+        </div>
 
         {/* Description */}
         <label htmlFor="description" className="block font-semibold">Beskrivelse</label>
         <textarea
           id="description"
           name="description"
-          className="w-full mb-4 p-2 bg-gray-100 rounded"
-          rows={3}
+          className="w-full mb-2 p-2 bg-gray-100 rounded"
+          rows={4}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="*****"
+          onChange={(e) => {
+            if (e.target.value.length <= 500) {
+              setDescription(e.target.value);
+            }
+          }}
+          placeholder="Beskriv din genstand..."
           disabled={isSubmitting}
+          maxLength={500}
         />
+        <div className="text-right text-xs text-gray-500 mb-4">
+          {description.length}/500 tegn
+        </div>
 
         {/* Toggle Mode */}
         <div className="flex justify-between items-center mb-6">

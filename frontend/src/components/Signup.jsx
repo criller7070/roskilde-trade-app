@@ -35,13 +35,23 @@ const Signup = () => {
     <div className="pt-20 px-6 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Opret Konto</h1>
       <form onSubmit={handleRegister} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Navn"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-3 rounded-lg bg-gray-100"
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Navn"
+            value={name}
+            onChange={(e) => {
+              if (e.target.value.length <= 50) {
+                setName(e.target.value);
+              }
+            }}
+            className="w-full p-3 rounded-lg bg-gray-100 mb-1"
+            maxLength={50}
+          />
+          <div className="text-right text-xs text-gray-500 mb-2">
+            {name.length}/50 tegn
+          </div>
+        </div>
         <input
           type="email"
           placeholder="Email"

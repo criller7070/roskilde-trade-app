@@ -11,7 +11,9 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
-  increment
+  increment,
+  enableNetwork,
+  disableNetwork
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
@@ -28,6 +30,49 @@ export function ChatProvider({ children }) {
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [connectionState, setConnectionState] = useState('connected');
+
+  // Monitor connection state for mobile
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network: Online');
+      setConnectionState('connected');
+      // Re-enable Firestore network
+      enableNetwork(db).catch(console.error);
+    };
+    
+    const handleOffline = () => {
+      console.log('Network: Offline');
+      setConnectionState('offline');
+      // Disable Firestore network to prevent connection errors
+      disableNetwork(db).catch(console.error);
+    };
+
+    // Handle visibility change (mobile app backgrounding)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('App backgrounded - cleaning up connections');
+        setConnectionState('background');
+      } else {
+        console.log('App foregrounded - restoring connections');
+        setConnectionState('connected');
+        // Small delay to ensure network is stable
+        setTimeout(() => {
+          enableNetwork(db).catch(console.error);
+        }, 500);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Generate chat ID that includes item context
   const generateChatId = useCallback((userId1, userId2, itemId) => {
@@ -251,80 +296,139 @@ export function ChatProvider({ children }) {
     }
 
     setLoading(true);
+    let retryCount = 0;
+    const maxRetries = 3;
+    let unsubscribe;
 
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      setLoading(false);
-    }, 5000); // 5 second timeout
-
-    try {
-      // Fix: Use proper subcollection path
-      const userChatsRef = collection(db, 'userChats', user.uid, 'chats');
-      const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        clearTimeout(timeoutId); // Clear timeout on successful subscription
-        const chatsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setChats(chatsData);
+    const setupListener = () => {
+      // Add a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
         setLoading(false);
+      }, 10000); // 10 second timeout
 
-        // Calculate total unread count
-        const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
-        setUnreadCount(totalUnread);
-      }, (error) => {
-        console.error('Error subscribing to chats:', error);
+      try {
+        const userChatsRef = collection(db, 'userChats', user.uid, 'chats');
+        const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          clearTimeout(timeoutId);
+          const chatsData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setChats(chatsData);
+          setLoading(false);
+          retryCount = 0; // Reset retry count on success
+
+          // Calculate total unread count
+          const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+          setUnreadCount(totalUnread);
+        }, (error) => {
+          console.error('Error subscribing to chats:', error);
+          clearTimeout(timeoutId);
+          
+          // Handle specific error types
+          if (error.code === 'permission-denied') {
+            console.warn('Permission denied for chats - user may not have access');
+            setChats([]);
+            setLoading(false);
+            setUnreadCount(0);
+            return;
+          }
+
+          // Retry logic for network issues
+          if (retryCount < maxRetries && (
+            error.code === 'unavailable' || 
+            error.code === 'internal' ||
+            error.message.includes('NS_BINDING_ABORTED')
+          )) {
+            retryCount++;
+            console.log(`Retrying chat subscription (attempt ${retryCount}/${maxRetries})`);
+            setTimeout(() => {
+              if (user) { // Only retry if user is still logged in
+                setupListener();
+              }
+            }, 2000 * retryCount); // Exponential backoff
+          } else {
+            setChats([]);
+            setLoading(false);
+            setUnreadCount(0);
+          }
+        });
+
+        return () => {
+          clearTimeout(timeoutId);
+          if (unsubscribe) unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error setting up chat subscription:', error);
         clearTimeout(timeoutId);
         setChats([]);
         setLoading(false);
         setUnreadCount(0);
-      });
+      }
+    };
 
-      return () => {
-        clearTimeout(timeoutId);
-        unsubscribe();
-      };
-    } catch (error) {
-      console.error('Error setting up chat subscription:', error);
-      clearTimeout(timeoutId);
-      setChats([]);
-      setLoading(false);
-      setUnreadCount(0);
-    }
+    const cleanup = setupListener();
+    return cleanup;
   }, [user]);
 
   // Subscribe to messages for a chat
   const subscribeToMessages = useCallback((chatId) => {
     if (!chatId) return;
 
-    const messagesRef = collection(db, `chats/${chatId}/messages`);
-    const q = query(messagesRef, orderBy('timestamp', 'asc'));
-    
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const newMessages = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setMessages(newMessages);
-        
-        // Mark as read when viewing chat
-        if (newMessages.length > 0) {
-          markAsRead(chatId);
-        }
-      },
-      (error) => {
-        console.error('Error subscribing to messages:', error);
-        // If it's a permission error, set empty messages
-        if (error.code === 'permission-denied') {
-          setMessages([]);
-        }
-      }
-    );
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    return unsubscribe;
+    const setupMessageListener = () => {
+      const messagesRef = collection(db, `chats/${chatId}/messages`);
+      const q = query(messagesRef, orderBy('timestamp', 'asc'));
+      
+      const unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+          const newMessages = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setMessages(newMessages);
+          retryCount = 0; // Reset retry count on success
+          
+          // Mark as read when viewing chat
+          if (newMessages.length > 0) {
+            markAsRead(chatId);
+          }
+        },
+        (error) => {
+          console.error('Error subscribing to messages:', error);
+          
+          // Handle specific error types
+          if (error.code === 'permission-denied') {
+            console.warn('Permission denied for messages');
+            setMessages([]);
+            return;
+          }
+
+          // Retry logic for network issues
+          if (retryCount < maxRetries && (
+            error.code === 'unavailable' || 
+            error.code === 'internal' ||
+            error.message.includes('NS_BINDING_ABORTED')
+          )) {
+            retryCount++;
+            console.log(`Retrying message subscription (attempt ${retryCount}/${maxRetries})`);
+            setTimeout(() => {
+              setupMessageListener();
+            }, 1000 * retryCount); // Exponential backoff
+          } else {
+            setMessages([]);
+          }
+        }
+      );
+
+      return unsubscribe;
+    };
+
+    return setupMessageListener();
   }, [markAsRead]);
 
   // Subscribe to active chat messages
@@ -347,6 +451,7 @@ export function ChatProvider({ children }) {
     activeChat,
     messages,
     unreadCount,
+    connectionState,
     
     // Functions
     generateChatId,

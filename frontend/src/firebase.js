@@ -49,6 +49,16 @@ const firebaseConfig = {
         credential: error.credential,
         fullError: error
       });
+      
+      // Handle specific authentication errors
+      if (error.code === 'auth/network-request-failed') {
+        console.warn('Network error during authentication - this may cause subsequent Firestore listener issues');
+      } else if (error.code === 'auth/popup-blocked') {
+        console.warn('Popup blocked - this is common on mobile devices');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        console.warn('Popup cancelled or closed');
+      }
+      
       // Let the calling component handle the error with the popup system
       throw error;
     }
