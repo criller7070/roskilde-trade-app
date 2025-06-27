@@ -20,6 +20,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import GDPRControls from "./GDPRControls";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -259,7 +260,7 @@ const Profile = () => {
       
       // 5. Delete any flag reports made by this user
       try {
-        const flagsQuery = query(collection(db, "flags"), where("reportedBy", "==", user.uid));
+        const flagsQuery = query(collection(db, "flags"), where("reporterId", "==", user.uid));
         const flagsSnapshot = await getDocs(flagsQuery);
         const deleteFlagPromises = flagsSnapshot.docs.map(doc => deleteDoc(doc.ref));
         await Promise.all(deleteFlagPromises);
@@ -420,6 +421,11 @@ Er du helt sikker på, at du vil fortsætte?`,
             </div>
           ))
         )}
+      </div>
+
+      {/* ---------- GDPR Controls Section ---------- */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <GDPRControls showDataExportOnly={true} />
       </div>
 
       {/* ---------- GDPR Account Deletion Section ---------- */}

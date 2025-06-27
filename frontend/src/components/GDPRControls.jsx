@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Download, Trash2, Shield } from 'lucide-react';
 
-const GDPRControls = () => {
+const GDPRControls = ({ showDataExportOnly = false }) => {
   const { user } = useAuth();
   const { showConfirm, showSuccess, showError } = usePopupContext();
   const [isExporting, setIsExporting] = useState(false);
@@ -16,6 +16,8 @@ const GDPRControls = () => {
     
     setIsExporting(true);
     try {
+      console.log('Starting data export for user:', user.uid);
+      
       // Collect all user data
       const userData = {
         account: {
@@ -27,23 +29,79 @@ const GDPRControls = () => {
         },
         items: [],
         chats: [],
-        bugReports: []
+        bugReports: [],
+        flagReports: [],
+        exportSummary: {
+          itemsCount: 0,
+          chatsCount: 0,
+          bugReportsCount: 0,
+          flagReportsCount: 0,
+          errors: []
+        }
       };
 
       // Get user's items
-      const itemsQuery = query(collection(db, 'items'), where('userId', '==', user.uid));
-      const itemsSnapshot = await getDocs(itemsQuery);
-      userData.items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      try {
+        console.log('Fetching user items...');
+        const itemsQuery = query(collection(db, 'items'), where('userId', '==', user.uid));
+        const itemsSnapshot = await getDocs(itemsQuery);
+        userData.items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        userData.exportSummary.itemsCount = userData.items.length;
+        console.log(`Found ${userData.items.length} items`);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+        userData.exportSummary.errors.push(`Failed to fetch items: ${error.message}`);
+      }
 
-      // Get user's chats
-      const chatsQuery = query(collection(db, `userChats/${user.uid}/chats`));
-      const chatsSnapshot = await getDocs(chatsQuery);
-      userData.chats = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Get user's chats - Try different path structures
+      try {
+        console.log('Fetching user chats...');
+        // First try the userChats subcollection approach
+        try {
+          const chatsQuery = query(collection(db, 'userChats', user.uid, 'chats'));
+          const chatsSnapshot = await getDocs(chatsQuery);
+          userData.chats = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          userData.exportSummary.chatsCount = userData.chats.length;
+          console.log(`Found ${userData.chats.length} chats via userChats/${user.uid}/chats`);
+        } catch (subError) {
+          console.log('userChats subcollection approach failed, trying main chats collection...');
+          // If that fails, try getting chats where user is a participant
+          const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
+          const chatsSnapshot = await getDocs(chatsQuery);
+          userData.chats = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          userData.exportSummary.chatsCount = userData.chats.length;
+          console.log(`Found ${userData.chats.length} chats via main chats collection`);
+        }
+      } catch (error) {
+        console.error('Error fetching chats:', error);
+        userData.exportSummary.errors.push(`Failed to fetch chats: ${error.message}`);
+      }
 
       // Get user's bug reports
-      const bugReportsQuery = query(collection(db, 'bugReports'), where('userId', '==', user.uid));
-      const bugReportsSnapshot = await getDocs(bugReportsQuery);
-      userData.bugReports = bugReportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      try {
+        console.log('Fetching bug reports...');
+        const bugReportsQuery = query(collection(db, 'bugReports'), where('userId', '==', user.uid));
+        const bugReportsSnapshot = await getDocs(bugReportsQuery);
+        userData.bugReports = bugReportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        userData.exportSummary.bugReportsCount = userData.bugReports.length;
+        console.log(`Found ${userData.bugReports.length} bug reports`);
+      } catch (error) {
+        console.error('Error fetching bug reports:', error);
+        userData.exportSummary.errors.push(`Failed to fetch bug reports: ${error.message}`);
+      }
+
+      // Get user's flag reports
+      try {
+        console.log('Fetching flag reports...');
+        const flagReportsQuery = query(collection(db, 'flags'), where('reporterId', '==', user.uid));
+        const flagReportsSnapshot = await getDocs(flagReportsQuery);
+        userData.flagReports = flagReportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        userData.exportSummary.flagReportsCount = userData.flagReports.length;
+        console.log(`Found ${userData.flagReports.length} flag reports`);
+      } catch (error) {
+        console.error('Error fetching flag reports:', error);
+        userData.exportSummary.errors.push(`Failed to fetch flag reports: ${error.message}`);
+      }
 
       // Download as JSON file
       const dataStr = JSON.stringify(userData, null, 2);
@@ -57,10 +115,18 @@ const GDPRControls = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      showSuccess('Dine data er downloadet!');
+      console.log('Data export completed successfully');
+      const totalItems = userData.exportSummary.itemsCount + userData.exportSummary.chatsCount + 
+                        userData.exportSummary.bugReportsCount + userData.exportSummary.flagReportsCount;
+      
+      if (userData.exportSummary.errors.length > 0) {
+        showSuccess(`Data downloadet med ${totalItems} elementer. ${userData.exportSummary.errors.length} advarsler - se konsol for detaljer.`);
+      } else {
+        showSuccess(`Alle dine data er downloadet! (${totalItems} elementer)`);
+      }
     } catch (error) {
-      console.error('Error exporting data:', error);
-      showError('Kunne ikke eksportere data. Prøv igen.');
+      console.error('Critical error during data export:', error);
+      showError(`Kunne ikke eksportere data: ${error.message}. Kontakt support hvis problemet fortsætter.`);
     } finally {
       setIsExporting(false);
     }
@@ -128,7 +194,7 @@ const GDPRControls = () => {
         {/* Export Data */}
         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
           <div className="flex-1">
-            <h3 className="font-medium text-gray-800">Download Mine Data</h3>
+            <h3 className="font-medium text-gray-800">Download Data</h3>
             <p className="text-sm text-gray-600">
               Få en komplet kopi af alle data vi har om dig i JSON-format.
             </p>
@@ -143,23 +209,25 @@ const GDPRControls = () => {
           </button>
         </div>
 
-        {/* Delete Account */}
-        <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
-          <div className="flex-1">
-            <h3 className="font-medium text-red-800">Slet Min Konto</h3>
-            <p className="text-sm text-red-600">
-              Permanent sletning af din konto og alle tilknyttede data. Denne handling kan ikke fortrydes.
-            </p>
+        {/* Delete Account - Only show if not data export only */}
+        {!showDataExportOnly && (
+          <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+            <div className="flex-1">
+              <h3 className="font-medium text-red-800">Slet Min Konto</h3>
+              <p className="text-sm text-red-600">
+                Permanent sletning af din konto og alle tilknyttede data. Denne handling kan ikke fortrydes.
+              </p>
+            </div>
+            <button
+              onClick={confirmDeleteAccount}
+              disabled={isDeleting}
+              className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {isDeleting ? 'Sletter...' : 'Slet Konto'}
+            </button>
           </div>
-          <button
-            onClick={confirmDeleteAccount}
-            disabled={isDeleting}
-            className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            {isDeleting ? 'Sletter...' : 'Slet Konto'}
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="mt-6 p-3 bg-gray-50 rounded-lg">
