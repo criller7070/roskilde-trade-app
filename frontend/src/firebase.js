@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAq_FHFKZ0NMTB3Z51RkSeWn9aif7RPdLk",
@@ -19,7 +18,6 @@ const firebaseConfig = {
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
-  const analytics = getAnalytics(app);
   
   const signInWithGoogle = async () => {
     try {

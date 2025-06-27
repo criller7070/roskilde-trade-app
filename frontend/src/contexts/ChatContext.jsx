@@ -203,13 +203,11 @@ export function ChatProvider({ children }) {
     if (!user) return;
     
     try {
-      console.log('Marking as read for chat:', chatId, 'user:', user.uid);
       const userChatRef = doc(db, 'userChats', user.uid, 'chats', chatId);
       
       // First check if the document exists
       const userChatDoc = await getDoc(userChatRef);
       if (!userChatDoc.exists()) {
-        console.log('UserChat document does not exist, creating it');
         // If it doesn't exist, we need to create it with basic data
         // Get the chat metadata to populate the userChat document
         const chatRef = doc(db, 'chats', chatId);
@@ -231,7 +229,6 @@ export function ChatProvider({ children }) {
             unreadCount: 0
           });
         } else {
-          console.error('Chat document does not exist for chatId:', chatId);
           return;
         }
       } else {
@@ -248,18 +245,15 @@ export function ChatProvider({ children }) {
   // Subscribe to user's chats
   useEffect(() => {
     if (!user) {
-      console.log('No user, clearing chats');
       setChats([]);
       setLoading(false);
       return;
     }
 
-    console.log('Setting up chat subscription for user:', user.uid);
     setLoading(true);
 
     // Add a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      console.log('Chat subscription timeout, setting loading to false');
       setLoading(false);
     }, 5000); // 5 second timeout
 
@@ -269,7 +263,6 @@ export function ChatProvider({ children }) {
       const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        console.log('Chat subscription update:', snapshot.docs.length, 'chats');
         clearTimeout(timeoutId); // Clear timeout on successful subscription
         const chatsData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -281,7 +274,6 @@ export function ChatProvider({ children }) {
         // Calculate total unread count
         const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
         setUnreadCount(totalUnread);
-        console.log('Chats loaded:', chatsData.length, 'chats,', totalUnread, 'unread');
       }, (error) => {
         console.error('Error subscribing to chats:', error);
         clearTimeout(timeoutId);
@@ -307,8 +299,6 @@ export function ChatProvider({ children }) {
   const subscribeToMessages = useCallback((chatId) => {
     if (!chatId) return;
 
-    console.log('Subscribing to messages for chat:', chatId);
-    
     const messagesRef = collection(db, `chats/${chatId}/messages`);
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
     
@@ -319,7 +309,6 @@ export function ChatProvider({ children }) {
           ...doc.data()
         }));
         setMessages(newMessages);
-        console.log('Messages updated:', newMessages.length);
         
         // Mark as read when viewing chat
         if (newMessages.length > 0) {

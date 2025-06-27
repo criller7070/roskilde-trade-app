@@ -11,6 +11,7 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LoginRequired from "./components/LoginRequired";
 import Liked from "./components/Liked";
+import Disliked from "./components/Disliked";
 import ItemPage from "./components/ItemPage";
 import Admin from "./components/Admin";
 import SwipePage from "./components/SwipePage";
@@ -49,6 +50,10 @@ function AppRoutes() {
           <Route 
             path="/liked" 
             element={user ? <Liked /> : <LoginRequired />}
+          />
+          <Route 
+            path="/disliked" 
+            element={user ? <Disliked /> : <LoginRequired />}
           />
           <Route path="/item/:itemId" element={<ItemPage />} />
           <Route 

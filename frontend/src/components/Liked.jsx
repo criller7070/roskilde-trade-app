@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useItems } from "../contexts/ItemsContext";
 import { db } from "../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { Repeat2, DollarSign } from "lucide-react";
+import { Repeat2, DollarSign, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -27,7 +27,7 @@ const Liked = () => {
 
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Liked</h1>
+      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Liked Opslag</h1>
 
       <div className="space-y-4">
         {likedPosts.map((post) => (
@@ -56,6 +56,17 @@ const Liked = () => {
                 </div>
             </Link>
         ))}
+      </div>
+      
+      {/* Button to see disliked posts */}
+      <div className="mt-8 text-center">
+        <Link 
+          to="/disliked" 
+          className="inline-flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+        >
+          <X size={18} />
+          Se Disliked Opslag
+        </Link>
       </div>
     </div>
   );

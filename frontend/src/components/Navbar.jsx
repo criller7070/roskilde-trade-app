@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { useChat } from '../contexts/ChatContext';
+import { usePopupContext } from '../contexts/PopupContext';
 import LoadingPlaceholder from './LoadingPlaceholder';
 
 const Navbar = () => {
@@ -12,7 +13,20 @@ const Navbar = () => {
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
   const { unreadCount } = useChat();
+  const { showSuccess, showError } = usePopupContext();
   const navigate = useNavigate();
+
+  // Toggle hamburger menu with ESC key
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(prev => !prev);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => document.removeEventListener('keydown', handleEscKey);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -35,18 +49,20 @@ const Navbar = () => {
     const shareData = {
       title: document.title,
       text: "Tjek denne side ud på RosSwap!",
-      url: "https://rosswap.dk",
+      url: "https://roskilde-trade.firebaseapp.com",
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        showSuccess("Siden er blevet delt!");
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link kopieret til udklipsholder");
+        showSuccess("Link kopieret til udklipsholder! Del det med dine venner.");
       }
     } catch (err) {
       console.error("Share failed:", err);
+      showError("Kunne ikke dele siden. Prøv igen.");
     }
   };
 
@@ -71,7 +87,7 @@ const Navbar = () => {
 
         {/* Right: Icons + Profile Picture */}
         <div className="flex items-center space-x-4">
-          <Link to="/chats" className="relative">
+          <Link to="/chats" onClick={() => setOpen(false)} className="relative">
             <Bell size={20} />
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[18px]">

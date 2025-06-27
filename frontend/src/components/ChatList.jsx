@@ -8,8 +8,6 @@ const ChatList = () => {
   const { user } = useAuth();
   const { chats, loading } = useChat();
 
-  console.log('ChatList render:', { user: user?.uid, chats: chats.length, loading });
-
   if (!user) {
     return (
       <div className="pt-20 px-4 text-center">
@@ -22,8 +20,6 @@ const ChatList = () => {
     return (
       <div className="pt-20 px-4 text-center">
         <p className="text-gray-600">Loading chats...</p>
-        <p className="text-xs text-gray-400 mt-2">User: {user.uid}</p>
-        <p className="text-xs text-gray-400">Chats found: {chats.length}</p>
       </div>
     );
   }
