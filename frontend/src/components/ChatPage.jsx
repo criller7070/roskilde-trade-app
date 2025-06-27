@@ -4,6 +4,8 @@ import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const ChatPage = () => {
@@ -59,7 +61,26 @@ const ChatPage = () => {
         // Get chat metadata
         const metadata = await getChatMetadata(chatId);
         if (metadata) {
-          setChatMeta(metadata);
+          // Check if the item still exists
+          let isItemDeleted = metadata.isItemDeleted || false;
+          
+          if (metadata.itemId && !isItemDeleted) {
+            try {
+              const itemDoc = await getDoc(doc(db, "items", metadata.itemId));
+              if (!itemDoc.exists()) {
+                isItemDeleted = true;
+              }
+            } catch (error) {
+              console.warn("Could not check item existence:", error);
+              // If we can't check, assume it might be deleted
+              isItemDeleted = true;
+            }
+          }
+          
+          setChatMeta({
+            ...metadata,
+            isItemDeleted
+          });
         } else if (itemData) {
           // Fallback to item data if metadata not found
           setChatMeta({
@@ -69,7 +90,8 @@ const ChatPage = () => {
             userNames: {
               [user.uid]: user.displayName || 'Unknown',
               [itemData.recipientId]: itemData.recipientName || 'Unknown User'
-            }
+            },
+            isItemDeleted: false
           });
         }
 
@@ -145,11 +167,27 @@ const ChatPage = () => {
   const otherParticipantName = chatMeta?.userNames?.[otherParticipantId] || itemData?.recipientName || 'Unknown User';
 
   return (
-    <div className="pt-20 px-4 pb-32 min-h-screen bg-orange-100 max-w-md mx-auto relative">
+    <div className={`pt-20 px-4 pb-32 min-h-screen max-w-md mx-auto relative ${
+      chatMeta.isItemDeleted ? 'bg-gray-200' : 'bg-orange-100'
+    }`}>
       <div className="mb-4 text-center">
-        <h2 className="text-xl font-bold text-orange-500">Chat med {otherParticipantName}</h2>
-        <p className="text-sm text-gray-600">Om: <strong>{chatMeta.itemName}</strong></p>
-        {chatMeta.itemImage && (
+        <h2 className={`text-xl font-bold ${
+          chatMeta.isItemDeleted ? 'text-gray-500' : 'text-orange-500'
+        }`}>Chat med {otherParticipantName}</h2>
+        <p className="text-sm text-gray-600">
+          Om: <strong className={chatMeta.isItemDeleted ? "text-red-500" : ""}>{chatMeta.itemName}</strong>
+        </p>
+        {chatMeta.isItemDeleted && (
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600 font-medium">
+              ⚠️ Dette opslag er blevet slettet
+            </p>
+            <p className="text-xs text-red-500 mt-1">
+              Du kan ikke længere sende beskeder om dette opslag
+            </p>
+          </div>
+        )}
+        {chatMeta.itemImage && !chatMeta.isItemDeleted && (
           <LoadingPlaceholder 
             src={chatMeta.itemImage} 
             alt={chatMeta.itemName} 
@@ -159,54 +197,89 @@ const ChatPage = () => {
         )}
       </div>
 
-      <div className="space-y-3">
-        {messages.map((msg, index) => (
-          <div
-            key={msg.id || index}
-            className={`flex ${
-              msg.senderId === user.uid ? "justify-end" : "justify-start"
-            }`}
-          >
+      <div className={`space-y-3 ${chatMeta.isItemDeleted ? 'opacity-60' : ''}`}>
+        {messages.map((msg, index) => {
+          // Handle system messages differently
+          if (msg.senderId === "system" || msg.isSystemMessage) {
+            return (
+              <div key={msg.id || index} className="flex justify-center">
+                <div className="max-w-sm px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-xs text-center">
+                  <p>{msg.text}</p>
+                  <span className="block mt-1 text-[10px] text-gray-500">
+                    {msg.timestamp?.seconds &&
+                      formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), {
+                        addSuffix: true,
+                      })}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
+          // Regular user messages
+          return (
             <div
-              className={`max-w-xs px-4 py-2 rounded-2xl text-sm ${
-                msg.senderId === user.uid
-                  ? "bg-orange-500 text-white rounded-br-none"
-                  : "bg-white text-gray-800 rounded-bl-none"
+              key={msg.id || index}
+              className={`flex ${
+                msg.senderId === user.uid ? "justify-end" : "justify-start"
               }`}
             >
-              <p>{msg.text}</p>
-              <span className="block mt-1 text-[10px] text-right text-gray-300">
-                {msg.timestamp?.seconds &&
-                  formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), {
-                    addSuffix: true,
-                  })}
-              </span>
+              <div
+                className={`max-w-xs px-4 py-2 rounded-2xl text-sm ${
+                  chatMeta.isItemDeleted
+                    ? msg.senderId === user.uid
+                      ? "bg-gray-400 text-gray-100 rounded-br-none"
+                      : "bg-gray-300 text-gray-600 rounded-bl-none"
+                    : msg.senderId === user.uid
+                    ? "bg-orange-500 text-white rounded-br-none"
+                    : "bg-white text-gray-800 rounded-bl-none"
+                }`}
+              >
+                <p>{msg.text}</p>
+                <span className={`block mt-1 text-[10px] text-right ${
+                  chatMeta.isItemDeleted ? 'text-gray-400' : 'text-gray-300'
+                }`}>
+                  {msg.timestamp?.seconds &&
+                    formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), {
+                      addSuffix: true,
+                    })}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Message input */}
-      <form
-        onSubmit={handleSendMessage}
-        className="fixed bottom-0 left-0 w-full bg-white px-4 py-3 border-t flex items-center z-50"
-        style={{maxWidth: '100%'}}
-      >
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Skriv en besked..."
-          className="flex-1 p-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-        <button
-          type="submit"
-          className="ml-3 bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600"
+      {chatMeta.isItemDeleted ? (
+        <div className="fixed bottom-0 left-0 w-full bg-gray-100 px-4 py-3 border-t flex items-center justify-center z-50"
+             style={{maxWidth: '100%'}}>
+          <p className="text-gray-500 text-sm text-center">
+            📵 Beskeder er deaktiveret - opslaget er slettet
+          </p>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSendMessage}
+          className="fixed bottom-0 left-0 w-full bg-white px-4 py-3 border-t flex items-center z-50"
+          style={{maxWidth: '100%'}}
         >
-          Send
-        </button>
-      </form>
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Skriv en besked..."
+            className="flex-1 p-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+          <button
+            type="submit"
+            className="ml-3 bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600"
+          >
+            Send
+          </button>
+        </form>
+      )}
     </div>
   );
 };

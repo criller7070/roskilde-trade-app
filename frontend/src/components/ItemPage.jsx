@@ -25,11 +25,18 @@ const ItemPage = () => {
         const itemData = { id: itemSnap.id, ...itemSnap.data() };
         setItem(itemData);
 
-        const sellerRef = doc(db, "users", itemData.userId);
-        const sellerSnap = await getDoc(sellerRef);
+        // Try to fetch seller profile, but don't fail if we can't access it
+        try {
+          const sellerRef = doc(db, "users", itemData.userId);
+          const sellerSnap = await getDoc(sellerRef);
 
-        if (sellerSnap.exists()) {
-          setSellerProfile(sellerSnap.data());
+          if (sellerSnap.exists()) {
+            setSellerProfile(sellerSnap.data());
+          }
+        } catch (sellerErr) {
+          console.log("Could not fetch seller profile (permissions):", sellerErr);
+          // Set a minimal seller profile with just the userName from the item
+          setSellerProfile({ displayName: itemData.userName });
         }
       } catch (err) {
         console.error("Failed to load item or seller:", err);

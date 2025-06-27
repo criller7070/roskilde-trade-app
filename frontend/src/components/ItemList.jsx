@@ -113,7 +113,7 @@ const ItemList = () => {
                 <h3 className="text-xl font-semibold text-gray-800">{item.title}</h3>
                 <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                 <span className="text-sm text-gray-500 mt-2 block">Type: {item.mode}</span>
-                <p className="text-sm text-gray-500 mt-2">Opslået af: {item.userName}</p>
+                <p className="text-sm text-gray-500 mt-2">Postet af: {item.userName}</p>
                 {user && item.userId !== user.uid && (
                   <button
                     onClick={() => {

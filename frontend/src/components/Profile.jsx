@@ -7,16 +7,22 @@ import {
   getDocs,
   doc as fsDoc,
   updateDoc,
+  deleteDoc,
+  addDoc,
+  serverTimestamp,
+  orderBy,
 } from "firebase/firestore";
-import { PlusCircle, Camera, Repeat2, DollarSign } from "lucide-react";
+import { PlusCircle, Camera, Repeat2, DollarSign, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { usePopupContext } from "../contexts/PopupContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
 const Profile = () => {
   const { user } = useAuth();
+  const { showConfirm, showSuccess, showError } = usePopupContext();
   const [posts, setPosts] = useState([]);
 
   /* ---------- avatar-upload state ---------- */
@@ -37,7 +43,15 @@ const Profile = () => {
       const q = query(collection(db, "items"), where("userId", "==", user.uid));
       const snap = await getDocs(q);
       const itemData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setPosts(itemData);
+      
+      // Sort by createdAt in JavaScript instead of Firestore
+      const sortedData = itemData.sort((a, b) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        return bTime - aTime; // Newest first
+      });
+      
+      setPosts(sortedData);
     };
 
     fetchUserPosts();
@@ -78,6 +92,96 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  /* ---------- delete post functionality ---------- */
+  const handleDeletePost = async (postId) => {
+    try {
+      const post = posts.find(p => p.id === postId);
+      
+      // 1. Delete the post document
+      await deleteDoc(fsDoc(db, "items", postId));
+      
+      // 2. Find and update all related chats
+      await handleDeletedItemChats(postId, post?.title || "Deleted Item");
+      
+      // 3. Remove from local state
+      setPosts(posts.filter(post => post.id !== postId));
+      showSuccess("Opslag slettet!");
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      showError("Kunne ikke slette opslag: " + err.message);
+    }
+  };
+
+  /* ---------- handle chats for deleted items ---------- */
+  const handleDeletedItemChats = async (itemId, itemTitle) => {
+    try {
+      // Query all chats related to this item
+      const chatsQuery = query(collection(db, "chats"), where("itemId", "==", itemId));
+      const chatsSnapshot = await getDocs(chatsQuery);
+      
+      const updatePromises = [];
+      
+      chatsSnapshot.forEach((chatDoc) => {
+        const chatId = chatDoc.id;
+        const chatData = chatDoc.data();
+        
+        // Update chat metadata to mark item as deleted
+        const chatUpdatePromise = updateDoc(fsDoc(db, "chats", chatId), {
+          itemName: `${chatData.itemName} [SLETTET]`,
+          isItemDeleted: true,
+          itemDeletedAt: serverTimestamp()
+        });
+        updatePromises.push(chatUpdatePromise);
+        
+        // Send system message to chat participants
+        const systemMessagePromise = addDoc(collection(db, `chats/${chatId}/messages`), {
+          text: `Dette opslag "${itemTitle}" er blevet slettet af brugeren. Denne chat forbliver åben for jeres samtale.`,
+          timestamp: serverTimestamp(),
+          senderId: "system",
+          isSystemMessage: true
+        });
+        updatePromises.push(systemMessagePromise);
+        
+        // Update userChats for both participants
+        if (chatData.participants && Array.isArray(chatData.participants)) {
+          chatData.participants.forEach(participantId => {
+            const userChatUpdatePromise = updateDoc(
+              fsDoc(db, "userChats", participantId, "chats", chatId),
+              {
+                itemName: `${chatData.itemName} [SLETTET]`,
+                lastMessage: "Opslag slettet af bruger",
+                lastMessageTime: serverTimestamp(),
+                unreadCount: 0 // Don't increase unread for system messages
+              }
+            );
+            updatePromises.push(userChatUpdatePromise);
+          });
+        }
+      });
+      
+      await Promise.all(updatePromises);
+      console.log(`Updated ${chatsSnapshot.size} chats for deleted item: ${itemId}`);
+      
+    } catch (error) {
+      console.error("Error handling chats for deleted item:", error);
+      // Check if it's a permission error
+      if (error.code === 'permission-denied') {
+        console.warn("Permission denied when updating chats for deleted item. This is expected if there are no chats for this item or user doesn't have access.");
+      }
+      // Don't throw - we don't want to prevent the post deletion if chat updates fail
+    }
+  };
+
+  const confirmDeletePost = (post) => {
+    showConfirm(
+      "Er du sikker på, at du vil slette dette opslag?",
+      () => handleDeletePost(post.id),
+      "Slet Opslag",
+      "Slet",
+      "Annuller"
+    );
   };
 
   if (!user) return null;
@@ -148,29 +252,45 @@ const Profile = () => {
           posts.map((post) => (
             <div
               key={post.id}
-              onClick={() => navigate(`/item/${post.id}`)}
               className="flex bg-white rounded-xl shadow p-3 gap-3 items-center"
             >
-              <LoadingPlaceholder
-                src={post.imageUrl || "/placeholder.jpg"}
-                alt="item"
-                className="w-16 h-16 object-cover rounded-md"
-                placeholderClassName="rounded-md"
-              />
-              <div className="flex-1">
-                <h3 className="font-bold text-sm truncate">{post.title}</h3>
-                <p className="text-xs text-gray-700">{user.displayName}</p>
-                <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">
-                  {post.description}
-                </p>
+              <div 
+                onClick={() => navigate(`/item/${post.id}`)}
+                className="flex gap-3 items-center flex-1 cursor-pointer"
+              >
+                <LoadingPlaceholder
+                  src={post.imageUrl || "/placeholder.jpg"}
+                  alt="item"
+                  className="w-16 h-16 object-cover rounded-md"
+                  placeholderClassName="rounded-md"
+                />
+                <div className="flex-1">
+                  <h3 className="font-bold text-sm truncate">{post.title}</h3>
+                  <p className="text-xs text-gray-700">{user.displayName}</p>
+                  <p className="text-xs text-gray-600 line-clamp-2 leading-snug overflow-hidden">
+                    {post.description}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center space-y-2">
+                  {post.mode === "bytte" ? (
+                    <Repeat2 className="text-gray-600" size={16} />
+                  ) : (
+                    <DollarSign className="text-gray-600" size={16} />
+                  )}
+                </div>
               </div>
-              <div className="flex flex-col items-center space-y-2">
-                {post.mode === "bytte" ? (
-                  <Repeat2 className="text-gray-600" size={16} />
-                ) : (
-                  <DollarSign className="text-gray-600" size={16} />
-                )}
-              </div>
+              
+              {/* Delete button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  confirmDeletePost(post);
+                }}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Slet opslag"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))
         )}
