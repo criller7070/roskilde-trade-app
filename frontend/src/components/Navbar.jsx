@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { useChat } from '../contexts/ChatContext';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -58,7 +59,13 @@ const Navbar = () => {
             <Menu size={24} className="text-white" />
           </button>
           <Link to="/">
-            <img src="/RosSwap-White-Thick.png" alt="RosSwap" className="h-8" />
+            <LoadingPlaceholder
+              src="/RosSwap-White-Thick.png"
+              alt="RosSwap"
+              className="h-8"
+              placeholderClassName="bg-orange-400"
+              fallbackSrc="/logo.png"
+            />
           </Link>
         </div>
 
@@ -79,6 +86,7 @@ const Navbar = () => {
             <div className="flex items-center space-x-2">
               <Link 
                 to="/Login" 
+                onClick={() => setOpen(false)}
                 className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
               >
                 <span className="hidden sm:inline">Log ind</span>
@@ -86,6 +94,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 to="/Signup" 
+                onClick={() => setOpen(false)}
                 className="text-white font-semibold text-xs px-2 py-1 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3"
               >
                 <span className="hidden sm:inline">Opret konto</span>
@@ -219,10 +228,12 @@ const ProfileDropdown = ({ setOpen }) => {
         onClick={() => setDropdownOpen((prev) => !prev)}
         className="focus:outline-none"
       >
-        <img
+        <LoadingPlaceholder
           src={user?.photoURL || '/default_pfp.jpg'}
           alt="Profile"
           className="w-8 h-8 rounded-full border border-white"
+          placeholderClassName="rounded-full border border-white bg-orange-400"
+          fallbackSrc="/default_pfp.jpg"
         />
       </button>
 

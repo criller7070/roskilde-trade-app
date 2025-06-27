@@ -4,10 +4,12 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { usePopupContext } from "../contexts/PopupContext";
+import { useNavigate } from "react-router-dom";
 
 export default function AddItem() {
   const { user } = useAuth();
   const { showError, showSuccess } = usePopupContext();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
@@ -48,6 +50,11 @@ export default function AddItem() {
       setMode("bytte");
 
       showSuccess("Opslaget er oprettet!");
+      
+      // Redirect to items page after successful creation
+      setTimeout(() => {
+        navigate("/items");
+      }, 1500);
     } catch (err) {
       console.error(err);
       showError("Noget gik galt.");

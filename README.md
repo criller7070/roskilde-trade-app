@@ -31,6 +31,7 @@ RosSwap is a **single-page application (SPA)** that enables festival attendees t
 - **Real-time Chat**: Instant messaging between users
 - **User Authentication**: Google OAuth and email/password login
 - **Admin Panel**: Content moderation and platform management
+- **Bug Reporting**: User feedback system for platform improvement
 - **Image Upload**: Firebase Storage integration for item photos
 
 ## Features
@@ -42,11 +43,14 @@ RosSwap is a **single-page application (SPA)** that enables festival attendees t
 - **Like System**: Save favorite items for later
 - **Image Upload**: Upload photos for item listings
 - **User Profiles**: Manage personal information and preferences
+- **Bug Reporting**: Report issues with screenshots and detailed descriptions
 
 ### Admin Features
 - **Content Moderation**: Remove inappropriate items
-- **Platform Statistics**: View usage metrics
+- **Platform Statistics**: View usage metrics and analytics
 - **User Management**: Monitor user activity
+- **Bug Report Management**: Review and resolve user-reported issues
+- **Action Logging**: Track admin actions for accountability
 
 ### Technical Features
 - **Real-time Updates**: Live data synchronization
@@ -54,6 +58,7 @@ RosSwap is a **single-page application (SPA)** that enables festival attendees t
 - **Modern UI**: Tailwind CSS with custom orange theme
 - **Optimistic Updates**: Smooth user experience
 - **Analytics**: Firebase Analytics integration
+- **Global Notifications**: Consistent popup system across the app
 
 ## Technology Stack
 
@@ -63,8 +68,11 @@ RosSwap is a **single-page application (SPA)** that enables festival attendees t
 - **React Router DOM 7.4.0** - Client-side routing
 - **Tailwind CSS 3.3.3** - Utility-first CSS framework
 - **Framer Motion 12.18.2** - Animation library
-- **Lucide React** - Icon library
+- **Lucide React 0.514.0** - Icon library
 - **React Swipeable 7.0.2** - Gesture handling
+- **Headless UI 2.2.4** - Accessible UI components
+- **Heroicons 2.2.0** - Additional icon set
+- **Date-fns 4.1.0** - Date manipulation utilities
 
 ### Backend & Services
 - **Firebase 11.5.0** - Complete backend solution
@@ -78,6 +86,7 @@ RosSwap is a **single-page application (SPA)** that enables festival attendees t
 - **ESLint 9.21.0** - Code linting
 - **PostCSS 8.5.3** - CSS processing
 - **Autoprefixer 10.4.21** - CSS vendor prefixes
+- **TypeScript types** - Type safety for React components
 
 ## Architecture
 
@@ -95,8 +104,8 @@ App
 
 ### Component Architecture
 - **Layout Components**: Navbar, routing structure
-- **Feature Components**: SwipePage, ChatPage, ItemList
-- **UI Components**: Popup, forms, cards
+- **Feature Components**: SwipePage, ChatPage, ItemList, BugReport
+- **UI Components**: Popup, forms, cards, LoadingPlaceholder
 - **Context Providers**: State management layers
 
 ## Getting Started
@@ -154,6 +163,8 @@ App
 ```
 roskilde-trade-app/
 ├── firebase.json                 # Firebase hosting config
+├── .firebaserc                   # Firebase project configuration
+├── .gitignore                    # Git ignore patterns
 ├── frontend/
 │   ├── public/                   # Static assets
 │   │   ├── logo.png
@@ -164,12 +175,14 @@ roskilde-trade-app/
 │   │   │   ├── About.jsx         # About page
 │   │   │   ├── AddItem.jsx       # Item creation form
 │   │   │   ├── Admin.jsx         # Admin panel
+│   │   │   ├── BugReport.jsx     # Bug reporting system
 │   │   │   ├── ChatList.jsx      # Chat overview
 │   │   │   ├── ChatPage.jsx      # Individual chat
 │   │   │   ├── Home.jsx          # Landing page
 │   │   │   ├── ItemList.jsx      # Item grid view
 │   │   │   ├── ItemPage.jsx      # Item details
 │   │   │   ├── Liked.jsx         # User's liked items
+│   │   │   ├── LoadingPlaceholder.jsx # Image loading component
 │   │   │   ├── Login.jsx         # Authentication
 │   │   │   ├── LoginRequired.jsx # Route protection
 │   │   │   ├── Navbar.jsx        # Navigation
@@ -269,6 +282,21 @@ roskilde-trade-app/
 }
 ```
 
+#### Bug Reports Collection (`bugReports`)
+```javascript
+{
+  description: string,            // Bug description
+  userId: string,                 // Reporter's user ID
+  userEmail: string,              // Reporter's email
+  userName: string,               // Reporter's display name
+  userAgent: string,              // Browser information
+  url: string,                    // Page where bug occurred
+  imageUrl: string,               // Optional screenshot URL
+  status: "open" | "resolved",    // Bug report status
+  createdAt: timestamp            // Report creation date
+}
+```
+
 ## Key Components
 
 ### Core Components
@@ -277,12 +305,14 @@ roskilde-trade-app/
 - Main application router with protected routes
 - Context provider hierarchy
 - Route-based authentication checks
+- Bug report route integration
 
 #### Navbar.jsx
 - Fixed navigation with slide-out menu
 - Real-time unread message counter
 - User profile picture and authentication status
 - Admin panel access for authorized users
+- Bug report link for all users
 
 #### SwipePage.jsx
 - Tinder-like interface for item discovery
@@ -303,6 +333,20 @@ roskilde-trade-app/
 - Firebase Storage integration
 - Form validation and error handling
 - Trade/sell mode selection
+
+#### BugReport.jsx
+- User-friendly bug reporting interface
+- Optional screenshot upload functionality
+- Automatic capture of user context (browser, URL, timestamp)
+- Form validation and submission handling
+- Success feedback and navigation
+
+#### Admin.jsx
+- Comprehensive admin dashboard
+- Platform statistics and analytics
+- Item management with removal capabilities
+- Bug report management system
+- Status tracking and resolution workflow
 
 ### Context Providers
 
@@ -328,7 +372,7 @@ roskilde-trade-app/
 
 #### AdminContext.jsx
 - Client-side admin role management
-- Hardcoded admin email validation
+- Hardcoded admin email validation (philippzhuravlev@gmail.com, crillerhylle@gmail.com)
 - Admin action logging
 - Platform statistics tracking
 
@@ -372,12 +416,14 @@ The application uses a layered context architecture for state management:
 - Complex queries and filtering
 - Subcollection management for scalability
 - Optimized data structure for performance
+- Bug reports collection for user feedback
 
 ### Firebase Storage
 - Image upload and management
 - Automatic URL generation
 - CDN delivery for fast loading
 - Security rules for access control
+- Bug report screenshot storage
 
 ### Firebase Hosting
 - Single-page application hosting
@@ -436,10 +482,17 @@ npm run lint         # Run ESLint
 - Modular component architecture
 
 ### Performance Optimizations
-- Lazy loading of images
+- Lazy loading of images with LoadingPlaceholder component
 - Real-time subscriptions with proper cleanup
 - Optimistic updates for better perceived performance
 - Component memoization where appropriate
+
+### Admin Access
+The application uses a client-side admin system with hardcoded email addresses:
+- `philippzhuravlev@gmail.com`
+- `crillerhylle@gmail.com`
+
+These users automatically gain access to the admin panel with content moderation capabilities.
 
 ## Contributing
 
@@ -461,6 +514,7 @@ npm run lint         # Run ESLint
 - Verify real-time functionality
 - Check mobile responsiveness
 - Validate Firebase integration
+- Test bug reporting system
 
 ## License
 
@@ -480,6 +534,7 @@ For support and questions:
 - Create an issue in the GitHub repository
 - Contact the development team
 - Check the Firebase documentation for backend issues
+- Use the in-app bug reporting system for technical issues
 
 ---
 
