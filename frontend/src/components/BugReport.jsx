@@ -102,7 +102,12 @@ const BugReport = () => {
           disabled={isSubmitting}
           maxLength={1000}
         />
-        <div className="text-xs text-gray-500 mb-4 text-right">
+        <div className={`text-xs transition-colors duration-200 mb-4 text-right ${
+          description.length >= 900 ? 'text-red-500 font-medium' :
+          description.length >= 800 ? 'text-orange-500' :
+          description.length >= 600 ? 'text-yellow-600' :
+          'text-gray-500'
+        }`}>
           {description.length}/1000 tegn
         </div>
 

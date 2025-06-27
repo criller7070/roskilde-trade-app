@@ -78,11 +78,11 @@ const Liked = () => {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="text-base font-bold text-gray-900 flex-1">{post.title}</h3>
+                      <h3 className="text-base font-bold text-gray-900 flex-1 pr-2">{post.title}</h3>
                       {post.mode === "bytte" ? (
-                        <Repeat2 className="text-gray-600 ml-2 flex-shrink-0" size={18} />
+                        <Repeat2 className="text-gray-600 mr-10 mt-2 flex-shrink-0" size={18} />
                       ) : (
-                        <DollarSign className="text-gray-600 ml-2 flex-shrink-0" size={18} />
+                        <DollarSign className="text-gray-600 mr-10 mt-2 flex-shrink-0" size={18} />
                       )}
                     </div>
                     <p className="text-sm font-medium text-gray-600 mb-2">{post.userName}</p>

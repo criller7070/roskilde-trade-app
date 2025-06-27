@@ -67,7 +67,7 @@ const ItemPage = () => {
   if (!item) return <p className="text-center mt-10">Indlæser...</p>;
 
   return (
-    <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
+    <div className="pt-4 px-4 pb-10 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4">{item.title}</h1>
       <LoadingPlaceholder
         src={item.imageUrl || "/placeholder.jpg"}
@@ -76,7 +76,7 @@ const ItemPage = () => {
         placeholderClassName="rounded-lg border max-w-sm max-h-64 mx-auto"
       />
 
-      <h2 className="text-lg font-bold mb-1">Beskrivelse</h2>
+      <h2 className="text-lg font-bold text-orange-500 mb-1">Beskrivelse</h2>
       <p className="bg-gray-100 p-4 rounded-lg text-sm text-gray-700 mb-6">
         {item.description}
       </p>

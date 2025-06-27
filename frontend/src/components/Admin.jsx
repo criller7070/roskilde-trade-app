@@ -256,7 +256,7 @@ const Admin = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 truncate">{item.title}</h3>
-                      <p className="text-sm text-gray-600 truncate">Opslået af: {item.userName}</p>
+                      <p className="text-sm text-gray-600 truncate">Lagt op af: {item.userName}</p>
                       <p className="text-xs text-gray-500">
                         {item.createdAt?.toDate?.()?.toLocaleDateString() || 
                          new Date(item.createdAt).toLocaleDateString() ||

@@ -48,7 +48,12 @@ const Signup = () => {
             className="w-full p-3 rounded-lg bg-gray-100 mb-1"
             maxLength={50}
           />
-          <div className="text-right text-xs text-gray-500 mb-2">
+          <div className={`text-right text-xs transition-colors duration-200 mb-2 ${
+            name.length >= 45 ? 'text-red-500 font-medium' :
+            name.length >= 40 ? 'text-orange-500' :
+            name.length >= 30 ? 'text-yellow-600' :
+            'text-gray-500'
+          }`}>
             {name.length}/50 tegn
           </div>
         </div>

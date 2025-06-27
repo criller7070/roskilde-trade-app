@@ -12,8 +12,7 @@ const SwipeCard = ({ item, onCardClick }) => {
 
   return (
     <div 
-      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200 cursor-pointer"
-      onClick={onCardClick}
+      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-200"
     >
       <LoadingPlaceholder
         src={item.imageUrl || "https://via.placeholder.com/400"}
@@ -24,7 +23,12 @@ const SwipeCard = ({ item, onCardClick }) => {
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
           <h3 className="text-2xl font-bold">{item.title}</h3>
           <p className="text-sm mt-1">By: {item.userName}</p>
-          <p className="text-base mt-2 line-clamp-2">{item.description}</p>
+          <p 
+            className="text-base mt-2 line-clamp-2 cursor-pointer hover:text-orange-200 transition-colors"
+            onClick={onCardClick}
+          >
+            {item.description}
+          </p>
         </div>
       </LoadingPlaceholder>
     </div>

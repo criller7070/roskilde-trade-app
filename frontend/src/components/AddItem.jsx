@@ -106,7 +106,12 @@ export default function AddItem() {
           disabled={isSubmitting}
           maxLength={60}
         />
-        <div className="text-right text-xs text-gray-500 mb-4">
+        <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
+          title.length >= 54 ? 'text-red-500 font-medium' :
+          title.length >= 48 ? 'text-orange-500' :
+          title.length >= 36 ? 'text-yellow-600' :
+          'text-gray-500'
+        }`}>
           {title.length}/60 tegn
         </div>
 
@@ -127,7 +132,12 @@ export default function AddItem() {
           disabled={isSubmitting}
           maxLength={500}
         />
-        <div className="text-right text-xs text-gray-500 mb-4">
+        <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
+          description.length >= 450 ? 'text-red-500 font-medium' :
+          description.length >= 400 ? 'text-orange-500' :
+          description.length >= 300 ? 'text-yellow-600' :
+          'text-gray-500'
+        }`}>
           {description.length}/500 tegn
         </div>
 

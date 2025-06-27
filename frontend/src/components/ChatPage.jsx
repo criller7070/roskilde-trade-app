@@ -278,24 +278,33 @@ const ChatPage = () => {
           className="fixed bottom-0 left-0 w-full bg-white px-4 py-3 border-t z-50"
           style={{maxWidth: '100%'}}
         >
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => {
-                  if (e.target.value.length <= 500) {
-                    setNewMessage(e.target.value);
+          <div className="flex items-end gap-3">
+            <textarea
+              value={newMessage}
+              onChange={(e) => {
+                if (e.target.value.length <= 500) {
+                  setNewMessage(e.target.value);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (newMessage.trim()) {
+                    handleSendMessage(e);
                   }
-                }}
-                placeholder="Skriv en besked..."
-                className="flex-1 p-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-                maxLength={500}
-              />
+                }
+              }}
+              placeholder="Skriv en besked..."
+              className="flex-1 p-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none min-h-[44px] max-h-20"
+              maxLength={500}
+              rows={2}
+              style={{ lineHeight: '1.2' }}
+            />
+            <div className="flex flex-col items-end gap-1">
               <button
                 type="submit"
                 disabled={!newMessage.trim()}
-                className={`ml-3 px-4 py-2 rounded-full text-sm transition-colors ${
+                className={`px-4 py-2 rounded-full text-sm transition-colors h-11 flex-shrink-0 ${
                   newMessage.trim() 
                     ? 'bg-orange-500 text-white hover:bg-orange-600' 
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -303,9 +312,16 @@ const ChatPage = () => {
               >
                 Send
               </button>
-            </div>
-            <div className="text-right text-xs text-gray-500">
-              {newMessage.length}/500 tegn
+              <div className={`text-xs transition-colors duration-200 ${
+                newMessage.length >= 450 ? 'text-red-500 font-medium' :
+                newMessage.length >= 400 ? 'text-orange-500' :
+                newMessage.length >= 300 ? 'text-yellow-600' :
+                'text-gray-500'
+              }`}>
+                <span>
+                  {newMessage.length}/500 tegn
+                </span>
+              </div>
             </div>
           </div>
         </form>
