@@ -5,7 +5,7 @@ const LoadingPlaceholder = ({
   alt, 
   className = "", 
   placeholderClassName = "",
-  fallbackSrc = "/placeholder.jpg",
+  fallbackSrc = "/default_pfp.jpg",
   children 
 }) => {
   const [isLoading, setIsLoading] = useState(true);

@@ -197,8 +197,8 @@ const Profile = () => {
         <LoadingPlaceholder
           src={preview || user.photoURL || "/default_pfp.jpg"}
           alt="avatar"
-          className="rounded-full w-full h-full object-cover"
-          placeholderClassName="rounded-full"
+          className="rounded-full w-full h-full object-cover border-2 border-orange-200"
+          placeholderClassName="rounded-full bg-orange-100"
           fallbackSrc="/default_pfp.jpg"
         />
 
@@ -259,10 +259,11 @@ const Profile = () => {
                 className="flex gap-3 items-center flex-1 cursor-pointer"
               >
                 <LoadingPlaceholder
-                  src={post.imageUrl || "/placeholder.jpg"}
+                  src={post.imageUrl}
                   alt="item"
                   className="w-16 h-16 object-cover rounded-md"
-                  placeholderClassName="rounded-md"
+                  placeholderClassName="rounded-md bg-gray-200"
+                  fallbackSrc="/default_pfp.jpg"
                 />
                 <div className="flex-1">
                   <h3 className="font-bold text-sm truncate">{post.title}</h3>

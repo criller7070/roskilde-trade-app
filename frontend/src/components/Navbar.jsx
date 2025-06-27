@@ -142,7 +142,9 @@ const Navbar = () => {
                 <span className="hidden sm:inline">Log ud</span>
                 <span className="sm:hidden">Log Ud</span>
               </button>
-              <ProfileDropdown setOpen={setOpen} />
+              <div className="flex items-center justify-center h-8">
+                <ProfileDropdown setOpen={setOpen} />
+              </div>
             </div>
           )}
         </div>
@@ -267,12 +269,12 @@ const ProfileDropdown = ({ setOpen }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setDropdownOpen((prev) => !prev)}
-        className="focus:outline-none"
+        className="focus:outline-none flex items-center justify-center"
       >
         <LoadingPlaceholder
           src={user?.photoURL || '/default_pfp.jpg'}
           alt="Profile"
-          className="w-8 h-8 rounded-full border border-white"
+          className="w-8 h-8 rounded-full border border-white object-cover"
           placeholderClassName="rounded-full border border-white bg-orange-400"
           fallbackSrc="/default_pfp.jpg"
         />
