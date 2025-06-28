@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { da } from "date-fns/locale";
 import { useAuth } from "../contexts/AuthContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useChat } from "../contexts/ChatContext";
@@ -230,6 +231,7 @@ const ChatPage = () => {
                     {msg.timestamp?.seconds &&
                       formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), {
                         addSuffix: true,
+                        locale: da,
                       })}
                   </span>
                 </div>
@@ -263,6 +265,7 @@ const ChatPage = () => {
                   {msg.timestamp?.seconds &&
                     formatDistanceToNow(new Date(msg.timestamp.seconds * 1000), {
                       addSuffix: true,
+                      locale: da,
                     })}
                 </span>
               </div>

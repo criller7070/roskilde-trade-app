@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { da } from "date-fns/locale";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
 import { usePopupContext } from "../contexts/PopupContext";
@@ -168,6 +169,7 @@ const ChatList = () => {
                       }`}>
                         {formatDistanceToNow(new Date(chat.lastMessageTime.seconds * 1000), {
                           addSuffix: true,
+                          locale: da,
                         })}
                       </p>
                     )}

@@ -44,8 +44,14 @@ function AppRoutes() {
             element={user ? <AddItem /> : <LoginRequired />} 
           />
           <Route path="/items" element={<ItemList />} />
-          <Route path="/chats" element={<ChatList />} />
-          <Route path="/chat/:chatId" element={<ChatPage />} />
+          <Route 
+            path="/chats" 
+            element={user ? <ChatList /> : <LoginRequired />}
+          />
+          <Route 
+            path="/chat/:chatId" 
+            element={user ? <ChatPage /> : <LoginRequired />}
+          />
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />

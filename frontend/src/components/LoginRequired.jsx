@@ -13,12 +13,21 @@ const LoginRequired = () => {
         <p className="text-base text-black">
           Du skal logge ind for at oprette opslag og bytte
         </p>
-        <button
-          onClick={() => navigate('/login')}
-          className="mt-6 px-8 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
-        >
-          Log ind
-        </button>
+        <div className="space-y-3 mt-6">
+          <button
+            onClick={() => navigate('/login')}
+            className="w-full px-8 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
+          >
+            Log ind
+          </button>
+          
+          <button
+            onClick={() => navigate('/signup')}
+            className="w-full px-8 py-3 bg-white border-2 border-orange-500 text-orange-500 rounded-lg font-medium hover:bg-orange-50 transition-colors"
+          >
+            Opret bruger
+          </button>
+        </div>
       </div>
     </div>
   );
