@@ -16,7 +16,9 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
     
     setIsExporting(true);
     try {
-      console.log('Starting data export for user:', user.uid);
+      if (import.meta.env.DEV) {
+        console.log('Starting data export for user...');
+      }
       
       // Collect all user data
       const userData = {
@@ -42,12 +44,16 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
 
       // Get user's items
       try {
-        console.log('Fetching user items...');
+        if (import.meta.env.DEV) {
+          console.log('Fetching user items...');
+        }
         const itemsQuery = query(collection(db, 'items'), where('userId', '==', user.uid));
         const itemsSnapshot = await getDocs(itemsQuery);
         userData.items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         userData.exportSummary.itemsCount = userData.items.length;
-        console.log(`Found ${userData.items.length} items`);
+        if (import.meta.env.DEV) {
+          console.log('Found user items');
+        }
       } catch (error) {
         console.error('Error fetching items:', error);
         userData.exportSummary.errors.push(`Failed to fetch items: ${error.message}`);
@@ -55,22 +61,30 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
 
       // Get user's chats - Try different path structures
       try {
-        console.log('Fetching user chats...');
+        if (import.meta.env.DEV) {
+          console.log('Fetching user chats...');
+        }
         // First try the userChats subcollection approach
         try {
           const chatsQuery = query(collection(db, 'userChats', user.uid, 'chats'));
           const chatsSnapshot = await getDocs(chatsQuery);
           userData.chats = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           userData.exportSummary.chatsCount = userData.chats.length;
-          console.log(`Found ${userData.chats.length} chats via userChats/${user.uid}/chats`);
+          if (import.meta.env.DEV) {
+            console.log('Found chats via userChats');
+          }
         } catch (subError) {
-          console.log('userChats subcollection approach failed, trying main chats collection...');
+          if (import.meta.env.DEV) {
+            console.log('userChats subcollection approach failed, trying main chats collection...');
+          }
           // If that fails, try getting chats where user is a participant
           const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', user.uid));
           const chatsSnapshot = await getDocs(chatsQuery);
           userData.chats = chatsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           userData.exportSummary.chatsCount = userData.chats.length;
-          console.log(`Found ${userData.chats.length} chats via main chats collection`);
+          if (import.meta.env.DEV) {
+            console.log('Found chats via main chats collection');
+          }
         }
       } catch (error) {
         console.error('Error fetching chats:', error);
@@ -79,12 +93,16 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
 
       // Get user's bug reports
       try {
-        console.log('Fetching bug reports...');
+        if (import.meta.env.DEV) {
+          console.log('Fetching bug reports...');
+        }
         const bugReportsQuery = query(collection(db, 'bugReports'), where('userId', '==', user.uid));
         const bugReportsSnapshot = await getDocs(bugReportsQuery);
         userData.bugReports = bugReportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         userData.exportSummary.bugReportsCount = userData.bugReports.length;
-        console.log(`Found ${userData.bugReports.length} bug reports`);
+        if (import.meta.env.DEV) {
+          console.log('Found bug reports');
+        }
       } catch (error) {
         console.error('Error fetching bug reports:', error);
         userData.exportSummary.errors.push(`Failed to fetch bug reports: ${error.message}`);
@@ -92,12 +110,16 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
 
       // Get user's flag reports
       try {
-        console.log('Fetching flag reports...');
+        if (import.meta.env.DEV) {
+          console.log('Fetching flag reports...');
+        }
         const flagReportsQuery = query(collection(db, 'flags'), where('reporterId', '==', user.uid));
         const flagReportsSnapshot = await getDocs(flagReportsQuery);
         userData.flagReports = flagReportsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         userData.exportSummary.flagReportsCount = userData.flagReports.length;
-        console.log(`Found ${userData.flagReports.length} flag reports`);
+        if (import.meta.env.DEV) {
+          console.log('Found flag reports');
+        }
       } catch (error) {
         console.error('Error fetching flag reports:', error);
         userData.exportSummary.errors.push(`Failed to fetch flag reports: ${error.message}`);
@@ -115,7 +137,9 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('Data export completed successfully');
+      if (import.meta.env.DEV) {
+        console.log('Data export completed successfully');
+      }
       const totalItems = userData.exportSummary.itemsCount + userData.exportSummary.chatsCount + 
                         userData.exportSummary.bugReportsCount + userData.exportSummary.flagReportsCount;
       

@@ -50,7 +50,9 @@ const ChatPage = () => {
         
         if (!chatExists && itemData) {
           // Initialize new chat with item data using the ChatContext function
-          console.log('Initializing new chat with itemData:', itemData);
+                      if (import.meta.env.DEV) {
+              console.log('Initializing new chat...');
+            }
           await initializeChat(user.uid, itemData.recipientId, itemData.itemId, {
             title: itemData.itemName || 'Unknown Item',
             imageUrl: itemData.itemImage || '',
@@ -72,7 +74,9 @@ const ChatPage = () => {
                 isItemDeleted = true;
               }
             } catch (error) {
-              console.warn("Could not check item existence:", error);
+              if (import.meta.env.DEV) {
+                console.warn("Could not check item existence:", error.code);
+              }
               // If we can't check, assume it might be deleted
               isItemDeleted = true;
             }
@@ -98,7 +102,9 @@ const ChatPage = () => {
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error setting up chat:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error setting up chat:', error.code);
+        }
         showError('Kunne ikke indlæse chat');
         setIsLoading(false);
       }
@@ -134,7 +140,9 @@ const ChatPage = () => {
       await sendMessage(chatId, newMessage.trim(), messageItemData);
       setNewMessage("");
     } catch (error) {
-      console.error('Error sending message:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error sending message:', error.code);
+      }
       showError('Kunne ikke sende besked');
     }
   };

@@ -18,15 +18,36 @@ export function ItemsProvider({ children }) {
 
   // Subscribe to items updates
   useEffect(() => {
+    // Only set up listener when we have authentication context available
+    if (user === undefined) {
+      // Still loading auth state
+      return;
+    }
+
     const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const itemsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setItems(itemsData);
       setLoading(false);
+    }, (error) => {
+      // Handle Firestore listener errors gracefully
+      if (import.meta.env.DEV) {
+        console.error('Error in items listener:', error.code);
+      }
+      
+      // Handle specific error types
+      if (error.code === 'permission-denied') {
+        if (import.meta.env.DEV) {
+          console.warn('Permission denied for items - continuing without real-time updates');
+        }
+      }
+      
+      // Set loading to false even if error occurs
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // Add new item
   const addItem = async (itemData) => {
@@ -41,7 +62,9 @@ export function ItemsProvider({ children }) {
       });
       return docRef.id;
     } catch (error) {
-      console.error("Error adding item:", error);
+              if (import.meta.env.DEV) {
+          console.error("Error adding item:", error.code);
+        }
       throw error;
     }
   };
@@ -112,9 +135,13 @@ export function ItemsProvider({ children }) {
     
     try {
       await deleteDoc(doc(db, "items", itemId));
-      console.log("Item removed successfully:", itemId);
+              if (import.meta.env.DEV) {
+          console.log("Item removed successfully");
+        }
     } catch (error) {
-      console.error("Error removing item:", error);
+              if (import.meta.env.DEV) {
+          console.error("Error removing item:", error.code);
+        }
       throw error;
     }
   };

@@ -15,27 +15,19 @@ const ItemList = () => {
   const { isAdmin, logAdminAction } = useAdmin();
   const { showError, showSuccess, showConfirm } = usePopupContext();
   const { generateChatId } = useChat();
-  const [items, setItems] = useState([]);
-  const { likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems();
+  const { items, likeItem, unlikeItem, getLikedItemIds, removeItem } = useItems(); // Use items from context instead of creating duplicate listener
   const [likedIds, setLikedIds] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLikedIds = async () => {
+      if (!user) return; // Don't fetch if no user
       const ids = await getLikedItemIds();
       setLikedIds(ids);
     };
 
     fetchLikedIds();
-  }, [getLikedItemIds]);
-
-  useEffect(() => {
-    const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setItems(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsubscribe();
-  }, []);
+  }, [getLikedItemIds, user]);
 
   const toggleLike = async (itemId, itemUserId) => {
     if (!user) return showError("Log ind for at like opslag.");

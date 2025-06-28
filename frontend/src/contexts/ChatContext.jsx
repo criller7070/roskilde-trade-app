@@ -5,6 +5,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
   addDoc,
   query,
   orderBy,
@@ -24,7 +25,7 @@ export function useChat() {
 }
 
 export function ChatProvider({ children }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChat, setActiveChat] = useState(null);
@@ -35,17 +36,29 @@ export function ChatProvider({ children }) {
   // Monitor connection state for mobile
   useEffect(() => {
     const handleOnline = () => {
-      console.log('Network: Online');
+              if (import.meta.env.DEV) {
+          console.log('Network: Online');
+        }
       setConnectionState('connected');
       // Re-enable Firestore network
-      enableNetwork(db).catch(console.error);
+      enableNetwork(db).catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('Network enable error:', error.code);
+        }
+      });
     };
     
     const handleOffline = () => {
-      console.log('Network: Offline');
+              if (import.meta.env.DEV) {
+          console.log('Network: Offline');
+        }
       setConnectionState('offline');
       // Disable Firestore network to prevent connection errors
-      disableNetwork(db).catch(console.error);
+              disableNetwork(db).catch((error) => {
+          if (import.meta.env.DEV) {
+            console.error('Network disable error:', error.code);
+          }
+        });
     };
 
     // Handle visibility change (mobile app backgrounding)
@@ -56,7 +69,11 @@ export function ChatProvider({ children }) {
         setConnectionState('connected');
         // Small delay to ensure network is stable
         setTimeout(() => {
-          enableNetwork(db).catch(console.error);
+          enableNetwork(db).catch((error) => {
+            if (import.meta.env.DEV) {
+              console.error('Network enable error:', error.code);
+            }
+          });
         }, 500);
       }
     };
@@ -88,7 +105,9 @@ export function ChatProvider({ children }) {
         throw new Error('Missing required chat initialization parameters');
       }
 
-      console.log('Initializing chat with data:', { userId1, userId2, itemId, itemData });
+              if (import.meta.env.DEV) {
+          console.log('Initializing chat with data:', { userId1, userId2, itemId, itemData });
+        }
 
       const chatRef = doc(db, 'chats', chatId);
 
@@ -145,10 +164,14 @@ export function ChatProvider({ children }) {
         setDoc(user2ChatRef, user2Data)
       ]);
 
-      console.log('Chat initialized successfully:', chatId);
+              if (import.meta.env.DEV) {
+          console.log('Chat initialized successfully:', chatId);
+        }
       return chatId;
     } catch (error) {
-      console.error('Error initializing chat:', error);
+              if (import.meta.env.DEV) {
+          console.error('Error initializing chat:', error.code);
+        }
       throw error;
     }
   }, [generateChatId]);
@@ -160,7 +183,9 @@ export function ChatProvider({ children }) {
       const chatDoc = await getDoc(chatRef);
       return chatDoc.exists();
     } catch (error) {
-      console.error('Error checking chat existence:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error checking chat existence:', error.code);
+      }
       // If it's a permission error, assume chat doesn't exist
       if (error.code === 'permission-denied') {
         return false;
@@ -232,7 +257,9 @@ export function ChatProvider({ children }) {
       const chatDoc = await getDoc(chatRef);
       return chatDoc.exists() ? chatDoc.data() : null;
     } catch (error) {
-      console.error('Error getting chat metadata:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error getting chat metadata:', error.code);
+      }
       // If it's a permission error, return null
       if (error.code === 'permission-denied') {
         return null;
@@ -281,7 +308,9 @@ export function ChatProvider({ children }) {
         }, { merge: true });
       }
     } catch (error) {
-      console.error('Error marking as read:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error marking as read:', error.code);
+      }
     }
   }, [user]);
 
@@ -296,83 +325,71 @@ export function ChatProvider({ children }) {
       return;
     }
 
-    setLoading(true);
-    let retryCount = 0;
-    const maxRetries = 3;
-    let unsubscribe;
+    // Don't start listener if authentication is still loading
+    if (authLoading) {
+      return;
+    }
 
-    const setupListener = () => {
-      // Add a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        setLoading(false);
-      }, 10000); // 10 second timeout
-
+    // SAFE APPROACH: Use manual loading instead of real-time listeners for chats
+    // This prevents Firestore internal assertion failures from subcollection listeners
+    const loadUserChats = async () => {
       try {
+        setLoading(true);
+        
+        // Check if userChats document exists first
+        const userChatsDocRef = doc(db, 'userChats', user.uid);
+        const userChatsDoc = await getDoc(userChatsDocRef);
+        
+        if (!userChatsDoc.exists()) {
+          // No chats yet - this is normal for new users
+          setChats([]);
+          setLoading(false);
+          setUnreadCount(0);
+          return;
+        }
+
+        // Use getDocs instead of onSnapshot to avoid listener issues
         const userChatsRef = collection(db, 'userChats', user.uid, 'chats');
         const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
-
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          clearTimeout(timeoutId);
-          const chatsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setChats(chatsData);
-          setLoading(false);
-          retryCount = 0; // Reset retry count on success
-
-          // Calculate total unread count
-          const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
-          setUnreadCount(totalUnread);
-        }, (error) => {
-          console.error('Error subscribing to chats:', error);
-          clearTimeout(timeoutId);
-          
-          // Handle specific error types
-          if (error.code === 'permission-denied') {
-            console.warn('Permission denied for chats - user may not have access');
-            setChats([]);
-            setLoading(false);
-            setUnreadCount(0);
-            return;
-          }
-
-          // Retry logic for network issues
-          if (retryCount < maxRetries && (
-            error.code === 'unavailable' || 
-            error.code === 'internal' ||
-            error.message.includes('NS_BINDING_ABORTED')
-          )) {
-            retryCount++;
-            console.log(`Retrying chat subscription (attempt ${retryCount}/${maxRetries})`);
-            setTimeout(() => {
-              if (user) { // Only retry if user is still logged in
-                setupListener();
-              }
-            }, 2000 * retryCount); // Exponential backoff
-          } else {
-            setChats([]);
-            setLoading(false);
-            setUnreadCount(0);
-          }
-        });
-
-        return () => {
-          clearTimeout(timeoutId);
-          if (unsubscribe) unsubscribe();
-        };
+        const snapshot = await getDocs(q);
+        
+        const chatsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setChats(chatsData);
+        setLoading(false);
+        
+        // Calculate total unread count
+        const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+        setUnreadCount(totalUnread);
+        
       } catch (error) {
-        console.error('Error setting up chat subscription:', error);
-        clearTimeout(timeoutId);
+        if (import.meta.env.DEV) {
+          console.log('Could not load chats (normal for new users):', error.code);
+        }
+        // Set empty state without errors
         setChats([]);
         setLoading(false);
         setUnreadCount(0);
       }
     };
 
-    const cleanup = setupListener();
-    return cleanup;
-  }, [user]);
+    // Load chats once when user logs in
+    loadUserChats();
+
+    // Optionally refresh chats every 30 seconds (much safer than real-time listeners)
+    const refreshInterval = setInterval(() => {
+      if (user) {
+        loadUserChats();
+      }
+    }, 30000);
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [user, authLoading]);
 
   // Subscribe to messages for a chat
   const subscribeToMessages = useCallback((chatId) => {
@@ -400,11 +417,15 @@ export function ChatProvider({ children }) {
           }
         },
         (error) => {
-          console.error('Error subscribing to messages:', error);
+          if (import.meta.env.DEV) {
+            console.error('Error subscribing to messages:', error.code);
+          }
           
           // Handle specific error types
           if (error.code === 'permission-denied') {
-            console.warn('Permission denied for messages');
+            if (import.meta.env.DEV) {
+              console.warn('Permission denied for messages');
+            }
             setMessages([]);
             return;
           }
@@ -416,7 +437,9 @@ export function ChatProvider({ children }) {
             error.message.includes('NS_BINDING_ABORTED')
           )) {
             retryCount++;
-            console.log(`Retrying message subscription (attempt ${retryCount}/${maxRetries})`);
+            if (import.meta.env.DEV) {
+              console.log(`Retrying message subscription (attempt ${retryCount}/${maxRetries})`);
+            }
             setTimeout(() => {
               setupMessageListener();
             }, 1000 * retryCount); // Exponential backoff

@@ -21,7 +21,8 @@ const AdminBugReports = () => {
 
   // Subscribe to bug reports
   useEffect(() => {
-    if (!isAdmin) return;
+    // Don't start listener if admin status is still loading or user is not admin
+    if (adminLoading || !user || !isAdmin) return;
 
     const q = query(collection(db, "bugReports"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,7 +38,7 @@ const AdminBugReports = () => {
     });
 
     return () => unsubscribe();
-  }, [isAdmin]);
+  }, [isAdmin, adminLoading, user]);
 
   const handleUpdateBugReportStatus = async (reportId, newStatus) => {
     try {

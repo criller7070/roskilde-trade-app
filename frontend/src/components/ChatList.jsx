@@ -23,7 +23,9 @@ const ChatList = () => {
       await deleteDoc(doc(db, "userChats", user.uid, "chats", chatId));
       showSuccess("Chat slettet fra din liste!");
     } catch (error) {
-      console.error("Error deleting chat:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error deleting chat:", error.code);
+      }
       showError("Kunne ikke slette chat. Prøv igen.");
     }
   };

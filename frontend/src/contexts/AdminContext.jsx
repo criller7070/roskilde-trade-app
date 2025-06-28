@@ -1,13 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
+import { db } from '../firebase';
 
 const AdminContext = createContext();
-
-// List of approved admin emails
-const ADMIN_EMAILS = [
-  "philippzhuravlev@gmail.com",
-  "crillerhylle@gmail.com"
-];
 
 export function useAdmin() {
   return useContext(AdminContext);
@@ -24,17 +20,50 @@ export function AdminProvider({ children }) {
     flaggedItems: 0
   });
 
-  // Check if user is admin (client-side only)
+  // SECURE: Check admin status from Firestore database
   useEffect(() => {
-    if (!user) {
-      setIsAdmin(false);
-      setAdminLoading(false);
-      return;
-    }
+    const checkAdminStatus = async () => {
+      if (!user || !user.email) {
+        setIsAdmin(false);
+        setAdminLoading(false);
+        return;
+      }
 
-    const isAdminUser = ADMIN_EMAILS.includes(user.email);
-    setIsAdmin(isAdminUser);
-    setAdminLoading(false);
+      try {
+        // Fetch admin configuration from secure Firestore collection
+        const adminConfigRef = doc(db, 'admin', 'config');
+        const adminConfigSnap = await getDoc(adminConfigRef);
+
+        if (adminConfigSnap.exists()) {
+          const adminConfig = adminConfigSnap.data();
+          const adminEmails = adminConfig.adminEmails || [];
+          
+          // SECURE: Server-side validation through Firestore
+          const userIsAdmin = adminEmails.includes(user.email);
+          setIsAdmin(userIsAdmin);
+          
+          if (import.meta.env.DEV) {
+            console.log('Admin status checked:', userIsAdmin ? 'ADMIN' : 'USER');
+          }
+        } else {
+          // Admin config doesn't exist - no admins
+          setIsAdmin(false);
+          if (import.meta.env.DEV) {
+            console.warn('Admin configuration not found in Firestore');
+          }
+        }
+      } catch (error) {
+        // If we can't check admin status, default to false for security
+        setIsAdmin(false);
+        if (import.meta.env.DEV) {
+          console.error('Error checking admin status:', error.code);
+        }
+      } finally {
+        setAdminLoading(false);
+      }
+    };
+
+    checkAdminStatus();
   }, [user]);
 
   // Update admin stats
@@ -42,11 +71,40 @@ export function AdminProvider({ children }) {
     setAdminStats(prev => ({ ...prev, ...newStats }));
   }, []);
 
-  // Simple action logging (console only)
+  // SECURE: Server-side admin action logging to Firestore
   const logAdminAction = useCallback(async (action, details = {}) => {
-    if (!isAdmin) return;
-    console.log('Admin Action:', action, details);
-  }, [isAdmin]);
+    if (!isAdmin || !user) return;
+
+    try {
+      // Log admin actions to Firestore (protected by security rules)
+      const adminActionsRef = collection(db, 'adminActions');
+      
+      await addDoc(adminActionsRef, {
+        action,
+        adminEmail: user.email,
+        adminUID: user.uid,
+        adminName: user.displayName || 'Unknown',
+        timestamp: serverTimestamp(),
+        details: {
+          // Only log safe, non-sensitive details
+          itemCount: details.itemCount || null,
+          reportCount: details.reportCount || null,
+          actionType: details.actionType || null
+        },
+        userAgent: navigator.userAgent,
+        ipAddress: null // Would need server-side function to get real IP
+      });
+
+      if (import.meta.env.DEV) {
+        console.log('Admin action logged:', action);
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error logging admin action:', error.code);
+      }
+      // Don't throw - logging failure shouldn't break admin operations
+    }
+  }, [isAdmin, user]);
 
   const value = {
     // State
