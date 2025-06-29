@@ -2,10 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // SECURE ADMIN SYSTEM - BULLETPROOF VALIDATION
+    // Admin configuration
     match /admin/config {
       allow read: if request.auth != null;
-      allow write: if false; // Only Firebase Console can modify - MAXIMUM SECURITY
+      allow write: if false; // Only Firebase Console can modify
     }
     
     match /adminActions/{actionId} {
@@ -35,10 +35,13 @@ service cloud.firestore {
         request.auth.uid == resource.data.userId;
     }
 
-    // User profiles - UPDATED TO ALLOW READING OTHER USERS' PROFILES
+    // User profiles
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && (
+        request.auth.uid == userId ||
+        isAdmin()
+      );
     }
 
     // userChats
@@ -62,7 +65,7 @@ service cloud.firestore {
       }
     }
 
-    // chats and messages - UPDATED TO ALLOW CHECKING EXISTENCE BASED ON CHAT ID FORMAT
+    // Chats and messages
     match /chats/{chatId} {
       allow read, write: if request.auth != null && (
         // Allow participants to read/write their chats
@@ -106,7 +109,7 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
-    // Flags collection - UPDATED FOR BETTER QUERY SUPPORT
+    // Flags collection
     match /flags/{flagId} {
       allow create: if request.auth != null &&
         request.resource.data.reporterId == request.auth.uid;
@@ -129,7 +132,7 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
-    // CENTRALIZED ADMIN VALIDATION FUNCTION - BULLETPROOF SECURITY
+    // Admin validation function
     function isAdmin() {
       return request.auth != null && 
              request.auth.token.email != null &&

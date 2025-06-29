@@ -2,6 +2,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
+import { useNavigate } from "react-router-dom";
 import { Trash2, AlertTriangle } from "lucide-react";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -9,6 +10,7 @@ const AdminPosts = () => {
   const { user } = useAuth();
   const { items, removeItem } = useItems();
   const { showError, showSuccess, showConfirm } = usePopupContext();
+  const navigate = useNavigate();
   const { 
     isAdmin, 
     adminLoading, 
@@ -94,12 +96,18 @@ const AdminPosts = () => {
               {items.map((item) => (
                 <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg space-y-3 sm:space-y-0">
                   <div className="flex items-center space-x-4">
-                    <LoadingPlaceholder
-                      src={item.imageUrl || "https://via.placeholder.com/60"}
-                      alt={item.title}
-                      className="w-16 h-16 object-cover rounded flex-shrink-0"
-                      placeholderClassName="rounded"
-                    />
+                    <div 
+                      onClick={() => navigate(`/item/${item.id}`)}
+                      className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                      title="Klik for at se opslag"
+                    >
+                      <LoadingPlaceholder
+                        src={item.imageUrl || "https://via.placeholder.com/60"}
+                        alt={item.title}
+                        className="w-16 h-16 object-cover rounded flex-shrink-0"
+                        placeholderClassName="rounded"
+                      />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-gray-800 truncate">{item.title}</h3>
                       <p className="text-sm text-gray-600 truncate">Lagt op af: {item.userName}</p>

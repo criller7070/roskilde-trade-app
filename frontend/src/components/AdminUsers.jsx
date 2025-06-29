@@ -4,8 +4,9 @@ import { useItems } from "../contexts/ItemsContext";
 import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { db } from "../firebase";
-import { collection, query, onSnapshot, doc, deleteDoc, getDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, deleteDoc, getDoc, getDocs } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
+import { auth } from "../firebase";
 import { AlertTriangle, Users, Trash2 } from "lucide-react";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -21,8 +22,10 @@ const AdminUsers = () => {
 
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [orphanedUsers, setOrphanedUsers] = useState([]);
+  const [syncingUsers, setSyncingUsers] = useState(false);
 
-  // Get unique users from items and fetch their details from users collection
+  // Fetch ALL users from users collection and add item statistics
   useEffect(() => {
     if (!isAdmin) return;
 
@@ -30,78 +33,67 @@ const AdminUsers = () => {
       try {
         setUsersLoading(true);
         
-        // Get unique user IDs from items
-        const userIds = [...new Set(items.map(item => item.userId).filter(Boolean))];
+        // Query all users from the users collection
+        const usersRef = collection(db, "users");
+        const usersQuery = query(usersRef);
         
-        if (userIds.length === 0) {
-          setUsers([]);
-          setUsersLoading(false);
-          return;
-        }
+        const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+          const allUsers = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
 
-        // Fetch user documents from users collection
-        const userPromises = userIds.map(async (userId) => {
-          try {
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
+          // Calculate stats for each user based on their items
+          const usersWithStats = allUsers.map(userData => {
+            const userItems = items.filter(item => item.userId === userData.id);
             
-            if (userSnap.exists()) {
-              return { id: userId, ...userSnap.data() };
-            } else {
-              // Fallback to item data if user document doesn't exist
-              const userItems = items.filter(item => item.userId === userId);
-              const firstItem = userItems[0];
-              return {
-                id: userId,
-                displayName: firstItem?.userName || 'Ukendt bruger',
-                email: 'Ukendt email', // Fixed the text
-                photoURL: firstItem?.userProfileImage || null
-              };
-            }
-          } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
-            // Fallback to item data
-            const userItems = items.filter(item => item.userId === userId);
-            const firstItem = userItems[0];
-            return {
-              id: userId,
-              displayName: firstItem?.userName || 'Ukendt bruger',
-              email: 'Ukendt email',
-              photoURL: firstItem?.userProfileImage || null
-            };
-          }
-        });
-
-        const usersData = await Promise.all(userPromises);
-        
-        // Calculate stats for each user
-        const usersWithStats = usersData.map(userData => {
-          const userItems = items.filter(item => item.userId === userData.id);
-          const lastActive = userItems.length > 0 
-            ? userItems.reduce((latest, item) => {
+            // Determine last active time
+            let lastActive;
+            if (userItems.length > 0) {
+              // User has created items - use the most recent item creation date
+              lastActive = userItems.reduce((latest, item) => {
                 const itemDate = item.createdAt?.toDate?.() || new Date(item.createdAt) || new Date();
                 return itemDate > latest ? itemDate : latest;
-              }, new Date(0))
-            : new Date();
+              }, new Date(0));
+            } else {
+              // User hasn't created items - use their account creation date
+              lastActive = userData.createdAt?.toDate?.() || new Date(userData.createdAt) || new Date();
+            }
 
-          return {
-            ...userData,
-            itemCount: userItems.length,
-            lastActive,
-            profileImageUrl: userData.photoURL || "/default_pfp.jpg"
-          };
+            return {
+              ...userData,
+              displayName: userData.name || userData.displayName || 'Ukendt bruger',
+              itemCount: userItems.length,
+              lastActive,
+              profileImageUrl: userData.photoURL || "/default_pfp.jpg"
+            };
+          });
+
+          // Sort by last active (most recent first)
+          const sortedUsers = usersWithStats.sort((a, b) => b.lastActive - a.lastActive);
+          setUsers(sortedUsers);
+          setUsersLoading(false);
+        }, (error) => {
+          console.error("Error fetching users:", error);
+          setUsersLoading(false);
         });
 
-        const sortedUsers = usersWithStats.sort((a, b) => b.lastActive - a.lastActive);
-        setUsers(sortedUsers);
-        setUsersLoading(false);
+        // Return cleanup function
+        return unsubscribe;
       } catch (error) {
-        console.error("Error fetching users data:", error);
+        console.error("Error setting up users listener:", error);
         setUsersLoading(false);
       }
     };
 
-    fetchUsersData();
+    const unsubscribe = fetchUsersData();
+    
+    // Cleanup function
+    return () => {
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [items, isAdmin]);
 
   const handleDeleteUser = async (userId, userName) => {
@@ -111,11 +103,14 @@ const AdminUsers = () => {
         try {
           // First, delete all items by this user
           const userItems = items.filter(item => item.userId === userId);
-          const deletePromises = userItems.map(item => 
+          const deleteItemPromises = userItems.map(item => 
             deleteDoc(doc(db, "items", item.id))
           );
           
-          await Promise.all(deletePromises);
+          await Promise.all(deleteItemPromises);
+
+          // Delete the user document
+          await deleteDoc(doc(db, "users", userId));
 
           // Note: We can't delete the Firebase Auth user from the client side
           // This would need to be done through Firebase Admin SDK on the server
@@ -136,6 +131,99 @@ const AdminUsers = () => {
       },
       "Bekræft Sletning",
       "Slet Bruger",
+      "Annuller"
+    );
+  };
+
+  // Function to find and clean up orphaned user documents
+  const syncUsers = async () => {
+    setSyncingUsers(true);
+    try {
+      // Get all users from Firestore
+      const usersQuery = query(collection(db, "users"));
+      const firestoreSnapshot = await getDocs(usersQuery);
+      const firestoreUsers = firestoreSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Get current authenticated users (we can't directly query Firebase Auth from client)
+      // Instead, we'll check if each Firestore user still has valid auth
+      const orphaned = [];
+      
+      for (const firestoreUser of firestoreUsers) {
+        try {
+          // Try to get user by UID from current auth context
+          // If this fails, the user likely doesn't exist in Auth anymore
+          
+          // For now, we'll identify potentially orphaned users by checking if they have items
+          // This is a safer approach than trying to validate auth directly
+          const userItems = items.filter(item => item.userId === firestoreUser.id);
+          const hasNoActivity = userItems.length === 0;
+          
+          // Check if user was created recently (less likely to be orphaned)
+          const createdAt = firestoreUser.createdAt?.toDate?.() || new Date(firestoreUser.createdAt) || new Date();
+          const daysSinceCreation = (new Date() - createdAt) / (1000 * 60 * 60 * 24);
+          
+          // Flag as potentially orphaned if: no activity AND created more than 1 day ago
+          if (hasNoActivity && daysSinceCreation > 1) {
+            orphaned.push({
+              ...firestoreUser,
+              reason: 'No activity and old account'
+            });
+          }
+        } catch (error) {
+          console.error(`Error checking user ${firestoreUser.id}:`, error);
+        }
+      }
+
+      setOrphanedUsers(orphaned);
+      
+      if (orphaned.length > 0) {
+        showConfirm(
+          `Fundet ${orphaned.length} potentielt orphaned brugerkonti, dvs disse brugere har ingen aktivitet og kan være slettet fra Firebase Authentication. Vil du se listen?`,
+          () => {
+            // Show the list in console for now
+            console.log('Potentially orphaned users:', orphaned);
+            showSuccess(`Se konsollen for liste over ${orphaned.length} potentielt orphaned konti.`);
+          },
+          "Vis Liste",
+          "Vis i Konsol",
+          "Annuller"
+        );
+      } else {
+        showSuccess("Ingen orphaned brugerkonti fundet!");
+      }
+      
+    } catch (error) {
+      console.error("Error syncing users:", error);
+      showError("Kunne ikke synkronisere brugere. Prøv igen.");
+    } finally {
+      setSyncingUsers(false);
+    }
+  };
+
+  const cleanupOrphanedUser = async (userId, userName) => {
+    showConfirm(
+      `Er du sikker på at du vil slette den orphaned bruger "${userName}"? Dette vil kun slette Firestore-dokumentet.`,
+      async () => {
+        try {
+          await deleteDoc(doc(db, "users", userId));
+          await logAdminAction('cleanup_orphaned_user', {
+            userId,
+            userName,
+            cleanedAt: new Date()
+          });
+          showSuccess(`Orphaned bruger "${userName}" blev slettet!`);
+          // Remove from orphaned list
+          setOrphanedUsers(prev => prev.filter(u => u.id !== userId));
+        } catch (error) {
+          console.error("Error cleaning up orphaned user:", error);
+          showError("Kunne ikke slette Orphaned bruger. Prøv igen.");
+        }
+      },
+      "Bekræft Oprydning",
+      "Slet Orphaned",
       "Annuller"
     );
   };
@@ -178,8 +266,33 @@ const AdminUsers = () => {
   return (
     <div className="max-w-6xl mx-auto mt-8 p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Brugerstyring</h1>
-        <p className="text-gray-600">Administrer registrerede brugere</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Brugerstyring</h1>
+            <p className="text-gray-600">Administrer registrerede brugere</p>
+          </div>
+          <button
+            onClick={syncUsers}
+            disabled={syncingUsers}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium ${
+              syncingUsers 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            {syncingUsers ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Synkroniserer...</span>
+              </>
+            ) : (
+              <>
+                <Users size={16} />
+                <span>Synkroniser Brugere</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Users Management */}
@@ -243,6 +356,43 @@ const AdminUsers = () => {
           )}
         </div>
       </div>
+
+      {/* Orphaned Users Section */}
+      {orphanedUsers.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
+          <div className="p-6 border-b border-yellow-200">
+            <h2 className="text-xl font-semibold text-yellow-800">Potentielt Orphaned Konti</h2>
+            <p className="text-sm text-yellow-700 mt-1">Disse brugere har ingen aktivitet og kan være slettet fra Firebase Auth</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-3">
+              {orphanedUsers.map((userData) => (
+                <div key={userData.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-white border border-yellow-300 rounded-lg space-y-2 sm:space-y-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users size={16} className="text-yellow-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-800 truncate">{userData.name || userData.displayName || 'Ukendt'}</h3>
+                      <p className="text-sm text-gray-600 truncate">{userData.email}</p>
+                      <p className="text-xs text-yellow-600">{userData.reason}</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => cleanupOrphanedUser(userData.id, userData.name || userData.displayName || userData.email)}
+                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex-shrink-0 w-full sm:w-auto"
+                  >
+                    <Trash2 size={16} />
+                    <span>Ryd Op</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Warning Notice */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">

@@ -18,6 +18,7 @@ const Admin = () => {
   
   const [bugReports, setBugReports] = useState([]);
   const [flags, setFlags] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
 
   // Subscribe to bug reports
   useEffect(() => {
@@ -57,12 +58,31 @@ const Admin = () => {
     return () => unsubscribe();
   }, [isAdmin, adminLoading, user]);
 
+  // Subscribe to all users
+  useEffect(() => {
+    // Don't start listener if admin status is still loading or user is not admin
+    if (adminLoading || !user || !isAdmin) return;
+
+    const q = query(collection(db, "users"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const usersData = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setAllUsers(usersData);
+    }, (error) => {
+      console.error("Error fetching users:", error);
+    });
+
+    return () => unsubscribe();
+  }, [isAdmin, adminLoading, user]);
+
   useEffect(() => {
     if (isAdmin) {
       // Calculate and update admin stats
       const newStats = {
         totalItems: items.length,
-        totalUsers: new Set(items.map(item => item.userId)).size,
+        totalUsers: allUsers.length,
         recentItems: items.filter(item => {
           // Handle both createdAt and timestamp field names (createdAt is primary)
           const itemDate = item.createdAt?.toDate?.() || 
@@ -82,7 +102,7 @@ const Admin = () => {
       };
       updateAdminStats(newStats);
     }
-  }, [items, isAdmin, bugReports, flags, updateAdminStats]);
+  }, [items, isAdmin, bugReports, flags, allUsers, updateAdminStats]);
 
   if (adminLoading) {
     return (
