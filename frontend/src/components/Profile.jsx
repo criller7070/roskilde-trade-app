@@ -111,7 +111,9 @@ const Profile = () => {
       setPosts(posts.filter(post => post.id !== postId));
       showSuccess("Opslag slettet!");
     } catch (err) {
-      console.error("Error deleting post:", err);
+      if (import.meta.env.DEV) {
+        console.error("Error deleting post:", err.code);
+      }
       showError("Kunne ikke slette opslag: " + err.message);
     }
   };
@@ -164,13 +166,19 @@ const Profile = () => {
       });
       
       await Promise.all(updatePromises);
-      console.log(`Updated ${chatsSnapshot.size} chats for deleted item: ${itemId}`);
+              if (import.meta.env.DEV) {
+          console.log(`Updated chats for deleted item`);
+        }
       
     } catch (error) {
-      console.error("Error handling chats for deleted item:", error);
+              if (import.meta.env.DEV) {
+          console.error("Error handling chats for deleted item:", error.code);
+        }
       // Check if it's a permission error
       if (error.code === 'permission-denied') {
-        console.warn("Permission denied when updating chats for deleted item. This is expected if there are no chats for this item or user doesn't have access.");
+        if (import.meta.env.DEV) {
+          console.warn("Permission denied when updating chats - expected behavior");
+        }
       }
       // Don't throw - we don't want to prevent the post deletion if chat updates fail
     }
@@ -189,12 +197,16 @@ const Profile = () => {
   /* ---------- delete account functionality ---------- */
   const handleDeleteAccount = async () => {
     try {
-      console.log("Starting account deletion process...");
+      if (import.meta.env.DEV) {
+        console.log("Starting account deletion process...");
+      }
       
       // 1. Delete all user's posts
       const deletePostPromises = posts.map(post => deleteDoc(fsDoc(db, "items", post.id)));
       await Promise.all(deletePostPromises);
-      console.log(`Deleted ${posts.length} posts`);
+              if (import.meta.env.DEV) {
+          console.log("Deleted user posts");
+        }
       
       // 2. Handle chats for all deleted items
       for (const post of posts) {
@@ -237,24 +249,34 @@ const Profile = () => {
         });
         
         await Promise.all(chatCleanupPromises);
-        console.log("Cleaned up chat data");
+                  if (import.meta.env.DEV) {
+            console.log("Cleaned up chat data");
+          }
         
         // Delete user's userChats document
         const userChatsDocRef = fsDoc(db, "userChats", user.uid);
         await deleteDoc(userChatsDocRef);
-        console.log("Deleted userChats document");
+                  if (import.meta.env.DEV) {
+            console.log("Deleted userChats document");
+          }
         
       } catch (error) {
-        console.error("Error cleaning up chat data:", error);
+                  if (import.meta.env.DEV) {
+            console.error("Error cleaning up chat data:", error.code);
+          }
         // Continue with deletion even if chat cleanup fails
       }
       
       // 4. Delete user document from users collection
       try {
         await deleteDoc(fsDoc(db, "users", user.uid));
-        console.log("Deleted user document");
+        if (import.meta.env.DEV) {
+          console.log("Deleted user document");
+        }
       } catch (error) {
-        console.error("Error deleting user document:", error);
+        if (import.meta.env.DEV) {
+          console.error("Error deleting user document:", error.code);
+        }
         // Continue even if user document deletion fails
       }
       
@@ -264,9 +286,13 @@ const Profile = () => {
         const flagsSnapshot = await getDocs(flagsQuery);
         const deleteFlagPromises = flagsSnapshot.docs.map(doc => deleteDoc(doc.ref));
         await Promise.all(deleteFlagPromises);
-        console.log(`Deleted ${flagsSnapshot.size} flag reports`);
+        if (import.meta.env.DEV) {
+          console.log("Deleted flag reports");
+        }
       } catch (error) {
-        console.error("Error deleting flag reports:", error);
+        if (import.meta.env.DEV) {
+          console.error("Error deleting flag reports:", error.code);
+        }
         // Continue even if flag deletion fails
       }
       
@@ -278,7 +304,9 @@ const Profile = () => {
           await signOut(auth);
           navigate("/");
         } catch (signOutError) {
-          console.error("Error signing out:", signOutError);
+          if (import.meta.env.DEV) {
+            console.error("Error signing out:", signOutError.code);
+          }
           // Fallback to navigation even if signOut fails
           navigate("/");
           window.location.reload();
@@ -286,7 +314,9 @@ const Profile = () => {
       }, 2000);
       
     } catch (error) {
-      console.error("Error deleting account:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error deleting account:", error.code);
+      }
       showError("Der opstod en fejl ved sletning af din konto. Prøv igen eller kontakt support.");
     }
   };
@@ -434,7 +464,7 @@ Er du helt sikker på, at du vil fortsætte?`,
           <div className="flex items-start">
             <AlertTriangle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={20} />
             <div>
-              <h3 className="text-sm font-medium text-red-800 mb-2">DANGER ZONE: Slet Din Konto</h3>
+              <h3 className="text-sm font-medium text-red-800 mb-2">Slet Din Konto</h3>
               <p className="text-sm text-red-700 mb-3">
                 I overensstemmelse med GDPR kan du permanent slette din konto og alle tilknyttede data. 
                 Dette inkluderer alle dine opslag, beskeder, profil oplysninger og aktivitetshistorik.

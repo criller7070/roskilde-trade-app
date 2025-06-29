@@ -53,7 +53,9 @@ const Navbar = () => {
       setOpen(false);
       navigate('/');
     } catch (error) {
-      console.error('Error signing out:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error signing out:', error.code);
+      }
     }
   };
 
@@ -80,7 +82,9 @@ const Navbar = () => {
         showSuccess("Link kopieret til udklipsholder! Del det med dine venner.");
       }
     } catch (err) {
-      console.error("Share failed:", err);
+              if (import.meta.env.DEV) {
+          console.error("Share failed:", err.code);
+        }
       showError("Kunne ikke dele siden. Prøv igen.");
     }
   };
@@ -274,7 +278,9 @@ const ProfileDropdown = ({ setOpen }) => {
       setDropdownOpen(false);
       navigate('/');
     } catch (err) {
-      console.error('Logout failed:', err);
+              if (import.meta.env.DEV) {
+          console.error('Logout failed:', err.code);
+        }
     }
   };
 

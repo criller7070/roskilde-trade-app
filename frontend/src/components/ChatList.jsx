@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { da } from "date-fns/locale";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
 import { usePopupContext } from "../contexts/PopupContext";
@@ -23,7 +24,9 @@ const ChatList = () => {
       await deleteDoc(doc(db, "userChats", user.uid, "chats", chatId));
       showSuccess("Chat slettet fra din liste!");
     } catch (error) {
-      console.error("Error deleting chat:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error deleting chat:", error.code);
+      }
       showError("Kunne ikke slette chat. Prøv igen.");
     }
   };
@@ -166,6 +169,7 @@ const ChatList = () => {
                       }`}>
                         {formatDistanceToNow(new Date(chat.lastMessageTime.seconds * 1000), {
                           addSuffix: true,
+                          locale: da,
                         })}
                       </p>
                     )}

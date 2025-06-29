@@ -23,7 +23,8 @@ const AdminFlagged = () => {
 
   // Get flagged items with their flag reports
   useEffect(() => {
-    if (!isAdmin) return;
+    // Don't start listener if admin status is still loading or user is not admin
+    if (adminLoading || !user || !isAdmin) return;
 
     const flaggedItems = items.filter(item => item.flagged);
     setFlagsLoading(true);
@@ -61,7 +62,7 @@ const AdminFlagged = () => {
     });
 
     return () => unsubscribe();
-  }, [isAdmin, items]);
+  }, [isAdmin, adminLoading, user, items]);
 
   const handleUpdateFlagStatus = async (flagId, newStatus) => {
     try {

@@ -21,14 +21,20 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      /* ---------- pull extra data from Firestore ---------- */
-      const snap = await getDoc(doc(db, "users", currentUser.uid));
-      if (snap.exists()) {
-        const data = snap.data();
+      try {
+        /* ---------- pull extra data from Firestore ---------- */
+        const snap = await getDoc(doc(db, "users", currentUser.uid));
+        if (snap.exists()) {
+          const data = snap.data();
 
-        /* 1. **mutate the real User instance** instead of cloning */
-        if (!currentUser.displayName) currentUser.displayName = data.name ?? null;
-        if (!currentUser.photoURL)    currentUser.photoURL    = data.photoURL ?? null;
+          /* 1. **mutate the real User instance** instead of cloning */
+          if (!currentUser.displayName) currentUser.displayName = data.name ?? null;
+          if (!currentUser.photoURL)    currentUser.photoURL    = data.photoURL ?? null;
+        }
+      } catch (error) {
+        // Handle Firestore errors gracefully to prevent internal assertion failures
+        console.warn('Failed to fetch user data from Firestore:', error.code || error.message);
+        // Continue with authentication even if Firestore call fails
       }
 
       /* 2. hand back the SAME instance (retain methods) */
