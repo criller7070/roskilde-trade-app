@@ -21,7 +21,8 @@ const Admin = () => {
 
   // Subscribe to bug reports
   useEffect(() => {
-    if (!isAdmin) return;
+    // Don't start listener if admin status is still loading or user is not admin
+    if (adminLoading || !user || !isAdmin) return;
 
     const q = query(collection(db, "bugReports"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,11 +36,12 @@ const Admin = () => {
     });
 
     return () => unsubscribe();
-  }, [isAdmin]);
+  }, [isAdmin, adminLoading, user]);
 
   // Subscribe to flags
   useEffect(() => {
-    if (!isAdmin) return;
+    // Don't start listener if admin status is still loading or user is not admin
+    if (adminLoading || !user || !isAdmin) return;
 
     const q = query(collection(db, "flags"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -53,7 +55,7 @@ const Admin = () => {
     });
 
     return () => unsubscribe();
-  }, [isAdmin]);
+  }, [isAdmin, adminLoading, user]);
 
   useEffect(() => {
     if (isAdmin) {

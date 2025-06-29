@@ -50,12 +50,16 @@ const ItemPage = () => {
             setSellerProfile(sellerSnap.data());
           }
         } catch (sellerErr) {
-          console.log("Could not fetch seller profile (permissions):", sellerErr);
+          if (import.meta.env.DEV) {
+            console.log("Could not fetch seller profile (permissions)");
+          }
           // Set a minimal seller profile with just the userName from the item
           setSellerProfile({ displayName: itemData.userName });
         }
       } catch (err) {
-        console.error("Failed to load item or seller:", err);
+        if (import.meta.env.DEV) {
+          console.error("Failed to load item or seller:", err.code);
+        }
       }
     };
 
@@ -123,7 +127,9 @@ const ItemPage = () => {
       setFlagComment("");
       
     } catch (error) {
-      console.error("Error submitting flag:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error submitting flag:", error.code);
+      }
       showError("Kunne ikke rapportere opslag. Prøv igen.");
     } finally {
       setIsSubmittingFlag(false);

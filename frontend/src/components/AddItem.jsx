@@ -56,7 +56,9 @@ export default function AddItem() {
         navigate("/items");
       }, 1500);
     } catch (err) {
-      console.error(err);
+              if (import.meta.env.DEV) {
+          console.error("Error adding item:", err.code);
+        }
       showError("Noget gik galt.");
     } finally {
       setIsSubmitting(false);
