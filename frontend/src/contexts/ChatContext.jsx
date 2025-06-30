@@ -330,9 +330,83 @@ export function ChatProvider({ children }) {
       return;
     }
 
-    // SAFE APPROACH: Use manual loading instead of real-time listeners for chats
-    // This prevents Firestore internal assertion failures from subcollection listeners
-    const loadUserChats = async () => {
+    let unsubscribe = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    const setupChatsListener = () => {
+      try {
+        setLoading(true);
+        
+        const userChatsRef = collection(db, 'userChats', user.uid, 'chats');
+        const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
+        
+        unsubscribe = onSnapshot(q, 
+          (snapshot) => {
+            const chatsData = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+            
+            setChats(chatsData);
+            setLoading(false);
+            retryCount = 0; // Reset retry count on success
+            
+            // Calculate total unread count
+            const totalUnread = chatsData.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+            setUnreadCount(totalUnread);
+            
+            if (import.meta.env.DEV) {
+              console.log('Chats updated:', chatsData.length);
+            }
+          },
+          (error) => {
+            if (import.meta.env.DEV) {
+              console.error('Error subscribing to chats:', error.code);
+            }
+            
+            // Handle specific error types
+            if (error.code === 'permission-denied') {
+              // User doesn't have a userChats document yet - this is normal for new users
+              setChats([]);
+              setLoading(false);
+              setUnreadCount(0);
+              return;
+            }
+
+            // Retry logic for network issues
+            if (retryCount < maxRetries && (
+              error.code === 'unavailable' || 
+              error.code === 'internal' ||
+              error.message.includes('NS_BINDING_ABORTED')
+            )) {
+              retryCount++;
+              if (import.meta.env.DEV) {
+                console.log(`Retrying chats subscription (attempt ${retryCount}/${maxRetries})`);
+              }
+              setTimeout(() => {
+                setupChatsListener();
+              }, 1000 * retryCount); // Exponential backoff
+            } else {
+              // Fallback to manual loading if real-time fails
+              if (import.meta.env.DEV) {
+                console.log('Falling back to manual chat loading');
+              }
+              loadUserChatsManually();
+            }
+          }
+        );
+        
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error setting up chats listener:', error);
+        }
+        loadUserChatsManually();
+      }
+    };
+
+    // Fallback manual loading function
+    const loadUserChatsManually = async () => {
       try {
         setLoading(true);
         
@@ -348,7 +422,7 @@ export function ChatProvider({ children }) {
           return;
         }
 
-        // Use getDocs instead of onSnapshot to avoid listener issues
+        // Use getDocs as fallback
         const userChatsRef = collection(db, 'userChats', user.uid, 'chats');
         const q = query(userChatsRef, orderBy('lastMessageTime', 'desc'));
         const snapshot = await getDocs(q);
@@ -376,18 +450,11 @@ export function ChatProvider({ children }) {
       }
     };
 
-    // Load chats once when user logs in
-    loadUserChats();
-
-    // Optionally refresh chats every 30 seconds (much safer than real-time listeners)
-    const refreshInterval = setInterval(() => {
-      if (user) {
-        loadUserChats();
-      }
-    }, 30000);
+    // Start with real-time listener
+    setupChatsListener();
 
     return () => {
-      clearInterval(refreshInterval);
+      if (unsubscribe) unsubscribe();
     };
   }, [user, authLoading]);
 
