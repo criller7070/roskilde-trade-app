@@ -21,6 +21,7 @@ import { updateProfile, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import GDPRControls from "./GDPRControls";
+import { validateProfilePicture } from "../utils/fileValidation";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ const Profile = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [saving, setSaving] = useState(false);
+  const [profileValidation, setProfileValidation] = useState({ isValid: true, message: "", error: "" });
 
   const navigate = useNavigate();
 
@@ -62,14 +64,37 @@ const Profile = () => {
   /* ---------- file-picker handler ---------- */
   const handleSelect = (e) => {
     const chosen = e.target.files[0];
-    if (!chosen) return;
-    setFile(chosen);
-    setPreview(URL.createObjectURL(chosen));
+    if (!chosen) {
+      setFile(null);
+      setPreview("");
+      setProfileValidation({ isValid: true, message: "", error: "" });
+      return;
+    }
+
+    // Validate the profile picture
+    const validation = validateProfilePicture(chosen);
+    setProfileValidation(validation);
+
+    if (validation.isValid) {
+      setFile(chosen);
+      setPreview(URL.createObjectURL(chosen));
+    } else {
+      setFile(null);
+      setPreview("");
+      showError(validation.error);
+    }
   };
 
   /* ---------- upload + profile patch ---------- */
   const handleUpload = async () => {
     if (!file || !user) return;
+    
+    // Check validation before uploading
+    if (!profileValidation.isValid) {
+      showError("Vælg venligst et gyldigt profilbillede.");
+      return;
+    }
+    
     setSaving(true);
     try {
       // 1. push bytes to Cloud Storage
@@ -368,14 +393,31 @@ Er du helt sikker på, at du vil fortsætte?`,
         <input
           id="avatarInput"
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleSelect}
           className="hidden"
         />
       </div>
 
+      {/* Profile picture validation feedback */}
+      {file && (
+        <div className="mb-4">
+          {profileValidation.isValid ? (
+            <div className="flex items-center space-x-2 text-green-600 text-sm bg-green-50 p-2 rounded mx-auto max-w-xs">
+              <span>✅</span>
+              <span>{profileValidation.message}</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2 text-red-600 text-sm bg-red-50 p-2 rounded mx-auto max-w-xs">
+              <span>❌</span>
+              <span>{profileValidation.error}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* save button appears only after a file is chosen */}
-      {preview && (
+      {preview && profileValidation.isValid && (
         <button
           onClick={handleUpload}
           disabled={saving}

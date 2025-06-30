@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useNavigate } from "react-router-dom";
+import { validatePostImage } from "../utils/fileValidation";
 
 export default function AddItem() {
   const { user } = useAuth();
@@ -15,11 +16,41 @@ export default function AddItem() {
   const [image, setImage] = useState(null);
   const [mode, setMode] = useState("bytte");
   const [isSubmitting, setIsSubmitting] = useState(false); // prevent duplicates
+  const [fileValidation, setFileValidation] = useState({ isValid: true, message: "", error: "" });
+
+  // Handle file selection with validation
+  const handleFileSelect = async (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) {
+      setImage(null);
+      setFileValidation({ isValid: true, message: "", error: "" });
+      return;
+    }
+
+    // Validate the file
+    const validation = validatePostImage(selectedFile);
+    setFileValidation(validation);
+
+    if (validation.isValid) {
+      setImage(selectedFile);
+    } else {
+      setImage(null);
+      showError(validation.error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check all required fields
     if (!title || !description || !image || !user) {
       showError("Udfyld alle felter og vælg et billede.");
+      return;
+    }
+
+    // Check file validation
+    if (!fileValidation.isValid) {
+      showError("Vælg venligst et gyldigt billede.");
       return;
     }
 
@@ -83,13 +114,30 @@ export default function AddItem() {
             )}
             <input
               type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files[0])}
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileSelect}
               className="hidden"
               disabled={isSubmitting}
             />
           </label>
         </div>
+
+        {/* File Validation Feedback */}
+        {image && (
+          <div className="mb-4">
+            {fileValidation.isValid ? (
+              <div className="flex items-center space-x-2 text-green-600 text-sm bg-green-50 p-2 rounded">
+                <span>✅</span>
+                <span>{fileValidation.message}</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 text-red-600 text-sm bg-red-50 p-2 rounded">
+                <span>❌</span>
+                <span>{fileValidation.error}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Title */}
         <label htmlFor="title" className="block font-semibold">Overskrift</label>
