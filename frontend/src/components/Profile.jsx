@@ -22,6 +22,7 @@ import { auth } from "../firebase";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import GDPRControls from "./GDPRControls";
 import { validateProfilePicture } from "../utils/fileValidation";
+import { checkRateLimit } from "../utils/rateLimiter";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -92,6 +93,13 @@ const Profile = () => {
     // Check validation before uploading
     if (!profileValidation.isValid) {
       showError("Vælg venligst et gyldigt profilbillede.");
+      return;
+    }
+    
+    // Rate limit profile updates
+    const rateCheck = checkRateLimit('profileUpdate', user.uid);
+    if (!rateCheck.allowed) {
+      showError(rateCheck.message);
       return;
     }
     

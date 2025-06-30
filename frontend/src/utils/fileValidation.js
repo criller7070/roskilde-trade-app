@@ -1,5 +1,5 @@
 /**
- * 🔒 SECURE FILE VALIDATION UTILITY
+ * SECURE FILE VALIDATION UTILITY
  * Comprehensive validation for image uploads with security checks
  */
 

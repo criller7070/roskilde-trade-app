@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { db, storage } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { checkRateLimit } from "../utils/rateLimiter";
 
 const BugReport = () => {
   const { user } = useAuth();
@@ -29,6 +30,14 @@ const BugReport = () => {
 
     // Prevent multiple submissions
     if (isSubmitting) return;
+
+    // Rate limit bug reports
+    const rateCheck = checkRateLimit('bugReport', user.uid);
+    if (!rateCheck.allowed) {
+      showError(rateCheck.message);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

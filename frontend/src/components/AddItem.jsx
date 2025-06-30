@@ -6,6 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { usePopupContext } from "../contexts/PopupContext";
 import { useNavigate } from "react-router-dom";
 import { validatePostImage } from "../utils/fileValidation";
+import { checkRateLimit, checkBurstLimit } from "../utils/rateLimiter";
 
 export default function AddItem() {
   const { user } = useAuth();
@@ -25,6 +26,16 @@ export default function AddItem() {
       setImage(null);
       setFileValidation({ isValid: true, message: "", error: "" });
       return;
+    }
+
+    // Rate limit file uploads
+    if (user) {
+      const uploadRateCheck = checkRateLimit('uploadFile', user.uid);
+      if (!uploadRateCheck.allowed) {
+        showError(uploadRateCheck.message);
+        e.target.value = ''; // Reset file input
+        return;
+      }
     }
 
     // Validate the file
@@ -56,6 +67,19 @@ export default function AddItem() {
 
     // Prevent multiple submissions
     if (isSubmitting) return;
+
+    // Rate limiting checks
+    const rateCheck = checkRateLimit('addItem', user.uid);
+    if (!rateCheck.allowed) {
+      showError(rateCheck.message);
+      return;
+    }
+
+    const burstCheck = checkBurstLimit('addItem', user.uid);
+    if (!burstCheck.allowed) {
+      showError(burstCheck.message);
+      return;
+    }
 
     setIsSubmitting(true);
 

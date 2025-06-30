@@ -8,6 +8,7 @@ import { useChat } from "../contexts/ChatContext";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import { checkRateLimit, checkBurstLimit } from "../utils/rateLimiter";
 
 const ChatPage = () => {
   const { chatId } = useParams();
@@ -124,6 +125,19 @@ const ChatPage = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !chatId) return;
+
+    // Rate limiting for messages
+    const rateCheck = checkRateLimit('sendMessage', user.uid);
+    if (!rateCheck.allowed) {
+      showError(rateCheck.message);
+      return;
+    }
+
+    const burstCheck = checkBurstLimit('sendMessage', user.uid);
+    if (!burstCheck.allowed) {
+      showError(burstCheck.message);
+      return;
+    }
 
     try {
       // Get recipient data from chat metadata
