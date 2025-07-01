@@ -100,19 +100,19 @@ const signInWithGoogle = async () => {
       console.error("Google sign-in error:", error.code);
     }
     
-    // Handle specific authentication errors
+    // Handle specific authentication errors silently in production
     if (error.code === 'auth/network-request-failed') {
       if (import.meta.env.DEV) {
         console.warn('Network error during authentication');
       }
-          } else if (error.code === 'auth/popup-blocked') {
-        if (import.meta.env.DEV) {
-          console.warn('Popup blocked - common on mobile devices');
-        }
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        if (import.meta.env.DEV) {
-          console.warn('Popup cancelled or closed');
-        }
+    } else if (error.code === 'auth/popup-blocked') {
+      if (import.meta.env.DEV) {
+        console.warn('Popup blocked - common on mobile devices');
+      }
+    } else if (error.code === 'auth/cancelled-popup-request') {
+      if (import.meta.env.DEV) {
+        console.warn('Popup cancelled or closed');
+      }
     }
     
     // Let the calling component handle the error with the popup system

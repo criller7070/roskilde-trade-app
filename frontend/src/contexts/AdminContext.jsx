@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
 
@@ -20,7 +21,7 @@ export function AdminProvider({ children }) {
     flaggedItems: 0
   });
 
-  // SECURE: Check admin status from Firestore database
+  // Admin status check (client-side for now)
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user || !user.email) {
@@ -30,7 +31,7 @@ export function AdminProvider({ children }) {
       }
 
       try {
-        // Fetch admin configuration from secure Firestore collection
+        // Check admin status from Firestore configuration
         const adminConfigRef = doc(db, 'admin', 'config');
         const adminConfigSnap = await getDoc(adminConfigRef);
 
@@ -38,15 +39,9 @@ export function AdminProvider({ children }) {
           const adminConfig = adminConfigSnap.data();
           const adminEmails = adminConfig.adminEmails || [];
           
-          // SECURE: Server-side validation through Firestore
           const userIsAdmin = adminEmails.includes(user.email);
           setIsAdmin(userIsAdmin);
-          
-          if (import.meta.env.DEV) {
-            console.log('Admin status checked:', userIsAdmin ? 'ADMIN' : 'USER');
-          }
         } else {
-          // Admin config doesn't exist - no admins
           setIsAdmin(false);
           if (import.meta.env.DEV) {
             console.warn('Admin configuration not found in Firestore');

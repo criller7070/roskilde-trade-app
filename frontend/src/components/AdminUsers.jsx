@@ -5,8 +5,7 @@ import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { db } from "../firebase";
 import { collection, query, onSnapshot, doc, deleteDoc, getDoc, getDocs } from "firebase/firestore";
-import { deleteUser } from "firebase/auth";
-import { auth } from "../firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { AlertTriangle, Users, Trash2 } from "lucide-react";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -98,35 +97,54 @@ const AdminUsers = () => {
 
   const handleDeleteUser = async (userId, userName) => {
     showConfirm(
-      `Er du sikker på at du vil slette brugeren "${userName}"? Dette vil slette brugeren og ALLE deres opslag. Denne handling kan ikke fortrydes.`,
+      `Er du sikker på at du vil slette brugeren "${userName}"? Dette vil slette brugeren og ALLE deres data (opslag, beskeder, anmeldelser, osv.). Denne handling kan ikke fortrydes.`,
       async () => {
         try {
-          // First, delete all items by this user
-          const userItems = items.filter(item => item.userId === userId);
-          const deleteItemPromises = userItems.map(item => 
-            deleteDoc(doc(db, "items", item.id))
-          );
+          // 🔐 SECURE: Use server-side function for complete admin deletion
+          const functions = getFunctions();
+          const deleteUserFunction = httpsCallable(functions, 'deleteUser');
           
-          await Promise.all(deleteItemPromises);
-
-          // Delete the user document
-          await deleteDoc(doc(db, "users", userId));
-
-          // Note: We can't delete the Firebase Auth user from the client side
-          // This would need to be done through Firebase Admin SDK on the server
-          // For now, we'll just remove their data and log the action
+          if (import.meta.env.DEV) {
+            console.log(`Admin deleting user: ${userId} (${userName})`);
+          }
           
+          const result = await deleteUserFunction({ 
+            targetUserId: userId 
+          });
+          
+          if (import.meta.env.DEV) {
+            console.log('Admin deletion result:', result.data);
+          }
+          
+          // Show success with deletion summary
+          const { deletedItems } = result.data;
+          const totalDeleted = deletedItems.items + deletedItems.bugReports + 
+                              deletedItems.flags + deletedItems.chats;
+          
+          // Log admin action (this is now also logged server-side in adminActions collection)
           await logAdminAction('delete_user', {
             userId,
             userName,
-            itemsDeleted: userItems.length,
+            totalDeleted,
+            breakdown: deletedItems,
             deletedAt: new Date()
           });
 
-          showSuccess(`Bruger "${userName}" og ${userItems.length} opslag er blevet slettet!`);
+          showSuccess(
+            `Bruger "${userName}" er blevet slettet! 
+            Total slettet: ${totalDeleted} elementer 
+            (${deletedItems.items} opslag, ${deletedItems.chats} beskeder, 
+            ${deletedItems.bugReports} fejlrapporter, ${deletedItems.flags} anmeldelser)`
+          );
         } catch (error) {
           console.error("Error deleting user:", error);
-          showError("Kunne ikke slette bruger. Prøv igen.");
+          if (error.code === 'functions/permission-denied') {
+            showError("Du har ikke tilladelse til at slette brugere. Kun admins kan slette brugere.");
+          } else if (error.code === 'functions/unauthenticated') {
+            showError("Du skal være logget ind som admin for at slette brugere.");
+          } else {
+            showError(`Kunne ikke slette bruger: ${error.message}. Prøv igen eller kontakt support.`);
+          }
         }
       },
       "Bekræft Sletning",

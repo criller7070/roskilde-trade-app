@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePopupContext } from '../contexts/PopupContext';
 import { db } from '../firebase';
 import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Download, Trash2, Shield } from 'lucide-react';
 
 const GDPRControls = ({ showDataExportOnly = false }) => {
@@ -161,33 +162,45 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
     
     setIsDeleting(true);
     try {
-      // Note: This is a simplified deletion - in production you'd want server-side functions
-      // to handle cascade deletion properly
+      // SECURE: Use server-side function for complete GDPR-compliant deletion
+      const functions = getFunctions();
+      const deleteUserFunction = httpsCallable(functions, 'deleteUser');
       
-      // Delete user document
-      await deleteDoc(doc(db, 'users', user.uid));
-      
-      // Delete user's items
-      const itemsQuery = query(collection(db, 'items'), where('userId', '==', user.uid));
-      const itemsSnapshot = await getDocs(itemsQuery);
-      for (const itemDoc of itemsSnapshot.docs) {
-        await deleteDoc(itemDoc.ref);
+      if (import.meta.env.DEV) {
+        console.log('Calling server-side deleteUser function...');
       }
-
-      // Delete user's chat subcollection
-      const chatsQuery = query(collection(db, `userChats/${user.uid}/chats`));
-      const chatsSnapshot = await getDocs(chatsQuery);
-      for (const chatDoc of chatsSnapshot.docs) {
-        await deleteDoc(chatDoc.ref);
-      }
-
-      // Sign out user
-      await user.delete(); // This will delete the Firebase Auth account
       
-      showSuccess('Din konto er slettet. Farvel!');
+      const result = await deleteUserFunction({ 
+        targetUserId: user.uid 
+      });
+      
+      if (import.meta.env.DEV) {
+        console.log('Deletion result:', result.data);
+      }
+      
+      // Show success with deletion summary
+      const { deletedItems } = result.data;
+      const totalDeleted = deletedItems.items + deletedItems.bugReports + 
+                          deletedItems.flags + deletedItems.chats;
+      
+      showSuccess(
+        `Din konto er slettet. Farvel! 
+        (${totalDeleted} data elementer blev slettet: 
+        ${deletedItems.items} opslag, ${deletedItems.chats} beskeder, 
+        ${deletedItems.bugReports} fejlrapporter, ${deletedItems.flags} anmeldelser)`
+      );
+      
+      // User will be automatically signed out since their auth account was deleted
+      
     } catch (error) {
       console.error('Error deleting account:', error);
-      showError('Kunne ikke slette konto. Kontakt support.');
+      if (error.code === 'functions/unauthenticated') {
+        showError('Du skal være logget ind for at slette din konto.');
+      } else if (error.code === 'functions/permission-denied') {
+        showError('Du har ikke tilladelse til at slette denne konto.');
+      } else {
+        showError(`Kunne ikke slette konto: ${error.message}. Kontakt support hvis problemet fortsætter.`);
+      }
     } finally {
       setIsDeleting(false);
     }
