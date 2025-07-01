@@ -100,7 +100,7 @@ const AdminUsers = () => {
       `Er du sikker på at du vil slette brugeren "${userName}"? Dette vil slette brugeren og ALLE deres data (opslag, beskeder, anmeldelser, osv.). Denne handling kan ikke fortrydes.`,
       async () => {
         try {
-          // 🔐 SECURE: Use server-side function for complete admin deletion
+          // SECURE: Use server-side function for complete admin deletion
           const functions = getFunctions();
           const deleteUserFunction = httpsCallable(functions, 'deleteUser');
           
