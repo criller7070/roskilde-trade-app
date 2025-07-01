@@ -33,15 +33,16 @@ const Disliked = () => {
 
   const handleUndislike = async (itemId) => {
     await undislikeItem(itemId);
-    // Refresh the list
-    fetchDisliked();
+    // Remove from local state immediately
+    setDislikedPosts(prev => prev.filter(post => post.id !== itemId));
   };
 
   const handleLike = async (itemId) => {
+    // Remove from local state immediately to prevent flash
+    setDislikedPosts(prev => prev.filter(post => post.id !== itemId));
+    
     await undislikeItem(itemId); // Remove from disliked
     await likeItem(itemId); // Add to liked
-    // Refresh the list
-    fetchDisliked();
   };
 
   if (loading) {
