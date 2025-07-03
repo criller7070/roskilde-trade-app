@@ -64,36 +64,35 @@ const getDomainFromEmail = (email) => {
  * Check if domain is a known legitimate provider
  */
 const isLegitmateDomain = (domain) => {
-  // Direct match
-  if (LEGITIMATE_DOMAINS.includes(domain)) {
-    return true;
-  }
-  
-  // Check if it's a subdomain of a legitimate domain
-  for (const legitDomain of LEGITIMATE_DOMAINS) {
-    if (domain.endsWith('.' + legitDomain)) {
-      return true;
-    }
-  }
-  
-  // Check if it has a legitimate TLD and reasonable structure
   const parts = domain.split('.');
-  if (parts.length >= 2) {
-    const tld = parts[parts.length - 1];
-    const sld = parts[parts.length - 2];
-    
-    // Must have legitimate TLD and reasonable second-level domain
-    if (LEGITIMATE_TLDS.includes(tld) && sld.length >= 2) {
-      // Additional checks for business domains
-      if (tld === 'com' || tld === 'org' || tld === 'net') {
-        // Allow if it looks like a real business domain
-        return sld.length >= 3 && !/^(test|fake|temp|spam|mail|email)/.test(sld);
-      }
-      return true;
-    }
+
+  // Ensure the domain has at least two parts (e.g., second-level domain and TLD)
+  if (parts.length < 2) {
+    return false;
   }
-  
-  return false;
+
+  const tld = parts[parts.length - 1];
+  const sld = parts[parts.length - 2];
+
+  // Check if the domain is directly listed in LEGITIMATE_DOMAINS
+  const isDirectMatch = LEGITIMATE_DOMAINS.includes(domain);
+
+  // Check if the domain is a subdomain of a legitimate domain
+  const isSubdomainMatch = LEGITIMATE_DOMAINS.some((legitDomain) => domain.endsWith(`.${legitDomain}`));
+
+  // Check if the TLD is legitimate
+  const isTldLegitimate = LEGITIMATE_TLDS.includes(tld);
+
+  // Check if the second-level domain has a reasonable structure
+  const isSldValid = sld.length >= 2 && !/^(test|fake|temp|spam|mail|email)/.test(sld);
+
+  // Direct match bypasses subdomain checks
+  if (isDirectMatch) {
+    return isTldLegitimate && isSldValid;
+  }
+
+  // All conditions must be true for subdomains
+  return isSubdomainMatch && isTldLegitimate && isSldValid;
 };
 
 /**
@@ -188,4 +187,4 @@ export const validateEmail = (email) => {
 export const isValidEmail = (email) => {
   const result = validateEmail(email);
   return result.isValid;
-}; 
+};
