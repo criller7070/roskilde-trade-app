@@ -19,6 +19,7 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import GDPRControls from "./GDPRControls";
 import { validateProfilePicture } from "../utils/fileValidation";
@@ -37,7 +38,7 @@ const Profile = () => {
 
   const navigate = useNavigate();
 
-  /* ---------- fetch user’s items ---------- */
+  /* ---------- fetch user's items ---------- */
   useEffect(() => {
     const fetchUserPosts = async () => {
       if (!user) {
@@ -231,126 +232,49 @@ const Profile = () => {
   const handleDeleteAccount = async () => {
     try {
       if (import.meta.env.DEV) {
-        console.log("Starting account deletion process...");
+        console.log("Starting account deletion process via callable function...");
       }
       
-      // 1. Delete all user's posts
-      const deletePostPromises = posts.map(post => deleteDoc(fsDoc(db, "items", post.id)));
-      await Promise.all(deletePostPromises);
-              if (import.meta.env.DEV) {
-          console.log("Deleted user posts");
-        }
+      // Use Firebase callable function (compatible with current permissions)
+      const functions = getFunctions();
+      const deleteUserFunction = httpsCallable(functions, 'deleteUserSecure');
       
-      // 2. Handle chats for all deleted items
-      for (const post of posts) {
-        await handleDeletedItemChats(post.id, post.title);
+      const result = await deleteUserFunction({ 
+        targetUserId: user.uid 
+      });
+      
+      if (import.meta.env.DEV) {
+        console.log('Deletion result:', result.data);
       }
       
-      // 3. Delete all user's chats and related data
-      try {
-        // Query all chats where user is a participant
-        const userChatsQuery = query(collection(db, "chats"), where("participants", "array-contains", user.uid));
-        const userChatsSnapshot = await getDocs(userChatsQuery);
-        
-        const chatCleanupPromises = [];
-        
-        userChatsSnapshot.forEach((chatDoc) => {
-          const chatId = chatDoc.id;
-          const chatData = chatDoc.data();
-          
-          // Send system message about account deletion
-          const systemMessagePromise = addDoc(collection(db, `chats/${chatId}/messages`), {
-            text: `Brugeren har slettet sin konto. Denne chat forbliver tilgængelig for de resterende deltagere.`,
-            timestamp: serverTimestamp(),
-            senderId: "system",
-            isSystemMessage: true
-          });
-          chatCleanupPromises.push(systemMessagePromise);
-          
-          // Remove user from participants list
-          const updatedParticipants = chatData.participants.filter(p => p !== user.uid);
-          if (updatedParticipants.length > 0) {
-            const updateChatPromise = updateDoc(fsDoc(db, "chats", chatId), {
-              participants: updatedParticipants
-            });
-            chatCleanupPromises.push(updateChatPromise);
-          } else {
-            // If no participants left, delete the chat
-            const deleteChatPromise = deleteDoc(fsDoc(db, "chats", chatId));
-            chatCleanupPromises.push(deleteChatPromise);
-          }
-        });
-        
-        await Promise.all(chatCleanupPromises);
-                  if (import.meta.env.DEV) {
-            console.log("Cleaned up chat data");
-          }
-        
-        // Delete user's userChats document
-        const userChatsDocRef = fsDoc(db, "userChats", user.uid);
-        await deleteDoc(userChatsDocRef);
-                  if (import.meta.env.DEV) {
-            console.log("Deleted userChats document");
-          }
-        
-      } catch (error) {
-                  if (import.meta.env.DEV) {
-            console.error("Error cleaning up chat data:", error.code);
-          }
-        // Continue with deletion even if chat cleanup fails
-      }
+      // Show success with deletion summary
+      const { deletedItems } = result.data;
+      const totalDeleted = deletedItems.items + deletedItems.bugReports + 
+                          deletedItems.flags + deletedItems.chats;
       
-      // 4. Delete user document from users collection
-      try {
-        await deleteDoc(fsDoc(db, "users", user.uid));
-        if (import.meta.env.DEV) {
-          console.log("Deleted user document");
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error("Error deleting user document:", error.code);
-        }
-        // Continue even if user document deletion fails
-      }
+      showSuccess(
+        `Din konto er permanent slettet! Farvel! 
+        (${totalDeleted} data elementer blev slettet: 
+        ${deletedItems.items} opslag, ${deletedItems.chats} beskeder, 
+        ${deletedItems.bugReports} fejlrapporter, ${deletedItems.flags} anmeldelser)`
+      );
       
-      // 5. Delete any flag reports made by this user
-      try {
-        const flagsQuery = query(collection(db, "flags"), where("reporterId", "==", user.uid));
-        const flagsSnapshot = await getDocs(flagsQuery);
-        const deleteFlagPromises = flagsSnapshot.docs.map(doc => deleteDoc(doc.ref));
-        await Promise.all(deleteFlagPromises);
-        if (import.meta.env.DEV) {
-          console.log("Deleted flag reports");
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error("Error deleting flag reports:", error.code);
-        }
-        // Continue even if flag deletion fails
-      }
-      
-      showSuccess("Din konto og alle data er blevet slettet. Du vil blive logget ud om et øjeblik.");
-      
-      // Wait a moment then properly sign out and redirect
-      setTimeout(async () => {
-        try {
-          await signOut(auth);
-          navigate("/");
-        } catch (signOutError) {
-          if (import.meta.env.DEV) {
-            console.error("Error signing out:", signOutError.code);
-          }
-          // Fallback to navigation even if signOut fails
-          navigate("/");
-          window.location.reload();
-        }
-      }, 2000);
+      // User will be automatically signed out since their Firebase Auth account was deleted
+      // Force redirect after a moment
+      setTimeout(() => {
+        navigate("/");
+        window.location.reload();
+      }, 3000);
       
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error deleting account:", error.code);
+      console.error('Error deleting account:', error);
+      if (error.code === 'functions/unauthenticated') {
+        showError('Du skal være logget ind for at slette din konto.');
+      } else if (error.code === 'functions/permission-denied') {
+        showError('Du har ikke tilladelse til at slette denne konto.');
+      } else {
+        showError(`Kunne ikke slette konto: ${error.message}. Kontakt support hvis problemet fortsætter.`);
       }
-      showError("Der opstod en fejl ved sletning af din konto. Prøv igen eller kontakt support.");
     }
   };
 
@@ -441,7 +365,7 @@ Er du helt sikker på, at du vil fortsætte?`,
         <p><strong>Email:</strong> {user.email}</p>
       </div>
 
-      {/* ---------- user’s posts ---------- */}
+      {/* ---------- user's posts ---------- */}
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
         <PlusCircle

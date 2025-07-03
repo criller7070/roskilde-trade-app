@@ -104,6 +104,7 @@ const Login = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 rounded-lg bg-gray-100"
+          required
         />
         <input
           type="password"
@@ -111,6 +112,7 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 rounded-lg bg-gray-100"
+          required
         />
         <button
           type="submit"

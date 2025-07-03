@@ -8,10 +8,16 @@
  */
 
 const {setGlobalOptions} = require("firebase-functions");
-const {onRequest, onCall} = require("firebase-functions/https");
+const {onCall, onRequest} = require("firebase-functions/https");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const logger = require("firebase-functions/logger");
+const cors = require("cors")({
+  origin: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+});
 
 // Initialize Firebase Admin SDK
 admin.initializeApp();
@@ -27,8 +33,8 @@ setGlobalOptions({
   maxInstances: 10, // Limit for cost control
 });
 
-// GDPR: Complete user deletion function
-exports.deleteUser = onCall(async (data, context) => {
+// GDPR: Complete user deletion function (callable function - compatible with existing permissions)
+exports.deleteUserSecure = onCall({ maxInstances: 5 }, async (data, context) => {
   // Ensure user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be logged in');

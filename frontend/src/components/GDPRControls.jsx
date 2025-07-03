@@ -162,13 +162,13 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
     
     setIsDeleting(true);
     try {
-      // SECURE: Use server-side function for complete GDPR-compliant deletion
-      const functions = getFunctions();
-      const deleteUserFunction = httpsCallable(functions, 'deleteUser');
-      
       if (import.meta.env.DEV) {
-        console.log('Calling server-side deleteUser function...');
+        console.log('Calling deleteUserSecure callable function...');
       }
+      
+      // Use Firebase callable function (compatible with current permissions)
+      const functions = getFunctions();
+      const deleteUserFunction = httpsCallable(functions, 'deleteUserSecure');
       
       const result = await deleteUserFunction({ 
         targetUserId: user.uid 
