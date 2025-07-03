@@ -5,10 +5,10 @@
 
 // Configuration constants
 const FILE_VALIDATION_CONFIG = {
-  // Maximum file sizes (in bytes)
+  // Maximum file sizes (in bytes) - Updated for modern camera photos
   MAX_SIZE: {
-    PROFILE_PICTURE: 2 * 1024 * 1024,    // 2MB for profile pictures
-    POST_IMAGE: 5 * 1024 * 1024,         // 5MB for post images
+    PROFILE_PICTURE: 10 * 1024 * 1024,   // 10MB for profile pictures (increased from 2MB)
+    POST_IMAGE: 20 * 1024 * 1024,        // 20MB for post images (increased from 5MB)
   },
   
   // Allowed MIME types (strict validation)
