@@ -161,10 +161,6 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
     
     setIsDeleting(true);
     try {
-      if (import.meta.env.DEV) {
-        console.log('Making HTTP request to deleteUser...');
-      }
-      
       // Get the Firebase Auth ID token
       const idToken = await user.getIdToken();
       
@@ -186,10 +182,6 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
       }
       
       const result = await response.json();
-      
-      if (import.meta.env.DEV) {
-        console.log('Deletion result:', result);
-      }
       
       // Show success with deletion summary
       const { deletedItems } = result;

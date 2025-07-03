@@ -61,10 +61,23 @@ exports.deleteUser = onRequest({ maxInstances: 5 }, async (req, res) => {
 
       const currentUserId = decodedToken.uid;
       const currentUserEmail = decodedToken.email;
-      const { targetUserId } = req.body;
+      
+      // Handle both direct and nested data structures
+      let targetUserId;
+      if (req.body.data && req.body.data.targetUserId) {
+        // Nested structure (what we're actually receiving)
+        targetUserId = req.body.data.targetUserId;
+      } else {
+        // Direct structure (fallback)
+        targetUserId = req.body.targetUserId;
+      }
 
       if (!targetUserId) {
         return res.status(400).json({ error: 'Target user ID is required' });
+      }
+
+      if (typeof targetUserId !== 'string') {
+        return res.status(400).json({ error: 'Target user ID must be a string' });
       }
 
       // Authorization check: User can delete themselves OR admin can delete anyone
@@ -79,7 +92,7 @@ exports.deleteUser = onRequest({ maxInstances: 5 }, async (req, res) => {
         const adminConfigRef = admin.firestore().collection('admin').doc('config');
         const adminConfigSnap = await adminConfigRef.get();
         
-        if (adminConfigSnap.exists()) {
+        if (adminConfigSnap.exists) {
           const adminEmails = adminConfigSnap.data().adminEmails || [];
           isAuthorized = adminEmails.includes(currentUserEmail);
           

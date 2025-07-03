@@ -230,10 +230,6 @@ const Profile = () => {
   /* ---------- delete account functionality ---------- */
   const handleDeleteAccount = async () => {
     try {
-      if (import.meta.env.DEV) {
-        console.log("Starting account deletion process via HTTP request...");
-      }
-      
       // Get the Firebase Auth ID token
       const idToken = await user.getIdToken();
       
@@ -255,10 +251,6 @@ const Profile = () => {
       }
       
       const result = await response.json();
-      
-      if (import.meta.env.DEV) {
-        console.log('Deletion result:', result);
-      }
       
       // Show success with deletion summary
       const { deletedItems } = result;

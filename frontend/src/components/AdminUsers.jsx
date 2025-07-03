@@ -95,16 +95,23 @@ const AdminUsers = () => {
   }, [items, isAdmin]);
 
   const handleDeleteUser = async (userId, userName) => {
+    // Validate inputs before proceeding
+    if (!userId || typeof userId !== 'string') {
+      showError(`Ugyldig bruger ID: ${userId}. Kan ikke slette bruger.`);
+      return;
+    }
+    
     showConfirm(
       `Er du sikker på at du vil slette brugeren "${userName}"? Dette vil slette brugeren og ALLE deres data (opslag, beskeder, anmeldelser, osv.). Denne handling kan ikke fortrydes.`,
       async () => {
         try {
-          if (import.meta.env.DEV) {
-            console.log(`Admin deleting user via HTTP request: ${userId} (${userName})`);
-          }
-          
           // Get the Firebase Auth ID token
           const idToken = await user.getIdToken();
+          
+          // Prepare request payload
+          const requestPayload = {
+            targetUserId: userId
+          };
           
           // Make direct HTTP request to the function
           const response = await fetch('https://us-central1-roskilde-trade.cloudfunctions.net/deleteUser', {
@@ -113,21 +120,17 @@ const AdminUsers = () => {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${idToken}`
             },
-            body: JSON.stringify({
-              targetUserId: userId
-            })
+            body: JSON.stringify(requestPayload)
           });
           
+          // Better error handling
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || errorData.message || 'Unknown error');
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+            throw new Error(errorMessage);
           }
           
           const result = await response.json();
-          
-          if (import.meta.env.DEV) {
-            console.log('Admin deletion result:', result);
-          }
           
           // Show success with deletion summary
           const { deletedItems } = result;
