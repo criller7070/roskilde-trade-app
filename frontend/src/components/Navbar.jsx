@@ -70,7 +70,7 @@ const Navbar = () => {
     const shareData = {
       title: document.title,
       text: "Tjek denne side ud på RosSwap!",
-      url: "https://roskilde-trade.firebaseapp.com",
+      url: "https://rosswap.dk",
     };
 
     try {
