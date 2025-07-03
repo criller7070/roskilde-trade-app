@@ -17,6 +17,8 @@ import {
   disableNetwork
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase"; // Ensure this matches your Firebase configuration
 
 const ChatContext = createContext();
 
@@ -195,7 +197,7 @@ export function ChatProvider({ children }) {
   }, []);
 
   // Send a message
-  const sendMessage = useCallback(async (chatId, text, itemData = null) => {
+  const sendMessage = useCallback(async (chatId, text = null, itemData = null, imageFile = null) => {
     if (!user) throw new Error('User must be logged in to send messages');
 
     const chatRef = doc(db, 'chats', chatId);
@@ -205,47 +207,45 @@ export function ChatProvider({ children }) {
       if (!itemData || !itemData.recipientId) {
         throw new Error("Missing itemData or recipientId for initializing chat");
       }
-    
+
       const parts = chatId.split('_');
       const itemId = parts.slice(2).join('_');
       await initializeChat(user.uid, itemData.recipientId, itemId, itemData);
       chatDoc = await getDoc(chatRef);
     }
-    
 
     if (!chatDoc.exists()) throw new Error('Chat document not available');
 
-    const messageRef = await addDoc(collection(db, `chats/${chatId}/messages`), {
+    let imageUrl = null;
+
+    // Upload image if provided
+    if (imageFile) {
+      try {
+        const fileRef = ref(storage, `chatPhotos/${chatId}/${Date.now()}-${imageFile.name}`);
+        const snapshot = await uploadBytes(fileRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        throw new Error('Kunne ikke uploade billede');
+      }
+    }
+
+    const messagePayload = {
       senderId: user.uid,
       text,
-      timestamp: serverTimestamp()
-    });
+      imageUrl, // Include image URL if available
+      timestamp: serverTimestamp(),
+    };
+
+    const messageRef = await addDoc(collection(db, `chats/${chatId}/messages`), messagePayload);
 
     await updateDoc(chatRef, {
       lastMessage: {
-        text,
+        text: text || '[Image]',
         timestamp: serverTimestamp(),
-        senderId: user.uid
-      }
+        senderId: user.uid,
+      },
     });
-
-    // Update sender's userChat document
-    const senderChatRef = doc(db, 'userChats', user.uid, 'chats', chatId);
-    await setDoc(senderChatRef, {
-      lastMessage: text,
-      lastMessageTime: serverTimestamp(),
-      unreadCount: 0
-    }, { merge: true });
-
-    const chatData = chatDoc.data();
-    const recipientId = chatData.participants.find(id => id !== user.uid);
-    const recipientChatRef = doc(db, 'userChats', recipientId, 'chats', chatId);
-
-    await setDoc(recipientChatRef, {
-      lastMessage: text,
-      lastMessageTime: serverTimestamp(),
-      unreadCount: increment(1)
-    }, { merge: true });
 
     return messageRef.id;
   }, [user, initializeChat]);
@@ -560,4 +560,4 @@ export function ChatProvider({ children }) {
       {children}
     </ChatContext.Provider>
   );
-} 
+}
