@@ -19,7 +19,6 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile, signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import GDPRControls from "./GDPRControls";
 import { validateProfilePicture } from "../utils/fileValidation";
@@ -232,23 +231,37 @@ const Profile = () => {
   const handleDeleteAccount = async () => {
     try {
       if (import.meta.env.DEV) {
-        console.log("Starting account deletion process via callable function...");
+        console.log("Starting account deletion process via HTTP request...");
       }
       
-      // Use Firebase callable function (compatible with current permissions)
-      const functions = getFunctions();
-      const deleteUserFunction = httpsCallable(functions, 'deleteUserSecure');
+      // Get the Firebase Auth ID token
+      const idToken = await user.getIdToken();
       
-      const result = await deleteUserFunction({ 
-        targetUserId: user.uid 
+      // Make direct HTTP request to the function
+      const response = await fetch('https://us-central1-roskilde-trade.cloudfunctions.net/deleteUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          targetUserId: user.uid
+        })
       });
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Unknown error');
+      }
+      
+      const result = await response.json();
+      
       if (import.meta.env.DEV) {
-        console.log('Deletion result:', result.data);
+        console.log('Deletion result:', result);
       }
       
       // Show success with deletion summary
-      const { deletedItems } = result.data;
+      const { deletedItems } = result;
       const totalDeleted = deletedItems.items + deletedItems.bugReports + 
                           deletedItems.flags + deletedItems.chats;
       
@@ -268,9 +281,9 @@ const Profile = () => {
       
     } catch (error) {
       console.error('Error deleting account:', error);
-      if (error.code === 'functions/unauthenticated') {
+      if (error.message.includes('Unauthorized')) {
         showError('Du skal være logget ind for at slette din konto.');
-      } else if (error.code === 'functions/permission-denied') {
+      } else if (error.message.includes('Permission denied')) {
         showError('Du har ikke tilladelse til at slette denne konto.');
       } else {
         showError(`Kunne ikke slette konto: ${error.message}. Kontakt support hvis problemet fortsætter.`);

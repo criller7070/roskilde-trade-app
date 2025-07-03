@@ -5,7 +5,6 @@ import { useAdmin } from "../contexts/AdminContext";
 import { usePopupContext } from "../contexts/PopupContext";
 import { db } from "../firebase";
 import { collection, query, onSnapshot, doc, deleteDoc, getDoc, getDocs } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { AlertTriangle, Users, Trash2 } from "lucide-react";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 
@@ -101,23 +100,37 @@ const AdminUsers = () => {
       async () => {
         try {
           if (import.meta.env.DEV) {
-            console.log(`Admin deleting user via callable function: ${userId} (${userName})`);
+            console.log(`Admin deleting user via HTTP request: ${userId} (${userName})`);
           }
           
-          // Use Firebase callable function (compatible with current permissions)
-          const functions = getFunctions();
-          const deleteUserFunction = httpsCallable(functions, 'deleteUserSecure');
+          // Get the Firebase Auth ID token
+          const idToken = await user.getIdToken();
           
-          const result = await deleteUserFunction({ 
-            targetUserId: userId 
+          // Make direct HTTP request to the function
+          const response = await fetch('https://us-central1-roskilde-trade.cloudfunctions.net/deleteUser', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+              targetUserId: userId
+            })
           });
           
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || errorData.message || 'Unknown error');
+          }
+          
+          const result = await response.json();
+          
           if (import.meta.env.DEV) {
-            console.log('Admin deletion result:', result.data);
+            console.log('Admin deletion result:', result);
           }
           
           // Show success with deletion summary
-          const { deletedItems } = result.data;
+          const { deletedItems } = result;
           const totalDeleted = deletedItems.items + deletedItems.bugReports + 
                               deletedItems.flags + deletedItems.chats;
           
@@ -138,9 +151,9 @@ const AdminUsers = () => {
           );
         } catch (error) {
           console.error("Error deleting user:", error);
-          if (error.code === 'functions/permission-denied') {
+          if (error.message.includes('Permission denied')) {
             showError("Du har ikke tilladelse til at slette brugere. Kun admins kan slette brugere.");
-          } else if (error.code === 'functions/unauthenticated') {
+          } else if (error.message.includes('Unauthorized')) {
             showError("Du skal være logget ind som admin for at slette brugere.");
           } else {
             showError(`Kunne ikke slette bruger: ${error.message}. Prøv igen eller kontakt support.`);

@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getFunctions } from "firebase/functions";
 
 // SECURE: Firebase config from environment variables
 const firebaseConfig = {
@@ -34,6 +35,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 const storage = getStorage(app);
+const functions = getFunctions(app, 'us-central1'); // Initialize functions with correct region
 
 const signInWithGoogle = async () => {
   try {
@@ -154,4 +156,4 @@ const logout = async () => {
   }
 };
 
-export { auth, db, storage, signInWithGoogle, createGoogleUser, logout };
+export { app, auth, db, storage, functions, signInWithGoogle, createGoogleUser, logout };
