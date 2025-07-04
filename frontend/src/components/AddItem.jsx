@@ -7,11 +7,14 @@ import { usePopupContext } from "../contexts/PopupContext";
 import { useNavigate } from "react-router-dom";
 import { validatePostImage } from "../utils/fileValidation";
 import { checkRateLimit, checkBurstLimit } from "../utils/rateLimiter";
+import { useTranslation } from "react-i18next";
 
 export default function AddItem() {
   const { user } = useAuth();
   const { showError, showSuccess } = usePopupContext();
   const navigate = useNavigate();
+  const { t } = useTranslation("addItem"); // Specify the 'addItem' namespace
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
@@ -30,10 +33,10 @@ export default function AddItem() {
 
     // Rate limit file uploads
     if (user) {
-      const uploadRateCheck = checkRateLimit('uploadFile', user.uid);
+      const uploadRateCheck = checkRateLimit("uploadFile", user.uid);
       if (!uploadRateCheck.allowed) {
         showError(uploadRateCheck.message);
-        e.target.value = ''; // Reset file input
+        e.target.value = ""; // Reset file input
         return;
       }
     }
@@ -52,16 +55,16 @@ export default function AddItem() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Check all required fields
     if (!title || !description || !image || !user) {
-      showError("Udfyld alle felter og vælg et billede.");
+      showError(t("fillAllFields"));
       return;
     }
 
     // Check file validation
     if (!fileValidation.isValid) {
-      showError("Vælg venligst et gyldigt billede.");
+      showError(t("invalidImage"));
       return;
     }
 
@@ -69,13 +72,13 @@ export default function AddItem() {
     if (isSubmitting) return;
 
     // Rate limiting checks
-    const rateCheck = checkRateLimit('addItem', user.uid);
+    const rateCheck = checkRateLimit("addItem", user.uid);
     if (!rateCheck.allowed) {
       showError(rateCheck.message);
       return;
     }
 
-    const burstCheck = checkBurstLimit('addItem', user.uid);
+    const burstCheck = checkBurstLimit("addItem", user.uid);
     if (!burstCheck.allowed) {
       showError(burstCheck.message);
       return;
@@ -104,17 +107,17 @@ export default function AddItem() {
       setImage(null);
       setMode("bytte");
 
-      showSuccess("Opslaget er oprettet!");
-      
+      showSuccess(t("postCreated"));
+
       // Redirect to items page after successful creation
       setTimeout(() => {
         navigate("/items");
       }, 1500);
     } catch (err) {
-              if (import.meta.env.DEV) {
-          console.error("Error adding item:", err.code);
-        }
-      showError("Noget gik galt.");
+      if (import.meta.env.DEV) {
+        console.error("Error adding item:", err.code);
+      }
+      showError(t("somethingWentWrong"));
     } finally {
       setIsSubmitting(false);
     }
@@ -122,18 +125,18 @@ export default function AddItem() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">Nyt Opslag</h1>
+      <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">{t("newPost")}</h1>
 
       <form onSubmit={handleSubmit}>
         {/* Image Upload */}
         <div className="border border-black rounded-lg p-4 mb-4 text-center">
-          <label className={`cursor-pointer ${isSubmitting ? 'opacity-50' : ''}`}>
+          <label className={`cursor-pointer ${isSubmitting ? "opacity-50" : ""}`}>
             {image ? (
               <img src={URL.createObjectURL(image)} alt="preview" className="mx-auto max-h-48 object-cover" />
             ) : (
               <div className="text-gray-500 text-sm">
                 <div className="text-4xl">☁️</div>
-                Upload dit billede her
+                {t("uploadImageHere")}
               </div>
             )}
             <input
@@ -164,7 +167,7 @@ export default function AddItem() {
         )}
 
         {/* Title */}
-        <label htmlFor="title" className="block font-semibold">Overskrift</label>
+        <label htmlFor="title" className="block font-semibold">{t("title")}</label>
         <input
           id="title"
           name="title"
@@ -176,21 +179,21 @@ export default function AddItem() {
               setTitle(e.target.value);
             }
           }}
-          placeholder="Hvad vil du bytte/sælge?"
+          placeholder={t("titlePlaceholder")}
           disabled={isSubmitting}
           maxLength={60}
         />
         <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
-          title.length >= 54 ? 'text-red-500 font-medium' :
-          title.length >= 48 ? 'text-orange-500' :
-          title.length >= 36 ? 'text-yellow-600' :
-          'text-gray-500'
+          title.length >= 54 ? "text-red-500 font-medium" :
+          title.length >= 48 ? "text-orange-500" :
+          title.length >= 36 ? "text-yellow-600" :
+          "text-gray-500"
         }`}>
-          {title.length}/60 tegn
+          {title.length}/60 {t("characters")}
         </div>
 
         {/* Description */}
-        <label htmlFor="description" className="block font-semibold">Beskrivelse</label>
+        <label htmlFor="description" className="block font-semibold">{t("description")}</label>
         <textarea
           id="description"
           name="description"
@@ -202,17 +205,17 @@ export default function AddItem() {
               setDescription(e.target.value);
             }
           }}
-          placeholder="Beskriv din genstand..."
+          placeholder={t("descriptionPlaceholder")}
           disabled={isSubmitting}
           maxLength={500}
         />
         <div className={`text-right text-xs transition-colors duration-200 mb-4 ${
-          description.length >= 450 ? 'text-red-500 font-medium' :
-          description.length >= 400 ? 'text-orange-500' :
-          description.length >= 300 ? 'text-yellow-600' :
-          'text-gray-500'
+          description.length >= 450 ? "text-red-500 font-medium" :
+          description.length >= 400 ? "text-orange-500" :
+          description.length >= 300 ? "text-yellow-600" :
+          "text-gray-500"
         }`}>
-          {description.length}/500 tegn
+          {description.length}/500 {t("characters")}
         </div>
 
         {/* Toggle Mode */}
@@ -227,24 +230,24 @@ export default function AddItem() {
                 mode === option.toLowerCase()
                   ? "bg-orange-400 text-white font-bold"
                   : "bg-gray-200 text-gray-700"
-              } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {option}
+              {t(option.toLowerCase())}
             </button>
           ))}
         </div>
 
         {/* Post Button */}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isSubmitting}
           className={`w-full font-bold py-3 rounded-xl transition-colors ${
-            isSubmitting 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-orange-500 hover:bg-orange-600'
+            isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
           } text-white`}
         >
-          {isSubmitting ? 'Opretter...' : 'POST'}
+          {isSubmitting ? t("creatingPost") : t("postButton")}
         </button>
       </form>
     </div>

@@ -5,8 +5,10 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { Repeat2, DollarSign, X, MessageCircle, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import { useTranslation } from "react-i18next";
 
 const Liked = () => {
+  const { t } = useTranslation("liked");
   const { getLikedItemIds, unlikeItem, likeItem } = useItems();
   const [likedPosts, setLikedPosts] = useState([]);
   const [likedIds, setLikedIds] = useState([]);
@@ -43,11 +45,11 @@ const Liked = () => {
 
   return (
     <div className="pt-12 px-4 pb-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Liked Opslag</h1>
+      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">{t("likedTitle")}</h1>
 
       {likedPosts.length === 0 ? (
         <div className="text-center text-gray-500 mt-8">
-          <p>Du har ikke liked nogen opslag endnu.</p>
+          <p>{t("noLikedPosts")}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -96,7 +98,7 @@ const Liked = () => {
                 onClick={() => navigate(`/item/${post.id}`)}
                 className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center"
               >
-                Message {post.userName}
+                {t("messageButton", { userName: post.userName })}
               </button>
             </div>
           ))}
@@ -110,7 +112,7 @@ const Liked = () => {
           className="inline-flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
         >
           <X size={18} />
-          Se Disliked Opslag
+          {t("seeDislikedPostsButton")}
         </Link>
       </div>
     </div>

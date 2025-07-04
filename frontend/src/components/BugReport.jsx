@@ -6,25 +6,28 @@ import { db, storage } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { checkRateLimit } from "../utils/rateLimiter";
+import { useTranslation } from "react-i18next";
 
 const BugReport = () => {
   const { user } = useAuth();
   const { showError, showSuccess } = usePopupContext();
   const navigate = useNavigate();
+  const { t } = useTranslation("bugReport"); // Specify the 'bugReport' namespace
+
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!description.trim()) {
-      showError("Beskriv venligst fejlen du oplevede.");
+      showError(t("describeError"));
       return;
     }
 
     if (!user) {
-      showError("Du skal være logget ind for at rapportere en fejl.");
+      showError(t("loginToReportBug"));
       return;
     }
 
@@ -32,7 +35,7 @@ const BugReport = () => {
     if (isSubmitting) return;
 
     // Rate limit bug reports
-    const rateCheck = checkRateLimit('bugReport', user.uid);
+    const rateCheck = checkRateLimit("bugReport", user.uid);
     if (!rateCheck.allowed) {
       showError(rateCheck.message);
       return;
@@ -59,7 +62,7 @@ const BugReport = () => {
         description: description.trim(),
         userId: user.uid,
         userEmail: user.email,
-        userName: user.displayName || "Anonymous",
+        userName: user.displayName || t("anonymous"),
         userAgent,
         url: currentUrl,
         imageUrl,
@@ -70,18 +73,18 @@ const BugReport = () => {
       // Reset form
       setDescription("");
       setImage(null);
-      
-      showSuccess("Fejlrapport indsendt! Tak for at hjælpe os med at forbedre RosSwap.");
-      
+
+      showSuccess(t("bugReportSubmitted"));
+
       // Navigate to home page after a short delay
       setTimeout(() => {
         navigate("/");
       }, 2000);
     } catch (error) {
-              if (import.meta.env.DEV) {
-          console.error("Error submitting bug report:", error.code);
-        }
-      showError("Kunne ikke indsende fejlrapport. Prøv igen senere.");
+      if (import.meta.env.DEV) {
+        console.error(t("errorSubmittingBugReport"), error.code);
+      }
+      showError(t("errorSubmittingBugReport"));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,17 +93,17 @@ const BugReport = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-6">
       <h1 className="text-center text-2xl font-bold text-orange-500 mb-4">
-        Rapportér en Fejl
+        {t("reportBug")}
       </h1>
-      
+
       <p className="text-gray-600 text-sm mb-6 text-center">
-        Hjælp os med at forbedre RosSwap ved at rapportere problemer du støder på. Vi sætter pris på din feedback!
+        {t("helpImproveApp")}
       </p>
 
       <form onSubmit={handleSubmit}>
         {/* Description */}
         <label htmlFor="description" className="block font-semibold mb-2">
-          Beskriv problemet *
+          {t("describeProblem")} *
         </label>
         <textarea
           id="description"
@@ -109,38 +112,41 @@ const BugReport = () => {
           rows={6}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Beskriv venligst hvad der gik galt, hvad du forventede skulle ske, og trin til at genskabe problemet..."
+          placeholder={t("describeProblemPlaceholder")}
           disabled={isSubmitting}
           maxLength={1000}
         />
-        <div className={`text-xs transition-colors duration-200 mb-4 text-right ${
-          description.length >= 900 ? 'text-red-500 font-medium' :
-          description.length >= 800 ? 'text-orange-500' :
-          description.length >= 600 ? 'text-yellow-600' :
-          'text-gray-500'
-        }`}>
-          {description.length}/1000 tegn
+        <div
+          className={`text-xs transition-colors duration-200 mb-4 text-right ${
+            description.length >= 900
+              ? "text-red-500 font-medium"
+              : description.length >= 800
+              ? "text-orange-500"
+              : description.length >= 600
+              ? "text-yellow-600"
+              : "text-gray-500"
+          }`}
+        >
+          {description.length}/1000 {t("characters")}
         </div>
 
         {/* Optional Image Upload */}
         <div className="border border-gray-300 rounded-lg p-4 mb-6 text-center">
-          <label className={`cursor-pointer ${isSubmitting ? 'opacity-50' : ''}`}>
+          <label className={`cursor-pointer ${isSubmitting ? "opacity-50" : ""}`}>
             {image ? (
               <div>
-                <img 
-                  src={URL.createObjectURL(image)} 
-                  alt="Bug screenshot" 
-                  className="mx-auto max-h-48 object-cover rounded mb-2" 
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt={t("bugScreenshotAlt")}
+                  className="mx-auto max-h-48 object-cover rounded mb-2"
                 />
-                <p className="text-sm text-gray-600">
-                  Skærmbillede vedhæftet. Klik for at ændre.
-                </p>
+                <p className="text-sm text-gray-600">{t("screenshotAttached")}</p>
               </div>
             ) : (
               <div className="text-gray-500 text-sm">
                 <div className="text-4xl mb-2">📷</div>
-                <p>Valgfrit: Upload et skærmbillede</p>
-                <p className="text-xs mt-1">Klik her for at tilføje et billede</p>
+                <p>{t("optionalUploadScreenshot")}</p>
+                <p className="text-xs mt-1">{t("clickToAddImage")}</p>
               </div>
             )}
             <input
@@ -158,34 +164,34 @@ const BugReport = () => {
               className="mt-2 text-xs text-red-500 hover:text-red-700"
               disabled={isSubmitting}
             >
-              Fjern billede
+              {t("removeImage")}
             </button>
           )}
         </div>
 
         {/* Auto-captured info display */}
         <div className="bg-gray-50 rounded-lg p-3 mb-6 text-xs text-gray-600">
-          <p className="font-semibold mb-1">Automatisk inkluderet:</p>
-          <p>• Din konto: {user?.displayName || user?.email || "Anonym"}</p>
-          <p>• Browser: {navigator.userAgent.split(' ').slice(-2).join(' ')}</p>
-          <p>• Tidsstempel: {new Date().toLocaleString('da-DK')}</p>
+          <p className="font-semibold mb-1">{t("autoIncludedInfo")}</p>
+          <p>• {t("accountInfo")}: {user?.displayName || user?.email || t("anonymous")}</p>
+          <p>• {t("browserInfo")}: {navigator.userAgent.split(" ").slice(-2).join(" ")}</p>
+          <p>• {t("timestampInfo")}: {new Date().toLocaleString("da-DK")}</p>
         </div>
 
         {/* Submit Button */}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isSubmitting || !description.trim()}
           className={`w-full font-bold py-3 rounded-xl transition-colors ${
             isSubmitting || !description.trim()
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-orange-500 hover:bg-orange-600'
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
           } text-white`}
         >
-          {isSubmitting ? 'Indsender...' : 'Indsend Fejlrapport'}
+          {isSubmitting ? t("submitting") : t("submitBugReport")}
         </button>
       </form>
     </div>
   );
 };
 
-export default BugReport; 
+export default BugReport;

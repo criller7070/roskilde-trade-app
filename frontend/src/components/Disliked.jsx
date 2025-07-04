@@ -5,8 +5,10 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { Repeat2, DollarSign, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import { useTranslation } from "react-i18next";
 
 const Disliked = () => {
+  const { t } = useTranslation("disliked");
   const { getDislikedItemIds, undislikeItem, likeItem } = useItems();
   const [dislikedPosts, setDislikedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,20 +50,20 @@ const Disliked = () => {
   if (loading) {
     return (
       <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Disliked Opslag</h1>
-        <div className="text-center text-gray-500">Indlæser...</div>
+        <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">{t("dislikedTitle")}</h1>
+        <div className="text-center text-gray-500">{t("loading")}</div>
       </div>
     );
   }
 
   return (
     <div className="pt-20 px-4 pb-10 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-orange-500 text-center mb-2">Disliked</h1>
-      <p className="text-gray-600 text-center mb-6 text-sm px-2">Har du disliked et opslag ved en fejl? Like det igen her!</p>
+      <h1 className="text-2xl font-bold text-orange-500 text-center mb-2">{t("dislikedTitle")}</h1>
+      <p className="text-gray-600 text-center mb-6 text-sm px-2">{t("dislikedDescription")}</p>
 
       {dislikedPosts.length === 0 ? (
         <div className="text-center text-gray-500 mt-8">
-          <p>Du har ikke disliked nogen opslag endnu.</p>
+          <p>{t("noDislikedPosts")}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -97,7 +99,7 @@ const Disliked = () => {
                 className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Heart size={16} />
-                Like igen
+                {t("likeAgain")}
               </button>
             </div>
           ))}
@@ -107,4 +109,4 @@ const Disliked = () => {
   );
 };
 
-export default Disliked; 
+export default Disliked;
