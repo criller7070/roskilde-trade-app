@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 const Popup = ({ 
   isOpen, 
@@ -8,10 +9,12 @@ const Popup = ({
   message, 
   type = 'info', // 'info', 'success', 'error', 'confirm'
   onConfirm,
-  confirmText = 'OK',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   showCancel = false 
 }) => {
+  const { t } = useTranslation("popup");
+
   if (!isOpen) return null;
 
   const getIcon = () => {
@@ -76,14 +79,14 @@ const Popup = ({
               onClick={handleCancel}
               className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
             >
-              {cancelText}
+              {cancelText || t("cancel")}
             </button>
           )}
           <button
             onClick={handleConfirm}
             className={`px-6 py-2 text-white rounded-lg transition-colors font-medium ${getButtonColor()}`}
           >
-            {confirmText}
+            {confirmText || t("confirm")}
           </button>
         </div>
       </div>
@@ -91,4 +94,4 @@ const Popup = ({
   );
 };
 
-export default Popup; 
+export default Popup;

@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPasswo
 import { doc, setDoc } from "firebase/firestore";
 import { usePopupContext } from "../contexts/PopupContext";
 import { validateEmail, isValidEmail } from "../utils/emailValidation";
+import { useTranslation } from "react-i18next"; // Add this import
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ const Signup = () => {
   const [hasConsented, setHasConsented] = useState(false);
   const { showSuccess, showError } = usePopupContext();
   const navigate = useNavigate();
+  const { t } = useTranslation("signup"); // Initialize translation hook
 
   // Form validation function
   const validateForm = () => {
@@ -166,12 +168,12 @@ const Signup = () => {
 
   return (
     <div className="pt-20 px-6 pb-10 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">Opret Konto</h1>
+      <h1 className="text-2xl font-bold text-orange-500 text-center mb-6">{t("signupTitle")}</h1>
       <form onSubmit={handleRegister} className="space-y-4">
         <div>
           <input
             type="text"
-            placeholder="Navn *"
+            placeholder={t("namePlaceholder")}
             value={name}
             onChange={(e) => {
               if (e.target.value.length <= 50) {
@@ -197,7 +199,7 @@ const Signup = () => {
         <div>
           <input
             type="email"
-            placeholder="Email *"
+            placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={`w-full p-3 rounded-lg ${
@@ -215,7 +217,7 @@ const Signup = () => {
         <div>
           <input
             type="password"
-            placeholder="Adgangskode *"
+            placeholder={t("passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={`w-full p-3 rounded-lg ${
@@ -225,7 +227,7 @@ const Signup = () => {
           />
           {password && password.length < 6 && (
             <div className="text-red-500 text-xs mt-1">
-              Adgangskoden skal være mindst 6 tegn lang
+              {t("passwordTooShort")}
             </div>
           )}
         </div>
@@ -240,15 +242,20 @@ const Signup = () => {
             className="mt-1 w-4 h-4 text-orange-500 rounded focus:ring-orange-400"
             required
           />
-          <label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
-            Jeg accepterer <a href="/terms" target="_blank" className="text-orange-500 underline">vilkårene</a> og{' '}
-            <a href="/privacy" target="_blank" className="text-orange-500 underline">privatlivspolitikken</a>.
-            Ved at oprette en konto samtykker jeg til behandling af mine personoplysninger som beskrevet i privatlivspolitikken.
-          </label>
+          <label
+            htmlFor="consent"
+            className="text-sm text-gray-700 leading-relaxed"
+            dangerouslySetInnerHTML={{
+              __html: t("gdprConsentText", {
+                termsLink: `<a href="/terms" target="_blank" style="color: #F97316; text-decoration: underline;">${t("termsLinkText")}</a>`,
+                privacyLink: `<a href="/privacy" target="_blank" style="color: #F97316; text-decoration: underline;">${t("privacyLinkText")}</a>`,
+              }),
+            }}
+          ></label>
         </div>
         
         <div className="text-xs text-gray-500 text-center mb-2">
-          * Påkrævede felter
+          {t("requiredFields")}
         </div>
         
         <button
@@ -260,11 +267,11 @@ const Signup = () => {
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          Opret
+          {t("signupButton")}
         </button>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500 mb-2">eller</p>
+          <p className="text-sm text-gray-500 mb-2">{t("or")}</p>
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -275,11 +282,11 @@ const Signup = () => {
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
             }`}
           >
-            Opret med Google
+            {t("googleSignupButton")}
           </button>
           {!hasConsented && (
             <p className="text-xs text-gray-500 mt-2">
-              Du skal acceptere vilkårene før du kan oprette en konto
+              {t("consentRequired")}
             </p>
           )}
         </div>

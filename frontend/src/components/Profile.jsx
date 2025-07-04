@@ -23,8 +23,10 @@ import LoadingPlaceholder from "./LoadingPlaceholder";
 import GDPRControls from "./GDPRControls";
 import { validateProfilePicture } from "../utils/fileValidation";
 import { checkRateLimit } from "../utils/rateLimiter";
+import { useTranslation } from "react-i18next";
 
 const Profile = () => {
+  const { t } = useTranslation("profile");
   const { user } = useAuth();
   const { showConfirm, showSuccess, showError } = usePopupContext();
   const [posts, setPosts] = useState([]);
@@ -307,14 +309,14 @@ Er du helt sikker på, at du vil fortsætte?`,
   return (
     <div className="pt-12 px-4 pb-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-orange-500 text-center mb-4 flex items-center justify-center gap-2">
-        Din Profil
+        {t("profileTitle")}
       </h1>
 
       {/* ---------- profile picture block ---------- */}
       <div className="relative w-28 h-28 mx-auto mb-4">
         <LoadingPlaceholder
           src={preview || user.photoURL || "/default_pfp.jpg"}
-          alt="avatar"
+          alt={t("avatarAlt")}
           className="rounded-full w-full h-full object-cover border-2 border-orange-200"
           placeholderClassName="rounded-full bg-orange-100"
           fallbackSrc="/default_pfp.jpg"
@@ -360,19 +362,23 @@ Er du helt sikker på, at du vil fortsætte?`,
           disabled={saving}
           className="block mx-auto mb-6 bg-orange-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          {saving ? "Uploader…" : "Gem billede"}
+          {saving ? t("uploading") : t("savePicture")}
         </button>
       )}
 
       {/* ---------- user info ---------- */}
       <div className="text-center mb-6">
-        <p><strong>Navn:</strong> {user.displayName}</p>
-        <p><strong>Email:</strong> {user.email}</p>
+        <p>
+          <strong>{t("nameLabel")}:</strong> {user.displayName}
+        </p>
+        <p>
+          <strong>{t("emailLabel")}:</strong> {user.email}
+        </p>
       </div>
 
       {/* ---------- user's posts ---------- */}
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl text-orange-500 font-bold">Dine Opslag</h2>
+        <h2 className="text-xl text-orange-500 font-bold">{t("yourPostsTitle")}</h2>
         <PlusCircle
           className="text-orange-500 cursor-pointer"
           size={28}
@@ -382,20 +388,20 @@ Er du helt sikker på, at du vil fortsætte?`,
 
       <div className="space-y-4">
         {posts.length === 0 ? (
-          <p className="text-center text-sm text-gray-500">Ingen opslag endnu</p>
+          <p className="text-center text-sm text-gray-500">{t("noPostsMessage")}</p>
         ) : (
           posts.map((post) => (
             <div
               key={post.id}
               className="flex bg-white rounded-xl shadow p-3 gap-3 items-center"
             >
-              <div 
+              <div
                 onClick={() => navigate(`/item/${post.id}`)}
                 className="flex gap-3 items-center flex-1 cursor-pointer"
               >
                 <LoadingPlaceholder
                   src={post.imageUrl}
-                  alt="item"
+                  alt={t("postImageAlt")}
                   className="w-16 h-16 object-cover rounded-md"
                   placeholderClassName="rounded-md bg-gray-200"
                   fallbackSrc="/default_pfp.jpg"
@@ -423,7 +429,7 @@ Er du helt sikker på, at du vil fortsætte?`,
                   confirmDeletePost(post);
                 }}
                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                title="Slet opslag"
+                title={t("deletePostTitle")}
               >
                 <Trash2 size={16} />
               </button>
@@ -443,14 +449,9 @@ Er du helt sikker på, at du vil fortsætte?`,
           <div className="flex items-start">
             <AlertTriangle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={20} />
             <div>
-              <h3 className="text-sm font-medium text-red-800 mb-2">Slet Din Konto</h3>
-              <p className="text-sm text-red-700 mb-3">
-                I overensstemmelse med GDPR kan du permanent slette din konto og alle tilknyttede data. 
-                Dette inkluderer alle dine opslag, beskeder, profil oplysninger og aktivitetshistorik.
-              </p>
-              <p className="text-xs text-red-600 font-medium">
-                Denne handling kan ikke fortrydes og alle dine data vil være permanent tabt.
-              </p>
+              <h3 className="text-sm font-medium text-red-800 mb-2">{t("deleteAccountTitle")}</h3>
+              <p className="text-sm text-red-700 mb-3">{t("deleteAccountDescription")}</p>
+              <p className="text-xs text-red-600 font-medium">{t("deleteAccountWarning")}</p>
             </div>
           </div>
         </div>
@@ -460,12 +461,10 @@ Er du helt sikker på, at du vil fortsætte?`,
           className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 font-medium"
         >
           <UserX size={18} />
-          <span>Slet Min Konto Permanent</span>
+          <span>{t("deleteAccountButton")}</span>
         </button>
         
-        <p className="text-xs text-gray-500 text-center mt-2">
-          Du vil få en bekræftelsesdialog før sletning gennemføres
-        </p>
+        <p className="text-xs text-gray-500 text-center mt-2">{t("deleteAccountConfirmationMessage")}</p>
       </div>
     </div>
   );

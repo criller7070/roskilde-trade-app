@@ -12,8 +12,10 @@ import { checkRateLimit, checkBurstLimit } from "../utils/rateLimiter";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
 import { validatePostImage } from "../utils/fileValidation";
+import { useTranslation } from "react-i18next";
 
 const ChatPage = () => {
+  const { t } = useTranslation("chatPage");
   const { chatId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -170,7 +172,7 @@ const ChatPage = () => {
   if (!user) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Log ind for at se chats.</p>
+        <p className="text-gray-600">{t("loginToViewChats")}</p>
       </div>
     );
   }
@@ -178,7 +180,7 @@ const ChatPage = () => {
   if (isLoading) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Indlæser chat...</p>
+        <p className="text-gray-600">{t("loadingChat")}</p>
       </div>
     );
   }
@@ -186,14 +188,14 @@ const ChatPage = () => {
   if (!chatMeta) {
     return (
       <div className="pt-20 px-4 text-center">
-        <p className="text-gray-600">Chat ikke fundet.</p>
+        <p className="text-gray-600">{t("chatNotFound")}</p>
       </div>
     );
   }
 
   // Get other participant's name
   const otherParticipantId = chatMeta.participants?.find(id => id !== user.uid);
-  const otherParticipantName = chatMeta?.userNames?.[otherParticipantId] || itemData?.recipientName || 'Unknown User';
+  const otherParticipantName = chatMeta?.userNames?.[otherParticipantId] || itemData?.recipientName || t("unknownUser");
 
   return (
     <div className={`pt-20 px-4 pb-32 min-h-screen max-w-md mx-auto relative ${
@@ -202,17 +204,19 @@ const ChatPage = () => {
       <div className="mb-4 text-center">
         <h2 className={`text-xl font-bold ${
           chatMeta.isItemDeleted ? 'text-gray-500' : 'text-orange-500'
-        }`}>Chat med {otherParticipantName}</h2>
+        }`}>
+          {t("chatWith", { userName: otherParticipantName })}
+        </h2>
         <p className="text-sm text-gray-600">
-          Om: <strong className={chatMeta.isItemDeleted ? "text-red-500" : ""}>{chatMeta.itemName}</strong>
+          {t("aboutItem", { itemName: chatMeta.itemName })}
         </p>
         {chatMeta.isItemDeleted && (
           <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600 font-medium">
-              ⚠️ Dette opslag er blevet slettet
+              {t("itemDeletedWarning")}
             </p>
             <p className="text-xs text-red-500 mt-1">
-              Du kan ikke længere sende beskeder om dette opslag
+              {t("itemDeletedMessage")}
             </p>
           </div>
         )}
@@ -220,7 +224,7 @@ const ChatPage = () => {
           <div 
             onClick={handleItemImageClick}
             className="flex justify-center mt-3 cursor-pointer hover:opacity-80 transition-opacity duration-200"
-            title="Klik for at se opslaget"
+            title={t("clickToViewItem")}
           >
             <LoadingPlaceholder 
               src={chatMeta.itemImage} 
@@ -266,7 +270,7 @@ const ChatPage = () => {
         <div className="fixed bottom-0 left-0 w-full bg-gray-100 px-4 py-3 border-t flex items-center justify-center z-50"
              style={{maxWidth: '100%'}}>
           <p className="text-gray-500 text-sm text-center">
-            📵 Beskeder er deaktiveret - opslaget er slettet
+            {t("messagesDisabled")}
           </p>
         </div>
       ) : (
@@ -283,7 +287,7 @@ const ChatPage = () => {
                   setNewMessage(e.target.value);
                 }
               }}
-              placeholder="Skriv en besked..."
+              placeholder={t("writeMessagePlaceholder")}
               className="flex-1 p-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none min-h-[44px] max-h-20"
               maxLength={500}
               rows={2}
@@ -303,7 +307,7 @@ const ChatPage = () => {
                   onClick={() => setSelectedFile(null)}
                   className="text-red-500 text-sm hover:underline"
                 >
-                  Fjern
+                  {t("removeImage")}
                 </button>
               </div>
             )}
@@ -337,7 +341,7 @@ const ChatPage = () => {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Send
+              {t("sendButton")}
             </button>
           </div>
         </form>

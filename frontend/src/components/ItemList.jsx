@@ -9,8 +9,10 @@ import { useChat } from "../contexts/ChatContext";
 import { Heart, HeartOff, Trash2, Repeat2, DollarSign } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import { useTranslation } from "react-i18next";
 
 const ItemList = () => {
+  const { t } = useTranslation("itemList");
   const { user } = useAuth();
   const { isAdmin, logAdminAction } = useAdmin();
   const { showError, showSuccess, showConfirm } = usePopupContext();
@@ -72,7 +74,7 @@ const ItemList = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
-      <h2 className="text-2xl font-bold text-center text-orange-500 mb-6">Nye Opslag</h2>
+      <h2 className="text-2xl font-bold text-center text-orange-500 mb-6">{t("newPostsTitle")}</h2>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
         {items.length > 0 ? (
           items.map((item) => (
@@ -92,7 +94,7 @@ const ItemList = () => {
                   <p className="text-gray-600 text-sm mt-2 line-clamp-3">{item.description}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-sm text-gray-600">
-                      Type: {item.mode === "bytte" ? "Bytte" : "Sælge"}
+                      {t("typeLabel")}: {item.mode === "bytte" ? t("tradeLabel") : t("sellLabel")}
                     </span>
                     {item.mode === "bytte" ? (
                       <Repeat2 className="text-gray-600" size={18} />
@@ -101,7 +103,7 @@ const ItemList = () => {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Lagt op af: {user && item.userId === user.uid ? "Dig" : item.userName}
+                    {t("postedByLabel")}: {user && item.userId === user.uid ? t("youLabel") : item.userName}
                   </p>
                 </div>
               </Link>
@@ -132,7 +134,7 @@ const ItemList = () => {
                       handleRemoveItem(item.id, item.title);
                     }}
                     className="bg-red-500 p-2 rounded-full shadow hover:bg-red-600 transition"
-                    title="Fjern opslag (Kun administrator)"
+                    title={t("confirmRemoveTitle")}
                   >
                     <Trash2 className="text-white" size={20} />
                   </button>
@@ -158,17 +160,17 @@ const ItemList = () => {
                     }}
                     className="w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
                   >
-                    Send besked til {item.userName}
+                    {t("sendMessageButton", { userName: item.userName })}
                   </button>
                 )}
                 {!user && (
-                  <p className="text-sm text-red-500">Log ind for at sende en besked til sælgeren.</p>
+                  <p className="text-sm text-red-500">{t("loginToSendMessage")}</p>
                 )}
               </div>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-600">Ingen opslag tilgængelige endnu.</p>
+          <p className="text-center text-gray-600">{t("noPostsAvailable")}</p>
         )}
       </div>
     </div>

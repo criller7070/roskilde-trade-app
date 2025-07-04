@@ -2,8 +2,10 @@ import { useState } from "react";
 import { auth } from "../firebase";
 import { sendEmailVerification } from "firebase/auth";
 import { usePopupContext } from "../contexts/PopupContext";
+import { useTranslation } from "react-i18next";
 
 const EmailVerificationBanner = ({ user }) => {
+  const { t } = useTranslation("emailVerificationBanner");
   const [isResending, setIsResending] = useState(false);
   const { showSuccess, showError } = usePopupContext();
 
@@ -52,11 +54,10 @@ const EmailVerificationBanner = ({ user }) => {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-medium text-orange-800">
-            Bekræft din email-adresse
+            {t("verifyEmailTitle")}
           </h3>
           <p className="text-sm text-orange-700 mt-1">
-            Vi har sendt en bekræftelses-email til <strong>{user.email}</strong>. 
-            Klik på linket i emailen for at bekræfte din adresse.
+            {t("verifyEmailDescription", { email: user.email })}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -64,13 +65,13 @@ const EmailVerificationBanner = ({ user }) => {
               disabled={isResending}
               className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded hover:bg-orange-600 disabled:bg-orange-300"
             >
-              {isResending ? "Sender..." : "Send igen"}
+              {isResending ? t("resendingButton") : t("resendButton")}
             </button>
             <button
               onClick={handleRefreshStatus}
               className="text-sm bg-white border border-orange-300 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-50"
             >
-              Jeg har bekræftet
+              {t("refreshButton")}
             </button>
           </div>
         </div>
@@ -79,4 +80,4 @@ const EmailVerificationBanner = ({ user }) => {
   );
 };
 
-export default EmailVerificationBanner; 
+export default EmailVerificationBanner;

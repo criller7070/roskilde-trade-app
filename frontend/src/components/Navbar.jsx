@@ -7,15 +7,20 @@ import { useAdmin } from '../contexts/AdminContext';
 import { useChat } from '../contexts/ChatContext';
 import { usePopupContext } from '../contexts/PopupContext';
 import LoadingPlaceholder from './LoadingPlaceholder';
+import i18n from '../i18n'; // Import i18n instance
+import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [moreExpanded, setMoreExpanded] = useState(false);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false); // State for dropdown visibility
+  const languageDropdownRef = useRef(null); // Ref for detecting outside clicks
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
   const { unreadCount } = useChat();
   const { showSuccess, showError } = usePopupContext();
   const navigate = useNavigate();
+  const { t } = useTranslation("navbar"); // Initialize translation hook
 
   // Toggle hamburger menu with ESC key
   useEffect(() => {
@@ -89,6 +94,23 @@ const Navbar = () => {
     }
   };
 
+  const toggleLanguage = (language) => {
+    i18n.changeLanguage(language);
+    setLanguageDropdownOpen(false); // Close dropdown after selection
+  };
+
+  // Detect outside click to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
+        setLanguageDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <>
       <div className="w-full bg-orange-500 text-white flex items-center justify-between px-4 py-2 fixed top-0 left-0 z-50">
@@ -100,7 +122,7 @@ const Navbar = () => {
           <Link to="/">
             <LoadingPlaceholder
               src="/RosSwap-White-Thick.png"
-              alt="RosSwap"
+              alt={t('logoAlt')}
               className="h-8"
               placeholderClassName="bg-orange-400"
               fallbackSrc="/logo.png"
@@ -128,16 +150,16 @@ const Navbar = () => {
                 onClick={() => setOpen(false)}
                 className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
-                <span className="hidden sm:inline">Log ind</span>
-                <span className="sm:hidden">Log Ind</span>
+                <span className="hidden sm:inline">{t('login')}</span>
+                <span className="sm:hidden">{t('login')}</span>
               </Link>
               <Link 
                 to="/signup" 
                 onClick={() => setOpen(false)}
                 className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
-                <span className="hidden sm:inline">Opret konto</span>
-                <span className="sm:hidden">Opret Konto</span>
+                <span className="hidden sm:inline">{t('signup')}</span>
+                <span className="sm:hidden">{t('signup')}</span>
               </Link>
             </div>
           ) : (
@@ -146,8 +168,8 @@ const Navbar = () => {
                 onClick={handleLogout}
                 className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
               >
-                <span className="hidden sm:inline">Log ud</span>
-                <span className="sm:hidden">Log Ud</span>
+                <span className="hidden sm:inline">{t('logout')}</span>
+                <span className="sm:hidden">{t('logout')}</span>
               </button>
               <div className="flex items-center justify-center h-8">
                 <ProfileDropdown setOpen={setOpen} />
@@ -159,38 +181,69 @@ const Navbar = () => {
 
       {/* Slide-out Menu - only shows when open */}
       {open && (
-        <div className="fixed inset-0 bg-orange-500 z-60 flex flex-col justify-center items-center space-y-6 text-white text-lg font-semibold uppercase">
-          <button onClick={() => setOpen(false)} className="absolute top-4 right-4 text-white text-2xl">
-            &times;
-          </button>
+        <div className="fixed inset-0 bg-orange-500 z-60 flex flex-col justify-start items-center space-y-6 text-white text-lg font-semibold uppercase overflow-y-auto max-screen py-8 px-4 box-border">
+          <div className="absolute top-4 right-4 flex items-center space-x-4">
+
+            {/* Language Dropdown */}
+            <div className="relative" ref={languageDropdownRef}>
+              <button
+                onClick={() => setLanguageDropdownOpen((prev) => !prev)}
+                className="text-white font-semibold text-xs px-2 py-1.5 border border-white rounded hover:bg-white hover:text-orange-500 transition sm:text-sm sm:px-3 h-8 flex items-center"
+              >
+                {i18n.language === 'da' ? 'DA' : 'EN'}
+              </button>
+              {languageDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-24 bg-white text-black rounded-md shadow-lg z-50">
+                  <button
+                    onClick={() => toggleLanguage('en')}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    English
+                  </button>
+                  <button
+                    onClick={() => toggleLanguage('da')}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Dansk
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <button onClick={() => setOpen(false)} className="text-white text-2xl">
+              &times;
+            </button>
+          </div>
 
           <Link to="/" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Home size={20} />
-            <span>HJEM</span>
+            <span>{t('home')}</span>
           </Link>
+
           {!user ? (
             <>
               <Link to="/Login" onClick={() => setOpen(false)} className="flex items-center space-x-3">
                 <User size={20} />
-                <span>Log ind</span>
+                <span>{t('login')}</span>
               </Link>
               <Link to="/signup" onClick={() => setOpen(false)} className="flex items-center space-x-3">
                 <Plus size={20} />
-                <span>Opret konto</span>
+                <span>{t('signup')}</span>
               </Link>
             </>
           ) : (
             <>
               <Link to="/profile" onClick={() => setOpen(false)} className="flex items-center space-x-3">
                 <User size={20} />
-                <span>PROFIL</span>
+                <span>{t('profile')}</span>
               </Link>
               <button 
                 onClick={handleLogout}
                 className="flex items-center space-x-3 text-white"
               >
                 <LogOut size={20} />
-                <span>LOG UD</span>
+                <span>{t('logout')}</span>
               </button>
             </>
           )}
@@ -203,25 +256,25 @@ const Navbar = () => {
                 </span>
               )}
             </div>
-            <span>Beskeder</span>
+            <span>{t('messages')}</span>
           </Link>
           
           <div className="w-24 mx-auto border-t-2 border-white/50 my-3"></div>
           <Link to="/swipe" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Flame size={20} />
-            <span>Swipe Opslag</span>
+            <span>{t('swipePosts')}</span>
           </Link>
           <Link to="/liked" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Heart size={20} />
-            <span>Liked Opslag</span>
+            <span>{t('likedPosts')}</span>
           </Link>
           <Link to="/items" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <List size={20} />
-            <span>Nye Opslag</span>
+            <span>{t('newPosts')}</span>
           </Link>
           <Link to="/add-item" onClick={() => setOpen(false)} className="flex items-center space-x-3">
             <Plus size={20} />
-            <span>Opret Opslag</span>
+            <span>{t('createPost')}</span>
           </Link>
           <div className="w-24 mx-auto border-t-2 border-white/50 my-3"></div>
           
@@ -231,33 +284,33 @@ const Navbar = () => {
             className="flex items-center space-x-3 w-full justify-center"
           >
             {moreExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            <span>MERE</span>
+            <span>{t('more')}</span>
           </button>
           
           {moreExpanded && (
             <div className="space-y-4 mt-4 border-t border-white/30 pt-4">
               <Link to="/bug-report" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <Bug size={18} />
-                <span>Rapportér Fejl</span>
+                <span>{t('reportBug')}</span>
               </Link>
               <Link to="/about" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <Info size={18} />
-                <span>Om os</span>
+                <span>{t('aboutUs')}</span>
               </Link>
               <Link to="/terms" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <FileText size={18} />
-                <span>Vilkår</span>
+                <span>{t('terms')}</span>
               </Link>
               <Link to="/privacy" onClick={() => setOpen(false)} className="flex items-center space-x-3 pl-4 text-base">
                 <Lock size={18} />
-                <span>Privatlivspolitik</span>
+                <span>{t('privacyPolicy')}</span>
               </Link>
             </div>
           )}
           {isAdmin && (
             <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center space-x-3 text-yellow-300">
               <Shield size={20} />
-              <span>Admin Panel</span>
+              <span>{t('adminPanel')}</span>
             </Link>
           )}
         </div>

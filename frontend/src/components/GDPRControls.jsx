@@ -4,12 +4,14 @@ import { usePopupContext } from '../contexts/PopupContext';
 import { db } from '../firebase';
 import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Download, Trash2, Shield } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 const GDPRControls = ({ showDataExportOnly = false }) => {
   const { user } = useAuth();
   const { showConfirm, showSuccess, showError } = usePopupContext();
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { t } = useTranslation("gdprControls");
 
   const exportUserData = async () => {
     if (!user) return;
@@ -225,21 +227,17 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <div className="flex items-center mb-4">
         <Shield className="w-5 h-5 text-blue-500 mr-2" />
-        <h2 className="text-lg font-semibold text-gray-800">Dine GDPR-Rettigheder</h2>
+        <h2 className="text-lg font-semibold text-gray-800">{t("title")}</h2>
       </div>
       
-      <p className="text-gray-600 text-sm mb-6">
-        I henhold til GDPR har du ret til at få udleveret dine data og til at få slettet din konto.
-      </p>
+      <p className="text-gray-600 text-sm mb-6">{t("description")}</p>
 
       <div className="space-y-4">
         {/* Export Data */}
         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
           <div className="flex-1">
-            <h3 className="font-medium text-gray-800">Download Data</h3>
-            <p className="text-sm text-gray-600">
-              Få en komplet kopi af alle data vi har om dig i JSON-format.
-            </p>
+            <h3 className="font-medium text-gray-800">{t("exportDataTitle")}</h3>
+            <p className="text-sm text-gray-600">{t("exportDataDescription")}</p>
           </div>
           <button
             onClick={exportUserData}
@@ -247,7 +245,7 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
             className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4 mr-2" />
-            {isExporting ? 'Eksporterer...' : 'Download'}
+            {isExporting ? t("exportingButton") : t("exportButton")}
           </button>
         </div>
 
@@ -255,10 +253,8 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
         {!showDataExportOnly && (
           <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
             <div className="flex-1">
-              <h3 className="font-medium text-red-800">Slet Min Konto</h3>
-              <p className="text-sm text-red-600">
-                Permanent sletning af din konto og alle tilknyttede data. Denne handling kan ikke fortrydes.
-              </p>
+              <h3 className="font-medium text-red-800">{t("deleteAccountTitle")}</h3>
+              <p className="text-sm text-red-600">{t("deleteAccountDescription")}</p>
             </div>
             <button
               onClick={confirmDeleteAccount}
@@ -266,7 +262,7 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
               className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {isDeleting ? 'Sletter...' : 'Slet Konto'}
+              {isDeleting ? t("deletingButton") : t("deleteButton")}
             </button>
           </div>
         )}
@@ -274,13 +270,12 @@ const GDPRControls = ({ showDataExportOnly = false }) => {
 
       <div className="mt-6 p-3 bg-gray-50 rounded-lg">
         <p className="text-xs text-gray-600">
-          <strong>Bemærk:</strong> Hvis du har spørgsmål om dine data eller ønsker hjælp med dine rettigheder, 
-          kan du kontakte os på philippzhuravlev@gmail.com. Du kan også læse mere i vores{' '}
-          <a href="/privacy" className="text-orange-500 underline">privatlivspolitik</a>.
+          <strong>{t("note")}</strong>{" "}
+          <a href="/privacy" className="text-orange-500 underline">{t("privacyPolicyLink")}</a>.
         </p>
       </div>
     </div>
   );
 };
 
-export default GDPRControls; 
+export default GDPRControls;
