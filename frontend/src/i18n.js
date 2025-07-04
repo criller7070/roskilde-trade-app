@@ -265,12 +265,12 @@ const resources = {
       title: "Terms and Conditions",
       lastUpdated: "Last updated: {{date}}",
       about: {
-        title: "About RosSwap",
+        title: "1. About RosSwap",
         description1: "RosSwap enables contact between users who wish to trade or exchange goods and services, especially in connection with Roskilde Festival 2025 and its surroundings.",
-        description2: "RosSwap is a non-commercial school project developed as a collaboration between students at the Danish Technical University (DTU) and Roskilde Festival. The platform is not officially affiliated with Roskilde Festival and is operated solely for educational and non-profit purposes.",
+        description2: "RosSwap is a <strong>non-commercial school project</strong> developed as a collaboration between students at the Danish Technical University (DTU) and Roskilde Festival. The platform is <strong>not officially affiliated with Roskilde Festival</strong> and is operated solely for educational and non-profit purposes.",
       },
       prohibited: {
-        title: "Prohibited Goods and Services",
+        title: "2. Prohibited Goods and Services",
         strictlyForbidden: "Strictly Forbidden:",
         items: [
           "Illegal drugs and narcotics",
@@ -280,10 +280,10 @@ const resources = {
           "Sale or distribution of alcohol to minors",
           "Prescription medicine without authorization",
         ],
-        consequences: "Violations will result in immediate suspension and may be reported to authorities.",
+        consequences: "Violations will result in <strong>immediate suspension</strong> and may be <strong>reported to authorities</strong>.",
       },
       userResponsibility: {
-        title: "User Responsibility",
+        title: "3. User Responsibility",
         point1: "You are responsible for your own posts and transactions.",
         point2: "You must be at least 18 years old.",
         point3: "You must provide accurate information.",
@@ -358,6 +358,131 @@ const resources = {
       },
       disclaimer: {
         studyProject: "These terms have been prepared as part of a study project and are not legally binding in a commercial sense. By using the platform, you accept these terms and contribute to a safe community.",
+      },
+    },
+    privacy: {
+      title: "Privacy Policy",
+      lastUpdated: "Last updated: {{date}}",
+      dataController: {
+        title: "1. Data Controller",
+        description: "RosSwap Educational Project",
+        contacts: [
+          "Contact: Philipp Zhuravlev - philippzhuravlev@gmail.com",
+          "Contact: Christian Hyllested - crillerhylle@gmail.com",
+        ],
+      },
+      dataCollection: {
+        title: "2. What Data Do We Collect?",
+        collectedData: {
+          title: "Data We Collect:",
+          items: [
+            "Name: Your full name (from Google OAuth or chosen manually)",
+            "Email: Your email address (for login and communication)",
+            "Profile Picture: Your profile picture (from Google or uploaded)",
+            "Posts: Text and images in your trade posts",
+            "Messages: Private messages with other users",
+            "Activity: Which posts you like/dislike",
+            "Technical Info: Browser type in error reports",
+          ],
+        },
+        notCollectedData: {
+          title: "Data We DO NOT Collect:",
+          items: [
+            "Cookies or tracking technology",
+            "Your location or GPS data",
+            "Passwords (handled by Firebase)",
+            "Payment information",
+            "Social media activity outside the platform",
+          ],
+        },
+      },
+      dataUsage: {
+        title: "3. Why Do We Collect Data?",
+        reasons: [
+          {
+            title: "Necessary Data (Article 6(1)(b) GDPR):",
+            description: "Name, email, and messages are necessary to provide the service - you cannot use the platform without them.",
+          },
+          {
+            title: "Legitimate Interests (Article 6(1)(f) GDPR):",
+            description: "Profile pictures and activity data improve user experience and security.",
+          },
+          {
+            title: "Consent (Article 6(1)(a) GDPR):",
+            description: "By creating an account, you consent to data processing as described here.",
+          },
+        ],
+      },
+      dataSharing: {
+        title: "4. Data Sharing",
+        description: [
+          "We NEVER share your data with third parties for commercial purposes.",
+          "Your data is stored in Google Firebase (USA) under their security standards. We may be required to share data with Danish authorities if illegal activities are suspected.",
+        ],
+      },
+      gdprRights: {
+        title: "5. Your GDPR Rights",
+        rights: [
+          { title: "Right to Access", description: "View all data we have about you" },
+          { title: "Right to Rectification", description: "Correct errors in your information" },
+          { title: "Right to Erasure", description: "Delete all your data" },
+          { title: "Right to Data Portability", description: "Download your data" },
+          { title: "Right to Restriction", description: "Restrict processing of your data" },
+          { title: "Right to Object", description: "Object to data processing" },
+        ],
+        exerciseRights: {
+          title: "How to Exercise Your Rights:",
+          description: "Go to your profile and use the 'Download my data' or 'Delete my account' features, or contact us directly at philippzhuravlev@gmail.com",
+        },
+      },
+      dataSecurity: {
+        title: "6. Data Security",
+        measures: [
+          "Data is stored in Google Firebase's secure cloud infrastructure",
+          "All connections are encrypted (HTTPS)",
+          "Only authorized administrators have access to data",
+          "We log admin activities for security purposes",
+          "Automatic backup and redundancy through Firebase",
+        ],
+      },
+      dataRetention: {
+        title: "7. Data Retention",
+        retentionRules: [
+          "Active accounts: Data is stored as long as the account is active",
+          "Deleted accounts: Data is deleted within 30 days",
+          "Messages: Deleted when both parties delete their accounts",
+          "Error reports: Stored for up to 1 year for debugging purposes",
+        ],
+      },
+      childrenPrivacy: {
+        title: "8. Children's Privacy",
+        description: [
+          "Age limit: 18 years",
+          "RosSwap is intended for users over 18 years old. We do not knowingly collect data from minors. If we discover a minor user, the account will be deleted immediately.",
+        ],
+      },
+      policyChanges: {
+        title: "9. Changes to This Policy",
+        description: "We may update this privacy policy. Significant changes will be notified via email or prominent notices on the platform at least 7 days before they take effect.",
+      },
+      contactAndComplaints: {
+        title: "10. Contact and Complaints",
+        questions: {
+          title: "Questions about the privacy policy:",
+          contacts: [
+            "Philipp Zhuravlev - philippzhuravlev@gmail.com",
+            "Christian Hyllested - crillerhylle@gmail.com",
+          ],
+        },
+        complaints: {
+          title: "Complaints about data processing:",
+          description: "You can complain to the Danish Data Protection Agency if you believe we are processing your data incorrectly.",
+          link: "https://www.datatilsynet.dk",
+        },
+      },
+      disclaimer: {
+        title: "Disclaimer",
+        description: "This privacy policy has been prepared in accordance with GDPR for an educational project. We take data protection seriously and strive to comply with all relevant laws and regulations.",
       },
     },
   },
@@ -624,12 +749,12 @@ const resources = {
       title: "Vilkår og Betingelser",
       lastUpdated: "Sidst opdateret: {{date}}",
       about: {
-        title: "Om RosSwap",
+        title: "1. Om RosSwap",
         description1: "RosSwap muliggør kontakt mellem brugere, der ønsker at bytte eller handle varer og tjenester, særligt i forbindelse med Roskilde Festival 2025 og dets arealer, samt omegn.",
-        description2: "RosSwap er et ikke-kommercielt skoleprojekt udviklet som et samarbejde mellem studerende på Dansk Teknisk Universitet (DTU) og Roskilde Festival. Platformen er ikke officielt tilknyttet Roskilde Festival og drives udelukkende i et uddannelsesmæssigt og non-profit øjemed.",
+        description2: "RosSwap er et <strong>ikke-kommercielt skoleprojekt</strong> udviklet som et samarbejde mellem studerende på Dansk Teknisk Universitet (DTU) og Roskilde Festival. Platformen er <strong>ikke officielt tilknyttet Roskilde Festival</strong> og drives udelukkende i et uddannelsesmæssigt og non-profit øjemed.",
       },
       prohibited: {
-        title: "Forbudte Varer og Tjenester",
+        title: "2. Forbudte Varer og Tjenester",
         strictlyForbidden: "Strengt Forbudt:",
         items: [
           "Ulovlige stoffer og narkotika",
@@ -639,10 +764,10 @@ const resources = {
           "Salg eller udlevering af alkohol til mindreårige",
           "Receptpligtig medicin uden tilladelse",
         ],
-        consequences: "Overtrædelse medfører øjeblikkelig suspension og kan anmeldes til myndighederne.",
+        consequences: "Overtrædelse medfører <strong>øjeblikkelig suspension</strong> og kan <strong>anmeldes til myndighederne</strong>.",
       },
       userResponsibility: {
-        title: "Brugeransvar",
+        title: "3. Brugeransvar",
         point1: "Du er ansvarlig for dine egne opslag og transaktioner.",
         point2: "Du skal være mindst 18 år.",
         point3: "Du skal angive korrekte oplysninger.",
@@ -717,6 +842,131 @@ const resources = {
       },
       disclaimer: {
         studyProject: "Disse vilkår er udarbejdet som del af et studieprojekt og er ikke juridisk bindende i kommerciel forstand. Ved brug af platformen accepterer du disse vilkår og bidrager til et trygt fællesskab.",
+      },
+    },
+    privacy: {
+      title: "Privatlivspolitik",
+      lastUpdated: "Sidst opdateret: {{date}}",
+      dataController: {
+        title: "1. Dataansvarlig",
+        description: "RosSwap Uddannelsesprojekt",
+        contacts: [
+          "Kontakt: Philipp Zhuravlev - philippzhuravlev@gmail.com",
+          "Kontakt: Christian Hyllested - crillerhylle@gmail.com",
+        ],
+      },
+      dataCollection: {
+        title: "2. Hvilke Data Indsamler Vi?",
+        collectedData: {
+          title: "Data Vi Indsamler:",
+          items: [
+            "Navn: Dit fulde navn (fra Google OAuth eller selvvalgt)",
+            "E-mail: Din e-mailadresse (til login og kommunikation)",
+            "Profilbillede: Dit profilbillede (fra Google eller uploadet)",
+            "Opslag: Tekst og billeder i dine handelsposts",
+            "Beskeder: Private beskeder med andre brugere",
+            "Aktivitet: Hvilke opslag du liker/disliker",
+            "Teknisk info: Browser-type ved fejlrapporter",
+          ],
+        },
+        notCollectedData: {
+          title: "Data Vi IKKE Indsamler:",
+          items: [
+            "Cookies eller tracking-teknologi",
+            "Din lokalitet eller GPS-data",
+            "Adgangskoder (håndteres af Firebase)",
+            "Betalingsoplysninger",
+            "Sociale medier-aktivitet uden for platformen",
+          ],
+        },
+      },
+      dataUsage: {
+        title: "3. Hvorfor Indsamler Vi Data?",
+        reasons: [
+          {
+            title: "Nødvendige data (Artikel 6(1)(b) GDPR):",
+            description: "Navn, e-mail og beskeder er nødvendige for at levere tjenesten - du kan ikke bruge platformen uden disse.",
+          },
+          {
+            title: "Legitime interesser (Artikel 6(1)(f) GDPR):",
+            description: "Profilbilleder og aktivitetsdata forbedrer brugeroplevelsen og sikkerhed.",
+          },
+          {
+            title: "Samtykke (Artikel 6(1)(a) GDPR):",
+            description: "Ved oprettelse af konto samtykker du til databehandling som beskrevet her.",
+          },
+        ],
+      },
+      dataSharing: {
+        title: "4. Deling af Data",
+        description: [
+          "Vi deler ALDRIG dine data med tredjeparter til kommercielle formål.",
+          "Dine data gemmes i Google Firebase (USA) under deres sikkerhedsstandarder. Vi kan være forpligtet til at dele data med danske myndigheder ved mistanke om ulovlige aktiviteter.",
+        ],
+      },
+      gdprRights: {
+        title: "5. Dine GDPR-Rettigheder",
+        rights: [
+          { title: "Ret til indsigt", description: "Se alle data vi har om dig" },
+          { title: "Ret til berigtigelse", description: "Ret fejl i dine oplysninger" },
+          { title: "Ret til sletning", description: "Få slettet alle dine data" },
+          { title: "Ret til dataportabilitet", description: "Download dine data" },
+          { title: "Ret til begrænsning", description: "Begræns behandling af dine data" },
+          { title: "Ret til indsigelse", description: "Gør indsigelse mod behandling" },
+        ],
+        exerciseRights: {
+          title: "Sådan udøver du dine rettigheder:",
+          description: "Gå til din profil og brug 'Download mine data' eller 'Slet min konto' funktionerne, eller kontakt os direkte på philippzhuravlev@gmail.com",
+        },
+      },
+      dataSecurity: {
+        title: "6. Datasikkerhed",
+        measures: [
+          "Data gemmes i Google Firebase's sikre cloud-infrastruktur",
+          "Alle forbindelser er krypteret (HTTPS)",
+          "Kun autoriserede administratorer har adgang til data",
+          "Vi logger admin-aktiviteter for sikkerhedens skyld",
+          "Automatisk backup og redundans gennem Firebase",
+        ],
+      },
+      dataRetention: {
+        title: "7. Opbevaring af Data",
+        retentionRules: [
+          "Aktive konti: Data gemmes så længe kontoen er aktiv",
+          "Slettede konti: Data slettes inden for 30 dage",
+          "Beskeder: Slettes når begge parter sletter deres konti",
+          "Fejlrapporter: Gemmes i maksimalt 1 år til fejlretning",
+        ],
+      },
+      childrenPrivacy: {
+        title: "8. Børns Privatliv",
+        description: [
+          "Aldersgrænse: 18 år",
+          "RosSwap er kun beregnet til brugere over 18 år. Vi indsamler ikke bevidst data fra mindreårige. Hvis vi opdager en mindreårig bruger, slettes kontoen øjeblikkeligt.",
+        ],
+      },
+      policyChanges: {
+        title: "9. Ændringer til Denne Politik",
+        description: "Vi kan opdatere denne privatlivspolitik. Væsentlige ændringer meddeles via e-mail eller prominente beskeder på platformen mindst 7 dage før ikrafttrædelse.",
+      },
+      contactAndComplaints: {
+        title: "10. Kontakt og Klager",
+        questions: {
+          title: "Spørgsmål til privatlivspolitikken:",
+          contacts: [
+            "Philipp Zhuravlev - philippzhuravlev@gmail.com",
+            "Christian Hyllested - crillerhylle@gmail.com",
+          ],
+        },
+        complaints: {
+          title: "Klager over databehandling:",
+          description: "Du kan klage til Datatilsynet i Danmark hvis du mener, vi behandler dine data forkert.",
+          link: "https://www.datatilsynet.dk",
+        },
+      },
+      disclaimer: {
+        title: "Disclaimer",
+        description: "Denne privatlivspolitik er udarbejdet i overensstemmelse med GDPR for et uddannelsesprojekt. Vi tager databeskyttelse seriøst og bestræber os på at overholde alle relevante love og regler.",
       },
     },
   },

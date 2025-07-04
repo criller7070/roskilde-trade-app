@@ -14,7 +14,7 @@ const Terms = () => {
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">{t("about.title")}</h2>
             <p className="text-gray-700">{t("about.description1")}</p>
-            <p className="text-gray-700 mb-4">{t("about.description2")}</p>
+            <p className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: t("about.description2") }}></p>
           </section>
 
           <section>
@@ -27,7 +27,7 @@ const Terms = () => {
                 ))}
               </ul>
             </div>
-            <p className="text-gray-700">{t("prohibited.consequences")}</p>
+            <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: t("prohibited.consequences") }}></p>
           </section>
 
           <section>
