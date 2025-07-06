@@ -1,50 +1,99 @@
-# RosSwap - Roskilde Festival Trading Platform
+# RosSwap - Technical Architecture & Project Structure
 
-A comprehensive React 19-based progressive web application for peer-to-peer trading of items, food, and services at Roskilde Festival. Built with Firebase backend services, featuring enterprise-grade admin panel, GDPR compliance, content moderation, and real-time messaging capabilities.
-
-## Live Production
-
-**Production URL**: https://rosswap.dk  
-**Firebase Hosting**: `roskilde-trade.firebaseapp.com`
-
-## Table of Contents
-
-- [System Architecture](#system-architecture)
-- [Technology Stack](#technology-stack)
-- [File Structure](#file-structure)  
-- [Authentication & Authorization](#authentication--authorization)
-- [Data Models & Database Schema](#data-models--database-schema)
-- [Component Architecture](#component-architecture)
-- [Context-Based State Management](#context-based-state-management)
-- [Admin Panel System](#admin-panel-system)
-- [GDPR Compliance Framework](#gdpr-compliance-framework)
-- [Content Moderation System](#content-moderation-system)
-- [Real-time Features](#real-time-features)
-- [Security Implementation](#security-implementation)
-- [Development Setup](#development-setup)
-- [Build & Deployment](#build--deployment)
+**React 19 + Firebase** enterprise-grade trading platform with real-time features, admin panel, GDPR compliance, and content moderation.
 
 ## System Architecture
 
 ### Application Type
-Single-page application (SPA) with client-side routing using React Router DOM v7.4.0
+- **SPA**: Single-page application with React Router DOM v7.4.0
+- **Real-time**: Firestore listeners for live data synchronization
+- **PWA**: Progressive web app with offline capabilities
+- **Admin System**: Firebase collection-based role management
 
 ### Core Systems
-- **Discovery Engine**: Tinder-like swipe interface with Fisher-Yates shuffle algorithm
-- **Real-time Messaging**: Firestore real-time listeners with WebSocket fallback
-- **Admin Dashboard**: Enterprise-grade moderation panel with Firebase-based role management
-- **Content Moderation**: User flagging system with admin review workflow
-- **GDPR Framework**: Complete data export, deletion, and privacy controls with audit trails
-- **Bug Tracking**: Integrated reporting system with screenshot capabilities
-- **Asset Management**: Firebase Storage with progressive loading and validation
+- **Discovery Engine**: Tinder-like swipe interface with Fisher-Yates shuffle
+- **Real-time Messaging**: Firestore listeners with unread counters
+- **Admin Dashboard**: Enterprise moderation panel with audit trails
+- **Content Moderation**: User flagging with admin resolution workflow
+- **GDPR Framework**: Article 17 implementation with cascading deletion
+- **Bug Tracking**: Integrated reporting with screenshot uploads
 
-### Deployment Architecture
-- **Frontend**: Firebase Hosting with CDN distribution + hardened CSP headers
-- **Database**: Firestore with comprehensive security rules and real-time synchronization
-- **Authentication**: Firebase Auth with Google OAuth + email/password
-- **Storage**: Firebase Storage for image assets with validation middleware
-- **Functions**: Firebase Functions with secure callable endpoints (deleteUser)
-- **Admin Config**: Firebase Firestore collection-based role management
+## Project Structure
+
+```
+roskilde-trade-app/
+├── frontend/                        # React 19 + Vite application
+│   ├── src/
+│   │   ├── components/              # 27 React components
+│   │   │   ├── Core/                # 8 core components
+│   │   │   │   ├── App.jsx          # Main app with routing
+│   │   │   │   ├── Navbar.jsx       # Navigation + admin access
+│   │   │   │   ├── Home.jsx         # Landing page
+│   │   │   │   ├── About.jsx        # Team information
+│   │   │   │   ├── LoginRequired.jsx # Auth guard
+│   │   │   │   ├── LoadingPlaceholder.jsx # Progressive loading
+│   │   │   │   ├── Popup.jsx        # Modal system
+│   │   │   │   └── EmailVerificationBanner.jsx # Email verification
+│   │   │   ├── Auth/                # 4 authentication components
+│   │   │   │   ├── Login.jsx        # Email/password + Google OAuth
+│   │   │   │   ├── Signup.jsx       # Registration + GDPR consent
+│   │   │   │   ├── Profile.jsx      # User profile + account deletion
+│   │   │   │   └── GDPRControls.jsx # Data export/deletion
+│   │   │   ├── Trading/             # 8 trading components
+│   │   │   │   ├── SwipePage.jsx    # Discovery interface
+│   │   │   │   ├── AddItem.jsx      # Item creation + image upload
+│   │   │   │   ├── ItemList.jsx     # Grid view with filtering
+│   │   │   │   ├── ItemPage.jsx     # Item details + flagging
+│   │   │   │   ├── Liked.jsx        # Liked items history
+│   │   │   │   ├── Disliked.jsx     # Disliked items history
+│   │   │   │   ├── ChatList.jsx     # Real-time chat list
+│   │   │   │   └── ChatPage.jsx     # Individual chat interface
+│   │   │   ├── Admin/               # 5 admin components
+│   │   │   │   ├── Admin.jsx        # Main dashboard + stats
+│   │   │   │   ├── AdminPosts.jsx   # Item management
+│   │   │   │   ├── AdminBugReports.jsx # Bug report management
+│   │   │   │   ├── AdminUsers.jsx   # User management + deletion
+│   │   │   │   └── AdminFlagged.jsx # Content moderation
+│   │   │   └── Legal/               # 3 legal/support components
+│   │   │       ├── Terms.jsx        # Legal terms + safety
+│   │   │       ├── Privacy.jsx      # GDPR privacy policy
+│   │   │       └── BugReport.jsx    # Bug reporting form
+│   │   ├── contexts/                # 5 React Context providers
+│   │   │   ├── AuthContext.jsx      # User authentication state
+│   │   │   ├── AdminContext.jsx     # Admin permissions + audit logging
+│   │   │   ├── ItemsContext.jsx     # Items data + real-time sync
+│   │   │   ├── ChatContext.jsx      # Real-time chat management
+│   │   │   └── PopupContext.jsx     # Global modal management
+│   │   ├── hooks/
+│   │   │   └── usePopup.js          # Custom popup hook
+│   │   ├── utils/                   # Utility functions
+│   │   │   ├── emailValidation.js   # Email validation + disposable domain check
+│   │   │   ├── fileValidation.js    # File upload validation
+│   │   │   ├── inputSanitizer.js    # XSS protection + content filtering
+│   │   │   └── rateLimiter.js       # Client-side rate limiting
+│   │   ├── firebase.js              # Firebase configuration
+│   │   ├── App.jsx                  # Main app component
+│   │   ├── main.jsx                 # React entry point
+│   │   ├── App.css                  # Global styles
+│   │   └── index.css                # Tailwind imports
+│   ├── public/                      # Static assets
+│   │   ├── default_pfp.jpg          # Default profile picture
+│   │   ├── logo-compressed.png      # App logo
+│   │   └── team/                    # Team member photos
+│   ├── package.json                 # Dependencies + scripts
+│   ├── vite.config.js               # Vite configuration
+│   ├── tailwind.config.js           # Tailwind CSS config
+│   ├── postcss.config.js            # PostCSS config
+│   └── eslint.config.js             # ESLint configuration
+├── functions/                       # Firebase Functions
+│   ├── index.js                     # GDPR-compliant user deletion
+│   ├── package.json                 # Firebase Functions dependencies
+│   └── package-lock.json
+├── firebase.json                    # Firebase project configuration
+├── firestore.rules                  # Database security rules
+├── firestore.indexes.json           # Database indexes
+└── README.md
+```
 
 ## Technology Stack
 
@@ -81,83 +130,311 @@ Single-page application (SPA) with client-side routing using React Router DOM v7
 - **Build Time**: ~5.5 seconds
 - **Module Count**: 2383 transformed modules
 
-## File Structure
+## Database Schema
 
+### Firestore Collections
+
+#### `admin/config`
+```typescript
+interface AdminConfig {
+  adminEmails: string[];        // List of admin email addresses
+}
 ```
-roskilde-trade-app/
-├── frontend/
-│   ├── src/
-│   │   ├── components/           # React components (27 components)
-│   │   │   ├── About.jsx
-│   │   │   ├── AddItem.jsx
-│   │   │   ├── Admin.jsx         # Main admin dashboard
-│   │   │   ├── AdminBugReports.jsx
-│   │   │   ├── AdminFlagged.jsx  # Content moderation
-│   │   │   ├── AdminPosts.jsx
-│   │   │   ├── AdminUsers.jsx    # User management with deletion
-│   │   │   ├── BugReport.jsx
-│   │   │   ├── ChatList.jsx
-│   │   │   ├── ChatPage.jsx
-│   │   │   ├── Disliked.jsx
-│   │   │   ├── EmailVerificationBanner.jsx
-│   │   │   ├── GDPRControls.jsx  # Data export/deletion
-│   │   │   ├── Home.jsx
-│   │   │   ├── ItemList.jsx
-│   │   │   ├── ItemPage.jsx      # Item details + flagging
-│   │   │   ├── Liked.jsx
-│   │   │   ├── LoadingPlaceholder.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── LoginRequired.jsx
-│   │   │   ├── Navbar.jsx        # Navigation with admin access
-│   │   │   ├── Popup.jsx         # Modal system
-│   │   │   ├── Privacy.jsx       # GDPR privacy policy
-│   │   │   ├── Profile.jsx       # User profile + account deletion
-│   │   │   ├── Signup.jsx        # Registration with GDPR consent
-│   │   │   ├── SwipePage.jsx     # Discovery interface
-│   │   │   └── Terms.jsx         # Legal terms + safety guidelines
-│   │   ├── contexts/             # React Context providers (5 contexts)
-│   │   │   ├── AdminContext.jsx  # Firebase-based admin permissions & audit logging
-│   │   │   ├── AuthContext.jsx   # User authentication state
-│   │   │   ├── ChatContext.jsx   # Real-time chat management
-│   │   │   ├── ItemsContext.jsx  # Items data & real-time sync
-│   │   │   └── PopupContext.jsx  # Global modal management
-│   │   ├── hooks/
-│   │   │   └── usePopup.js       # Custom popup hook
-│   │   ├── utils/
-│   │   │   ├── emailValidation.js    # Comprehensive email validation
-│   │   │   ├── fileValidation.js     # File upload validation
-│   │   │   ├── inputSanitizer.js     # XSS protection & content filtering
-│   │   │   └── rateLimiter.js        # Client-side rate limiting
-│   │   ├── assets/
-│   │   ├── firebase.js           # Firebase configuration & auth
-│   │   ├── App.jsx               # Main app with routing
-│   │   ├── main.jsx              # React app entry point
-│   │   ├── App.css               # Global styles
-│   │   └── index.css             # Tailwind imports
-│   ├── public/                   # Static assets
-│   │   ├── default_pfp.jpg       # Default profile picture
-│   │   ├── logo-compressed.png
-│   │   └── team/                 # Team member photos
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   └── eslint.config.js
-├── functions/                    # Firebase Functions (production-deployed)
-│   ├── index.js                  # GDPR-compliant user deletion function
-│   ├── package.json              # firebase-functions, firebase-admin
-│   └── package-lock.json
-├── firebase.json                 # Firebase project configuration
-├── firestore.rules              # Database security rules
-├── firestore.indexes.json       # Database indexes
-└── README.md
+
+#### `users/{userId}`
+```typescript
+interface User {
+  uid: string;
+  name: string;
+  email: string;
+  photoURL: string;
+  createdAt: Timestamp;
+  gdprConsent: boolean;           // GDPR compliance
+  consentedAt: Timestamp;         // Consent timestamp
+  likedItemIds?: string[];        // Swipe history
+  dislikedItemIds?: string[];     // Swipe history
+}
+```
+
+#### `items/{itemId}`
+```typescript
+interface Item {
+  id: string;
+  title: string;
+  description: string;
+  category: 'food' | 'items' | 'services';
+  price: number;
+  imageUrl?: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  createdAt: Timestamp;
+  flagged?: boolean;             // Content moderation flag
+  flagCount?: number;            // Number of user flags
+}
+```
+
+#### `chats/{chatId}`
+```typescript
+interface Chat {
+  id: string;                    // Format: userId1_userId2_itemId
+  participants: string[];        // [userId1, userId2]
+  itemId: string;
+  lastMessage?: string;
+  lastMessageTime?: Timestamp;
+  createdAt: Timestamp;
+}
+```
+
+#### `messages/{messageId}`
+```typescript
+interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: Timestamp;
+  read: boolean;
+}
+```
+
+#### `flags/{flagId}`
+```typescript
+interface Flag {
+  id: string;
+  itemId: string;
+  reporterId: string;
+  reason: 'inappropriate' | 'spam' | 'scam' | 'other';
+  description?: string;
+  status: 'open' | 'resolved' | 'dismissed';
+  createdAt: Timestamp;
+  resolvedAt?: Timestamp;
+  resolvedBy?: string;           // Admin user ID
+}
+```
+
+#### `bugReports/{reportId}`
+```typescript
+interface BugReport {
+  id: string;
+  userId: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  screenshotUrl?: string;
+  status: 'open' | 'in-progress' | 'resolved';
+  priority: 'low' | 'medium' | 'high';
+  createdAt: Timestamp;
+  resolvedAt?: Timestamp;
+  adminNotes?: string;
+}
+```
+
+#### `adminActions/{actionId}`
+```typescript
+interface AdminAction {
+  id: string;
+  action: string;                // Action type
+  adminEmail: string;
+  adminUID: string;
+  adminName: string;
+  timestamp: Timestamp;
+  details: Record<string, any>; // Action-specific details
+  userAgent: string;
+  ipAddress?: string;
+}
+```
+
+## Context-Based State Management
+
+### Provider Hierarchy
+```javascript
+// App.jsx - Nested context providers
+<AuthProvider>
+  <AdminProvider>
+    <ItemsProvider>
+      <ChatProvider>
+        <PopupProvider>
+          <AppRoutes />
+        </PopupProvider>
+      </ChatProvider>
+    </ItemsProvider>
+  </AdminProvider>
+</AuthProvider>
+```
+
+### Context Responsibilities
+
+#### AuthContext (58 lines)
+- User authentication state management
+- Google OAuth + email/password login
+- Session persistence across browser sessions
+
+#### AdminContext (120 lines)
+- Firebase-based admin role management
+- Real-time admin statistics
+- Comprehensive audit logging to `adminActions` collection
+
+#### ItemsContext (169 lines)
+- Real-time items management with Firestore synchronization
+- Item CRUD operations with validation
+- Flagging system integration
+
+#### ChatContext (564 lines)
+- Real-time chat management with unread counters
+- Message synchronization across devices
+- Chat creation and message sending
+
+#### PopupContext (34 lines)
+- Global modal and notification system
+- Success/error/confirmation dialogs
+
+## Security Implementation
+
+### Content Security Policy (Production Hardened)
+```javascript
+// firebase.json - Comprehensive CSP
+{
+  "key": "Content-Security-Policy",
+  "value": "default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://lh3.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://firebase.googleapis.com wss://*.firebaseio.com"
+}
+```
+
+### Firestore Security Rules
+```javascript
+// firestore.rules - Multi-layered access control
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Admin configuration (read-only via console)
+    match /admin/config {
+      allow read: if request.auth != null;
+      allow write: if false; // Only Firebase Console can modify
+    }
+    
+    // Admin actions audit trail
+    match /adminActions/{actionId} {
+      allow create: if request.auth != null && isAdmin();
+      allow read: if request.auth != null && isAdmin();
+      // No update/delete - audit logs are immutable
+    }
+    
+    // Items with admin override
+    match /items/{itemId} {
+      allow read: if true; // Public read for discovery
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+    
+    // User profiles with admin access
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        request.auth.uid == userId || isAdmin()
+      );
+    }
+    
+    // Server-side admin validation function
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.email != null &&
+             exists(/databases/$(database)/documents/admin/config) &&
+             request.auth.token.email in get(/databases/$(database)/documents/admin/config).data.adminEmails;
+    }
+  }
+}
+```
+
+### Input Validation & Sanitization
+```javascript
+// inputSanitizer.js - XSS protection and content filtering
+export const sanitizeInput = (input, options = {}) => {
+  if (typeof input !== 'string') return '';
+  
+  let sanitized = input
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframes
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .trim();
+  
+  // Content filtering for inappropriate content
+  const inappropriatePatterns = [
+    /\b(password|adgangskode|login|bank)\b/i,
+    /\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/, // Credit card patterns
+    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i // Email patterns in content
+  ];
+  
+  const containsInappropriate = inappropriatePatterns.some(pattern => 
+    pattern.test(sanitized)
+  );
+  
+  if (containsInappropriate && options.strictMode) {
+    throw new Error('Indhold indeholder ikke-tilladt information');
+  }
+  
+  return sanitized;
+};
+```
+
+### Rate Limiting
+```javascript
+// rateLimiter.js - Client-side rate limiting
+class RateLimiter {
+  constructor() {
+    this.actions = new Map();
+  }
+  
+  checkLimit(actionType, userId, limits = {}) {
+    const defaultLimits = {
+      addItem: { max: 5, window: 300000 },           // 5 items per 5 minutes
+      sendMessage: { max: 30, window: 60000 },       // 30 messages per minute
+      uploadFile: { max: 10, window: 600000 },       // 10 files per 10 minutes
+      flagReport: { max: 10, window: 3600000 },      // 10 flags per hour
+      bugReport: { max: 5, window: 1800000 },        // 5 bug reports per 30 minutes
+      adminAction: { max: 50, window: 300000 }       // 50 admin actions per 5 minutes
+    };
+    
+    const actionLimits = { ...defaultLimits, ...limits };
+    const limit = actionLimits[actionType];
+    
+    const key = `${actionType}_${userId}`;
+    const now = Date.now();
+    
+    if (!this.actions.has(key)) {
+      this.actions.set(key, []);
+    }
+    
+    const actionHistory = this.actions.get(key);
+    const validActions = actionHistory.filter(
+      timestamp => now - timestamp < limit.window
+    );
+    
+    if (validActions.length >= limit.max) {
+      return { 
+        allowed: false, 
+        retryAfter: Math.ceil((validActions[0] + limit.window - now) / 1000) 
+      };
+    }
+    
+    validActions.push(now);
+    this.actions.set(key, validActions);
+    
+    return { allowed: true };
+  }
+}
 ```
 
 ## Authentication & Authorization
 
 ### Implementation Details
 - **Google OAuth**: `signInWithPopup` with automatic user document creation
-- **Email/Password**: Traditional authentication with profile setup and email verification
+- **Email/Password**: Traditional authentication with profile setup
 - **GDPR Consent**: Required checkbox during registration with timestamp tracking
 - **Session Persistence**: Firebase Auth state maintained across browser sessions
 - **Admin Access**: Firebase collection-based role system with server-side validation
@@ -192,280 +469,6 @@ const checkAdminStatus = async () => {
     setIsAdmin(userIsAdmin);
   }
 };
-
-// Firestore security rules validation
-function isAdmin() {
-  return request.auth != null && 
-         request.auth.token.email != null &&
-         exists(/databases/$(database)/documents/admin/config) &&
-         request.auth.token.email in get(/databases/$(database)/documents/admin/config).data.adminEmails;
-}
-```
-
-## Data Models & Database Schema
-
-### Core Firestore Collections
-
-#### admin/config
-```typescript
-interface AdminConfig {
-  adminEmails: string[];        // List of admin email addresses
-}
-```
-
-#### users/{userId}
-```typescript
-interface User {
-  uid: string;
-  name: string;
-  email: string;
-  photoURL: string;
-  createdAt: Timestamp;
-  gdprConsent: boolean;           // GDPR compliance
-  consentedAt: Timestamp;         // Consent timestamp
-  likedItemIds?: string[];        // Swipe history
-  dislikedItemIds?: string[];     // Swipe history
-}
-```
-
-#### items/{itemId}
-```typescript
-interface Item {
-  id: string;
-  title: string;
-  description: string;
-  category: 'food' | 'items' | 'services';
-  price: number;
-  imageUrl?: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
-  createdAt: Timestamp;
-  flagged?: boolean;             // Content moderation flag
-  flagCount?: number;            // Number of user flags
-}
-```
-
-#### chats/{chatId}
-```typescript
-interface Chat {
-  id: string;                    // Format: userId1_userId2_itemId
-  participants: string[];        // [userId1, userId2]
-  itemId: string;
-  lastMessage?: string;
-  lastMessageTime?: Timestamp;
-  createdAt: Timestamp;
-}
-```
-
-#### messages/{messageId}
-```typescript
-interface Message {
-  id: string;
-  chatId: string;
-  senderId: string;
-  senderName: string;
-  content: string;
-  timestamp: Timestamp;
-  read: boolean;
-}
-```
-
-#### flags/{flagId}
-```typescript
-interface Flag {
-  id: string;
-  itemId: string;
-  reporterId: string;
-  reason: 'inappropriate' | 'spam' | 'scam' | 'other';
-  description?: string;
-  status: 'open' | 'resolved' | 'dismissed';
-  createdAt: Timestamp;
-  resolvedAt?: Timestamp;
-  resolvedBy?: string;           // Admin user ID
-}
-```
-
-#### bugReports/{reportId}
-```typescript
-interface BugReport {
-  id: string;
-  userId: string;
-  userEmail: string;
-  title: string;
-  description: string;
-  screenshotUrl?: string;
-  status: 'open' | 'in-progress' | 'resolved';
-  priority: 'low' | 'medium' | 'high';
-  createdAt: Timestamp;
-  resolvedAt?: Timestamp;
-  adminNotes?: string;
-}
-```
-
-#### adminActions/{actionId}
-```typescript
-interface AdminAction {
-  id: string;
-  action: string;                // Action type (delete_user, resolve_flag, etc.)
-  adminEmail: string;
-  adminUID: string;
-  adminName: string;
-  timestamp: Timestamp;
-  details: Record<string, any>; // Action-specific details
-  userAgent: string;
-  ipAddress?: string;
-}
-```
-
-## Component Architecture
-
-### Component Categories
-
-#### Core Components (8)
-- `App.jsx` - Main application with router configuration
-- `Navbar.jsx` - Navigation with conditional admin access
-- `Home.jsx` - Landing page and app introduction
-- `About.jsx` - Team information and app details
-- `LoginRequired.jsx` - Authentication guard component
-- `LoadingPlaceholder.jsx` - Progressive loading component
-- `Popup.jsx` - Modal system with confirmation dialogs
-- `EmailVerificationBanner.jsx` - Email verification prompts
-
-#### Authentication Components (4)
-- `Login.jsx` - Email/password and Google OAuth login
-- `Signup.jsx` - Registration with GDPR consent
-- `Profile.jsx` - User profile management and account deletion
-- `GDPRControls.jsx` - Data export and privacy controls
-
-#### Trading Components (8)
-- `SwipePage.jsx` - Tinder-style discovery interface with Fisher-Yates shuffle
-- `AddItem.jsx` - Item creation form with image upload and validation
-- `ItemList.jsx` - Grid view of all items with filtering
-- `ItemPage.jsx` - Individual item view with flagging system
-- `Liked.jsx` - User's liked items history with actions
-- `Disliked.jsx` - User's disliked items history with re-evaluation
-- `ChatList.jsx` - Real-time chat conversations list
-- `ChatPage.jsx` - Individual chat interface with real-time messaging
-
-#### Admin Components (5)
-- `Admin.jsx` - Main dashboard with statistics and navigation
-- `AdminPosts.jsx` - Item management and moderation
-- `AdminBugReports.jsx` - Bug report management and resolution
-- `AdminUsers.jsx` - User account management and deletion with audit trails
-- `AdminFlagged.jsx` - Content moderation for flagged items with bulk actions
-
-#### Legal/Support Components (3)
-- `Terms.jsx` - Legal terms and safety guidelines
-- `Privacy.jsx` - Comprehensive GDPR privacy policy
-- `BugReport.jsx` - Bug reporting form with screenshot upload
-
-## Context-Based State Management
-
-### Provider Hierarchy
-```javascript
-// App.jsx - Nested context providers for clean separation of concerns
-<AuthProvider>
-  <AdminProvider>
-    <ItemsProvider>
-      <ChatProvider>
-        <PopupProvider>
-          <AppRoutes />
-        </PopupProvider>
-      </ChatProvider>
-    </ItemsProvider>
-  </AdminProvider>
-</AuthProvider>
-```
-
-### Context Responsibilities
-
-#### AuthContext (58 lines)
-```javascript
-// User authentication state management
-const AuthContext = {
-  user: User | null,
-  loading: boolean,
-  signup: (email: string, password: string, name: string) => Promise<void>,
-  login: (email: string, password: string) => Promise<void>,
-  logout: () => Promise<void>
-};
-```
-
-#### AdminContext (120 lines)
-```javascript
-// Firebase-based admin role management with audit logging
-const AdminContext = {
-  isAdmin: boolean,
-  adminLoading: boolean,
-  adminStats: {
-    totalItems: number,
-    totalUsers: number,
-    recentItems: number,
-    flaggedItems: number,
-    bugReports: number,
-    openBugReports: number,
-    flags: number,
-    openFlags: number
-  },
-  updateAdminStats: (stats: Partial<AdminStats>) => void,
-  logAdminAction: (action: string, details: Record<string, any>) => Promise<void>
-};
-```
-
-#### ItemsContext (169 lines)
-```javascript
-// Real-time items management with Firestore synchronization
-const ItemsContext = {
-  items: Item[],
-  loading: boolean,
-  addItem: (itemData: Partial<Item>) => Promise<string>,
-  deleteItem: (itemId: string) => Promise<void>,
-  updateItem: (itemId: string, updates: Partial<Item>) => Promise<void>,
-  flagItem: (itemId: string, flagData: Partial<Flag>) => Promise<void>
-};
-```
-
-#### ChatContext (564 lines)
-```javascript
-// Real-time chat management with unread counters
-const ChatContext = {
-  chats: Chat[],
-  unreadCounts: Record<string, number>,
-  totalUnread: number,
-  loading: boolean,
-  createChat: (otherUserId: string, itemId: string) => Promise<string>,
-  sendMessage: (chatId: string, content: string) => Promise<void>,
-  markAsRead: (chatId: string) => Promise<void>,
-  getChatMessages: (chatId: string) => Message[]
-};
-```
-
-#### PopupContext (34 lines)
-```javascript
-// Global modal and notification system
-const PopupContext = {
-  showSuccess: (message: string) => void,
-  showError: (message: string) => void,
-  showConfirm: (message: string, onConfirm: () => void, title?: string) => void
-};
-```
-
-### Real-time Data Synchronization
-```javascript
-// ItemsContext.jsx - Firestore real-time subscription
-useEffect(() => {
-  const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const itemsData = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setItems(itemsData);
-    setLoading(false);
-  });
-  return unsubscribe;
-}, []);
 ```
 
 ## Admin Panel System
@@ -475,28 +478,6 @@ useEffect(() => {
 - **Quick Actions**: Direct access to management functions with confirmation dialogs
 - **Protected Routes**: Admin-only routes with Firebase collection-based role verification
 - **Audit Logging**: Comprehensive action logging to `adminActions` collection
-
-### Firebase-Based Role Management
-```javascript
-// AdminContext.jsx - Server-side admin verification
-const checkAdminStatus = async () => {
-  try {
-    const adminConfigRef = doc(db, 'admin', 'config');
-    const adminConfigSnap = await getDoc(adminConfigRef);
-    
-    if (adminConfigSnap.exists()) {
-      const adminConfig = adminConfigSnap.data();
-      const adminEmails = adminConfig.adminEmails || [];
-      const userIsAdmin = adminEmails.includes(user.email);
-      setIsAdmin(userIsAdmin);
-    } else {
-      setIsAdmin(false);
-    }
-  } catch (error) {
-    setIsAdmin(false); // Default to false for security
-  }
-};
-```
 
 ### Content Management Features
 
@@ -542,6 +523,51 @@ const logAdminAction = async (action, details = {}) => {
     // Don't throw - logging failure shouldn't break admin operations
   }
 };
+```
+
+## Real-time Features
+
+### Firestore Real-time Listeners
+```javascript
+// ItemsContext.jsx - Real-time subscription
+useEffect(() => {
+  const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const itemsData = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setItems(itemsData);
+    setLoading(false);
+  });
+  return unsubscribe;
+}, []);
+```
+
+### Unread Message Counters
+```javascript
+// ChatContext.jsx - Real-time unread count calculation
+useEffect(() => {
+  const calculateUnreadCounts = () => {
+    const counts = {};
+    let total = 0;
+    
+    chats.forEach(chat => {
+      const chatMessages = allMessages.filter(msg => msg.chatId === chat.id);
+      const unreadCount = chatMessages.filter(msg => 
+        msg.senderId !== user.uid && !msg.read
+      ).length;
+      
+      counts[chat.id] = unreadCount;
+      total += unreadCount;
+    });
+    
+    setUnreadCounts(counts);
+    setTotalUnread(total);
+  };
+  
+  calculateUnreadCounts();
+}, [chats, allMessages, user]);
 ```
 
 ## GDPR Compliance Framework
@@ -613,345 +639,6 @@ exports.deleteUser = onRequest(async (req, res) => {
 });
 ```
 
-#### Consent Management
-```javascript
-// Signup.jsx - GDPR consent tracking
-const handleSignup = async () => {
-  if (!gdprConsent) {
-    setError("Du skal acceptere behandling af personoplysninger for at oprette en konto.");
-    return;
-  }
-  
-  await setDoc(doc(db, "users", result.user.uid), {
-    uid: result.user.uid,
-    name,
-    email,
-    photoURL: null,
-    createdAt: new Date(),
-    gdprConsent: true,
-    consentedAt: new Date()
-  });
-};
-```
-
-## Content Moderation System
-
-### User Flagging Workflow
-```javascript
-// ItemPage.jsx - Flag submission
-const handleFlag = async (reason, description) => {
-  try {
-    const flagData = {
-      itemId: item.id,
-      reporterId: user.uid,
-      reason: reason,
-      description: description || '',
-      status: 'open',
-      createdAt: new Date()
-    };
-    
-    await addDoc(collection(db, "flags"), flagData);
-    
-    // Update item flag status
-    const itemRef = doc(db, "items", item.id);
-    await updateDoc(itemRef, { 
-      flagged: true,
-      flagCount: increment(1)
-    });
-    
-    showSuccess("Indhold rapporteret. Tak for din hjælp!");
-  } catch (error) {
-    showError("Kunne ikke rapportere indhold. Prøv igen.");
-  }
-};
-```
-
-### Admin Flag Resolution
-```javascript
-// AdminFlagged.jsx - Bulk flag resolution
-const handleBulkResolve = async (flagIds, resolution) => {
-  try {
-    const batch = writeBatch(db);
-    
-    flagIds.forEach(flagId => {
-      const flagRef = doc(db, "flags", flagId);
-      batch.update(flagRef, {
-        status: resolution,
-        resolvedAt: new Date(),
-        resolvedBy: user.uid
-      });
-    });
-    
-    await batch.commit();
-    await logAdminAction('bulk_resolve_flags', { 
-      flagCount: flagIds.length,
-      resolution 
-    });
-    
-    showSuccess(`${flagIds.length} anmeldelser markeret som ${resolution}`);
-  } catch (error) {
-    showError("Kunne ikke behandle anmeldelser");
-  }
-};
-```
-
-## Real-time Features
-
-### Firestore Real-time Listeners
-```javascript
-// ChatContext.jsx - Real-time message synchronization
-useEffect(() => {
-  if (!chatId) return;
-  
-  const messagesRef = collection(db, "messages");
-  const q = query(
-    messagesRef,
-    where("chatId", "==", chatId),
-    orderBy("timestamp", "asc")
-  );
-  
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const messages = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setMessages(messages);
-  });
-  
-  return unsubscribe;
-}, [chatId]);
-```
-
-### Unread Message Counters
-```javascript
-// ChatContext.jsx - Real-time unread count calculation
-useEffect(() => {
-  const calculateUnreadCounts = () => {
-    const counts = {};
-    let total = 0;
-    
-    chats.forEach(chat => {
-      const chatMessages = allMessages.filter(msg => msg.chatId === chat.id);
-      const unreadCount = chatMessages.filter(msg => 
-        msg.senderId !== user.uid && !msg.read
-      ).length;
-      
-      counts[chat.id] = unreadCount;
-      total += unreadCount;
-    });
-    
-    setUnreadCounts(counts);
-    setTotalUnread(total);
-  };
-  
-  calculateUnreadCounts();
-}, [chats, allMessages, user]);
-```
-
-## Security Implementation
-
-### Security Assessment: **ENTERPRISE-GRADE SECURE** 🛡️
-
-#### Content Security Policy (Production Hardened)
-```javascript
-// firebase.json - Comprehensive CSP with no unsafe directives
-{
-  "key": "Content-Security-Policy",
-  "value": "default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://lh3.googleusercontent.com; connect-src 'self' https://firestore.googleapis.com https://firebase.googleapis.com wss://*.firebaseio.com"
-}
-```
-
-#### Firestore Security Rules
-```javascript
-// firestore.rules - Multi-layered access control
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // Admin configuration (read-only via console)
-    match /admin/config {
-      allow read: if request.auth != null;
-      allow write: if false; // Only Firebase Console can modify
-    }
-    
-    // Admin actions audit trail
-    match /adminActions/{actionId} {
-      allow create: if request.auth != null && isAdmin();
-      allow read: if request.auth != null && isAdmin();
-      // No update/delete - audit logs are immutable
-    }
-    
-    // Items with admin override
-    match /items/{itemId} {
-      allow read: if true; // Public read for discovery
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && (
-        resource.data.userId == request.auth.uid || isAdmin()
-      );
-    }
-    
-    // User profiles with admin access
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (
-        request.auth.uid == userId || isAdmin()
-      );
-    }
-    
-    // Server-side admin validation function
-    function isAdmin() {
-      return request.auth != null && 
-             request.auth.token.email != null &&
-             exists(/databases/$(database)/documents/admin/config) &&
-             request.auth.token.email in get(/databases/$(database)/documents/admin/config).data.adminEmails;
-    }
-  }
-}
-```
-
-#### Input Validation & Sanitization
-```javascript
-// inputSanitizer.js - XSS protection and content filtering
-export const sanitizeInput = (input, options = {}) => {
-  if (typeof input !== 'string') return '';
-  
-  let sanitized = input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframes
-    .replace(/javascript:/gi, '') // Remove javascript: URLs
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .trim();
-  
-  // Content filtering for inappropriate content
-  const inappropriatePatterns = [
-    /\b(password|adgangskode|login|bank)\b/i,
-    /\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/, // Credit card patterns
-    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i // Email patterns in content
-  ];
-  
-  const containsInappropriate = inappropriatePatterns.some(pattern => 
-    pattern.test(sanitized)
-  );
-  
-  if (containsInappropriate && options.strictMode) {
-    throw new Error('Indhold indeholder ikke-tilladt information');
-  }
-  
-  return sanitized;
-};
-```
-
-#### Rate Limiting
-```javascript
-// rateLimiter.js - Client-side rate limiting for various actions
-class RateLimiter {
-  constructor() {
-    this.actions = new Map();
-  }
-  
-  checkLimit(actionType, userId, limits = {}) {
-    const defaultLimits = {
-      addItem: { max: 5, window: 300000 },           // 5 items per 5 minutes
-      sendMessage: { max: 30, window: 60000 },       // 30 messages per minute
-      uploadFile: { max: 10, window: 600000 },       // 10 files per 10 minutes
-      flagReport: { max: 10, window: 3600000 },      // 10 flags per hour
-      bugReport: { max: 5, window: 1800000 },        // 5 bug reports per 30 minutes
-      adminAction: { max: 50, window: 300000 }       // 50 admin actions per 5 minutes
-    };
-    
-    const actionLimits = { ...defaultLimits, ...limits };
-    const limit = actionLimits[actionType];
-    
-    const key = `${actionType}_${userId}`;
-    const now = Date.now();
-    
-    if (!this.actions.has(key)) {
-      this.actions.set(key, []);
-    }
-    
-    const actionHistory = this.actions.get(key);
-    const validActions = actionHistory.filter(
-      timestamp => now - timestamp < limit.window
-    );
-    
-    if (validActions.length >= limit.max) {
-      return { 
-        allowed: false, 
-        retryAfter: Math.ceil((validActions[0] + limit.window - now) / 1000) 
-      };
-    }
-    
-    validActions.push(now);
-    this.actions.set(key, validActions);
-    
-    return { allowed: true };
-  }
-}
-```
-
-#### Email Validation
-```javascript
-// emailValidation.js - Comprehensive email validation
-const LEGITIMATE_DOMAINS = [
-  'gmail.com', 'outlook.com', 'yahoo.com', 'hotmail.com', 'icloud.com',
-  'jubii.dk', 'post.dk', 'ofir.dk', 'stofanet.dk', 'tdc.dk', // Danish providers
-  'web.de', 'gmx.de', 't-online.de', 'mail.ru', 'yandex.com' // European providers
-];
-
-const DISPOSABLE_DOMAINS = [
-  '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 'mailinator.com',
-  'yopmail.com', 'temp-mail.org', 'throwaway.email', 'getnada.com'
-];
-
-export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return { valid: false, reason: 'Invalid email format' };
-  }
-  
-  const domain = email.split('@')[1].toLowerCase();
-  
-  if (DISPOSABLE_DOMAINS.includes(domain)) {
-    return { valid: false, reason: 'Disposable email addresses are not allowed' };
-  }
-  
-  return { valid: true };
-};
-```
-
-## Environment Variables
-
-### Required Environment Variables
-```bash
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
-
-### Firebase Configuration Validation
-```javascript
-// firebase.js - Environment variable validation
-const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN',
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID'
-];
-
-const missingVars = requiredEnvVars.filter(varName => !import.meta.env[varName]);
-if (missingVars.length > 0) {
-  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
-}
-```
-
 ## Development Setup
 
 ### Prerequisites
@@ -985,6 +672,34 @@ cp frontend/.env.example frontend/.env.local
 # Configure Firebase environment variables
 # Edit frontend/.env.local with your Firebase config
 ```
+
+### Required Environment Variables
+```bash
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+```
+
+### Firebase Project Setup
+1. Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Authentication (Google provider)
+3. Create a Firestore database
+4. Enable Storage
+5. Create a web app to get your config values
+6. Set up Firebase Functions (optional)
+7. Configure Firestore security rules (see `firestore.rules`)
+8. Create admin configuration in Firestore:
+   ```javascript
+   // Collection: admin, Document: config
+   {
+     adminEmails: ["your-admin-email@example.com"]
+   }
+   ```
 
 ### Development Commands
 ```bash
@@ -1063,7 +778,7 @@ firebase deploy
 
 ---
 
-## Architecture Summary for AI Understanding
+## Architecture Summary
 
 This is a **React 19 + Firebase** enterprise application with:
 
@@ -1076,3 +791,10 @@ This is a **React 19 + Firebase** enterprise application with:
 7. **Context-Based State**: 5 contexts managing different application domains
 8. **Component Organization**: 27 components organized by functionality (auth, trading, admin, legal)
 9. **Production Ready**: Comprehensive error handling, loading states, and user feedback
+
+**Key Technical Decisions:**
+- **No Redux**: Context API for simpler state management
+- **No TypeScript**: JSDoc comments for type safety
+- **No Testing Framework**: Manual testing with comprehensive error handling
+- **Firebase-First**: All backend services use Firebase ecosystem
+- **Real-time by Default**: All data operations use Firestore listeners
