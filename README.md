@@ -21,7 +21,7 @@
 ## Project Structure
 
 ```
-roskilde-trade-app/
+roskilde-trade-webapp/
 ├── frontend/                        # React 19 + Vite application
 │   ├── src/
 │   │   ├── components/              # 27 React components
@@ -649,8 +649,8 @@ exports.deleteUser = onRequest(async (req, res) => {
 ### Installation
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/roskilde-trade-app.git
-cd roskilde-trade-app
+git clone https://github.com/yourusername/roskilde-trade-webapp.git
+cd roskilde-trade-webapp
 
 # Install frontend dependencies
 cd frontend

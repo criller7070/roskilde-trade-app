@@ -11,7 +11,7 @@ Thank you for your interest in contributing to RosSwap! This document provides g
 
 ### Setup
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/roskilde-trade-app.git`
+2. Clone your fork: `git clone https://github.com/yourusername/roskilde-trade-webapp.git`
 3. Install dependencies:
    ```bash
    cd frontend && npm install
